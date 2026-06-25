@@ -212,11 +212,11 @@
     
     <tags>
       
+      <tag>面试</tag>
+      
       <tag>数据库</tag>
       
       <tag>MySQL</tag>
-      
-      <tag>面试</tag>
       
       <tag>主从复制</tag>
       
@@ -245,11 +245,11 @@
     
     <tags>
       
+      <tag>面试</tag>
+      
       <tag>数据库</tag>
       
       <tag>MySQL</tag>
-      
-      <tag>面试</tag>
       
       <tag>分库分表</tag>
       
@@ -278,11 +278,11 @@
     
     <tags>
       
+      <tag>面试</tag>
+      
       <tag>数据库</tag>
       
       <tag>MySQL</tag>
-      
-      <tag>面试</tag>
       
       <tag>SQL</tag>
       
@@ -569,11 +569,11 @@
     
     <tags>
       
+      <tag>面试</tag>
+      
       <tag>数据库</tag>
       
       <tag>MySQL</tag>
-      
-      <tag>面试</tag>
       
       <tag>进阶</tag>
       
@@ -801,11 +801,11 @@
     
     <tags>
       
+      <tag>面试</tag>
+      
       <tag>数据库</tag>
       
       <tag>MySQL</tag>
-      
-      <tag>面试</tag>
       
     </tags>
     
@@ -948,9 +948,9 @@
       
       <tag>面试</tag>
       
-      <tag>SpringCloud</tag>
-      
       <tag>微服务</tag>
+      
+      <tag>SpringCloud</tag>
       
     </tags>
     
@@ -977,9 +977,9 @@
       
       <tag>面试</tag>
       
-      <tag>微服务</tag>
-      
       <tag>SpringBoot</tag>
+      
+      <tag>微服务</tag>
       
     </tags>
     
@@ -1064,9 +1064,9 @@
       
       <tag>面试</tag>
       
-      <tag>JVM</tag>
-      
       <tag>java</tag>
+      
+      <tag>JVM</tag>
       
     </tags>
     
@@ -1093,9 +1093,9 @@
       
       <tag>面试</tag>
       
-      <tag>java</tag>
-      
       <tag>多线程</tag>
+      
+      <tag>java</tag>
       
     </tags>
     
