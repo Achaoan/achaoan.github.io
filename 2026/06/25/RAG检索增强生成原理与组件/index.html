@@ -1,0 +1,535 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>RAG 检索增强生成：原理、工作流与核心组件 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/rag-basics-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="RAG 检索增强生成：原理、工作流与核心组件">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 22:10" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      18
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">RAG 检索增强生成：原理、工作流与核心组件</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：19 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、什么是-RAG"><a href="#一、什么是-RAG" class="headerlink" title="一、什么是 RAG"></a>一、什么是 RAG</h2><p>RAG（Retrieval-Augmented Generation）是一种让 LLM 能够访问<strong>外部知识库</strong>的技术方案。它通过检索相关文档片段来增强 LLM 的回答质量。</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">RAG 解决的核心问题：<br>┌──────────────────────────────────────────────────────────┐<br>│  问题 <span class="hljs-number">1</span>：知识过时                                      │<br>│  <span class="hljs-keyword">LLM </span>的知识截止于训练数据的时间点                       │<br>│  RAG：从最新文档中检索，回答总是基于最新信息            │<br>│                                                          │<br>│  问题 <span class="hljs-number">2</span>：不知道私有数据                                  │<br>│  <span class="hljs-keyword">LLM </span>不知道公司内部文档、用户个人信息                   │<br>│  RAG：从企业知识库中检索，回答基于私有数据              │<br>│                                                          │<br>│  问题 <span class="hljs-number">3</span>：幻觉（Hallucination）                          │<br>│  <span class="hljs-keyword">LLM </span>会编造不存在的知识                                 │<br>│  RAG：检索到的文档约束了模型，减少编造                  │<br>│                                                          │<br>│  一句话总结：RAG = 给 <span class="hljs-keyword">LLM </span>配一本<span class="hljs-string">&quot;参考书&quot;</span>                │<br>└──────────────────────────────────────────────────────────┘<br><br>经典场景：<br>├── 客服问答：从产品文档中检索答案<br>├── 企业内部知识库：HR 政策、技术文档<br>├── 法律文档分析：从法规库中检索相关条文<br>├── 学术论文助手：从论文库中检索研究内容<br>└── 医疗辅助诊断：从医学文献中检索治疗方案<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、RAG-标准工作流程"><a href="#二、RAG-标准工作流程" class="headerlink" title="二、RAG 标准工作流程"></a>二、RAG 标准工作流程</h2><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs mathematica"><span class="hljs-variable">RAG</span> 分三个阶段：<br>┌─────────────────────────────────────────────┐<br>│  ① 预处理阶段（离线）                        │<br>│  ├── 文档 → 切分（<span class="hljs-variable">Chunking</span>）                 │<br>│  │     将长文档切成小块                      │<br>│  ├── 每个 <span class="hljs-variable">Chunk</span> → <span class="hljs-variable">Embedding</span>（向量化）        │<br>│  │     将文本转为向量嵌入                    │<br>│  └── 向量存入 <span class="hljs-variable">Vector</span> <span class="hljs-variable">Database</span>                │<br>│      建立索引，等待检索                      │<br>│                                              │<br>│  ② 查询阶段（在线）                          │<br>│  ├── 用户提问                                │<br>│  ├── 问题 → <span class="hljs-variable">Embedding</span>（向量化）              │<br>│  │     用同一个 <span class="hljs-variable">Embedding</span> 模型转向量         │<br>│  ├── 向量数据库 → 相似度检索（<span class="hljs-built_in">Top</span><span class="hljs-operator">-</span><span class="hljs-built_in">K</span>）        │<br>│  │     计算余弦相似度，取最相似的 <span class="hljs-built_in">K</span> 个       │<br>│  └── 返回最相关的 <span class="hljs-built_in">K</span> 个文档片段               │<br>│                                              │<br>│  ③ 生成阶段（在线）                          │<br>│  ├── 问题 <span class="hljs-operator">+</span> 检索到的文档 → 组装 <span class="hljs-variable">Prompt</span>       │<br>│  │     <span class="hljs-string">&quot;根据以下文档回答问题：&quot;</span>              │<br>│  ├── 发给 <span class="hljs-variable">LLM</span>                                │<br>│  └── <span class="hljs-variable">LLM</span> 基于上下文生成回答                  │<br>└─────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、核心组件详解"><a href="#三、核心组件详解" class="headerlink" title="三、核心组件详解"></a>三、核心组件详解</h2><h3 id="1-Embedding-Model（嵌入模型）"><a href="#1-Embedding-Model（嵌入模型）" class="headerlink" title="1. Embedding Model（嵌入模型）"></a>1. Embedding Model（嵌入模型）</h3><p>将文本转为向量（固定维度的浮点数数组），语义相近的文本向量距离也近。</p>
+<figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs excel">Embedding 的工作原理：<br>├── 输入：<span class="hljs-string">&quot;猫&quot;</span> → [<span class="hljs-number">0.1</span>, <span class="hljs-number">0.3</span>, -<span class="hljs-number">0.2</span>, <span class="hljs-number">0.8</span>, ...]（<span class="hljs-number">1536</span> 维向量）<br>├── 输入：<span class="hljs-string">&quot;狗&quot;</span> → [<span class="hljs-number">0.2</span>, <span class="hljs-number">0.4</span>, -<span class="hljs-number">0.1</span>, <span class="hljs-number">0.7</span>, ...]（距离近）<br>├── 输入：<span class="hljs-string">&quot;汽车&quot;</span> → [-<span class="hljs-number">0.5</span>, <span class="hljs-number">0.1</span>, <span class="hljs-number">0.6</span>, -<span class="hljs-number">0.3</span>, ...]（距离远）<br>└── 文本相似度 = 余弦相似度（Cosine Similarity）<br><br>常见 Embedding 模型：<br>├── OpenAI：<span class="hljs-built_in">text</span>-embedding-<span class="hljs-number">3</span>-<span class="hljs-built_in">small</span>（<span class="hljs-number">1536</span> 维，性价比高）<br>├── OpenAI：<span class="hljs-built_in">text</span>-embedding-<span class="hljs-number">3</span>-<span class="hljs-built_in">large</span>（<span class="hljs-number">3072</span> 维，更精确）<br>├── BAAI：bge-<span class="hljs-symbol">m3</span>（中文英文都强，开源）<br>├── Cohere：embed-multilingual-<span class="hljs-symbol">v3</span>（多语言）<br>└── 注意：Embedding 模型和 LLM 是两个不同的模型<br><br>关键考量：<br>├── 维度不是越高越好（性能、存储成本）<br>├── 中文场景需要中文优化的 Embedding 模型<br>├── 数据不回传（可以在本地做向量化）<br>└── 混合使用：关键词搜索（<span class="hljs-symbol">BM25</span>）+ 向量搜索<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-Vector-Database（向量数据库）"><a href="#2-Vector-Database（向量数据库）" class="headerlink" title="2. Vector Database（向量数据库）"></a>2. Vector Database（向量数据库）</h3><p>专门用于存储和检索向量的数据库。</p>
+<figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">向量数据库选型：<br>┌────────────┬───────────┬──────────┬──────────────────┐<br>│ 数据库     │ 部署方式  │ 开源     │ 特点             │<br>├────────────┼───────────┼──────────┼──────────────────┤<br>│ <span class="hljs-variable">Pinecone</span>   │ 托管      │ ❌       │ 零运维，快速上    │<br>│ <span class="hljs-variable">Milvus</span>     │ 自建      │ ✅       │ 功能丰富，性能好  │<br>│ <span class="hljs-variable">Chroma</span>     │ 嵌入      │ ✅       │ 轻量级，适合开发  │<br>│ <span class="hljs-variable">Qdrant</span>     │ 自建<span class="hljs-operator">/</span>托管 │ ✅       │ <span class="hljs-variable">Rust</span> 实现，性能优  │<br>│ <span class="hljs-variable">Weaviate</span>   │ 自建<span class="hljs-operator">/</span>托管 │ ✅       │ 支持混合搜索      │<br>│ <span class="hljs-variable">pgvector</span>   │ <span class="hljs-variable">PostgreSQL</span>│ ✅       │ <span class="hljs-variable">SQL</span> 开发者友好    │<br>│ <span class="hljs-variable">Redis</span>      │ 自建<span class="hljs-operator">/</span>托管 │ ❌       │ 低延迟，缓存<span class="hljs-operator">+</span>向量 │<br>└────────────┴───────────┴──────────┴──────────────────┘<br><br>向量数据库的核心操作：<br>├── 写入：存入向量 <span class="hljs-operator">+</span> 元数据（原始文本、文档 <span class="hljs-variable">ID</span>）<br>├── 索引：建 <span class="hljs-variable">ANN</span>（<span class="hljs-variable">Approximate</span> <span class="hljs-built_in">Nearest</span> <span class="hljs-variable">Neighbor</span>）索引<br>│   ├── <span class="hljs-variable">HNSW</span>（<span class="hljs-variable">Hierarchical</span> <span class="hljs-variable">Navigable</span> <span class="hljs-built_in">Small</span> <span class="hljs-variable">World</span>）最主流<br>│   └── <span class="hljs-variable">IVF</span>（<span class="hljs-variable">Inverted</span> <span class="hljs-built_in">File</span> <span class="hljs-variable">Index</span>）适合大规模<br>├── 检索：给定查询向量，返回 <span class="hljs-built_in">Top</span><span class="hljs-operator">-</span><span class="hljs-built_in">K</span> 最相似的<br>├── 过滤：基于元数据筛选（如只查某个分类）<br>└── 混合搜索：向量 <span class="hljs-operator">+</span> 关键词（<span class="hljs-variable">BM25</span>）加权组合<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-Chunking-Strategy（分块策略）"><a href="#3-Chunking-Strategy（分块策略）" class="headerlink" title="3. Chunking Strategy（分块策略）"></a>3. Chunking Strategy（分块策略）</h3><p>将文档切成适当大小的块，是 RAG 效果的关键因素。</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs awk">分块策略对比：<br>├── 固定大小分块<br>│   ├── 按固定 Token 数切分（如 <span class="hljs-number">512</span> tokens）<br>│   ├── 简单高效<br>│   └── 可能切断句子或段落，破坏语义<br>│<br>├── 语义分块<br>│   ├── 按段落<span class="hljs-regexp">/标题/</span>句子边界切分<br>│   ├── 保留语义完整性<br>│   └── 实现更复杂（需要 NLP 工具）<br>│<br>├── 重叠分块<br>│   ├── 相邻块重叠一部分内容（如重叠 <span class="hljs-number">10</span>-<span class="hljs-number">20</span>%）<br>│   ├── 避免<span class="hljs-string">&quot;边界切断&quot;</span>问题<br>│   └── 增加存储成本但提高检索质量<br>│<br>└── 最佳实践<br>    ├── 分块大小：<span class="hljs-number">256</span>-<span class="hljs-number">1024</span> tokens<br>    ├── 重叠比例：<span class="hljs-number">10</span>-<span class="hljs-number">20</span>%<br>    ├── 按文档结构切分（Markdown 标题、章节）<br>    └── 保留元数据（来源、章节、页码）<br></code></pre></td></tr></table></figure>
+
+<h3 id="4-Retrieval-Strategy（检索策略）"><a href="#4-Retrieval-Strategy（检索策略）" class="headerlink" title="4. Retrieval Strategy（检索策略）"></a>4. Retrieval Strategy（检索策略）</h3><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">基础策略：<br>├── 相似度阈值：只取分数 <span class="hljs-operator">&gt;</span> <span class="hljs-built_in">N</span> 的结果<br>├── <span class="hljs-built_in">Top</span><span class="hljs-operator">-</span><span class="hljs-built_in">K</span> 固定：总是取前 <span class="hljs-built_in">K</span> 个<br>└── <span class="hljs-variable">MMR</span>（最大边际相关性）：兼顾相关性和多样性<br><br>进阶策略：<br>├── 多路召回（<span class="hljs-variable">Hybrid</span> <span class="hljs-variable">Search</span>）<br>│   ├── 向量搜索（语义相似度）<br>│   ├── 关键词搜索（<span class="hljs-variable">BM25</span> 精确匹配）<br>│   └── 加权合并结果<br>│<br>├── <span class="hljs-variable">Reranking</span>（重排序）<br>│   ├── 第一轮：向量搜索快速取回 <span class="hljs-built_in">Top</span><span class="hljs-operator">-</span><span class="hljs-number">50</span><br>│   ├── 第二轮：<span class="hljs-variable">Reranker</span> 模型精确排序 <span class="hljs-built_in">Top</span><span class="hljs-operator">-</span><span class="hljs-number">5</span><br>│   └── 效果：<span class="hljs-built_in">Top</span><span class="hljs-operator">-</span><span class="hljs-number">1</span> 准确率提升 <span class="hljs-number">10</span><span class="hljs-operator">-</span><span class="hljs-number">20</span><span class="hljs-operator">%</span><br>│<br>└── <span class="hljs-variable">HyDE</span>（假设文档嵌入）<br>    ├── 先用 <span class="hljs-variable">LLM</span> 基于问题生成<span class="hljs-string">&quot;假设回答&quot;</span><br>    ├── 用假设回答去检索而不是原始问题<br>    ├── 缩小问题<span class="hljs-operator">-</span>文档之间的<span class="hljs-string">&quot;表达鸿沟&quot;</span><br>    └── 适合问题和文档表述方式差异大的场景<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、RAG-vs-微调"><a href="#四、RAG-vs-微调" class="headerlink" title="四、RAG vs 微调"></a>四、RAG vs 微调</h2><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs mathematica"><span class="hljs-variable">RAG</span>                             微调（<span class="hljs-built_in">Fine</span><span class="hljs-operator">-</span><span class="hljs-variable">tuning</span>）<br>├── 不修改模型参数                ├── 修改模型参数<br>├── 适合：知识库、实时数据         ├── 适合：风格迁移、格式固化<br>├── 优势：知识随时更新              ├── 优势：不依赖外部检索<br>├── 优势：无训练成本                ├── 优势：响应更快<br>├── 劣势：每次请求需检索            ├── 劣势：需要训练数据和 <span class="hljs-variable">GPU</span><br>└── 劣势：依赖检索质量              └── 劣势：知识无法实时更新<br><br>结论：<br>├── <span class="hljs-variable">RAG</span> 解决<span class="hljs-string">&quot;知识&quot;</span>问题<br>├── 微调解决<span class="hljs-string">&quot;行为&quot;</span>问题<br>├── 想让 <span class="hljs-variable">AI</span> 知道更多 → <span class="hljs-variable">RAG</span><br>├── 想让 <span class="hljs-variable">AI</span> 更像某种风格 → 微调<br>└── 最佳实践：<span class="hljs-variable">RAG</span> <span class="hljs-operator">+</span> 微调 结合使用<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、面试题"><a href="#五、面试题" class="headerlink" title="五、面试题"></a>五、面试题</h2><h4 id="1-RAG-解决了什么问题？"><a href="#1-RAG-解决了什么问题？" class="headerlink" title="1. RAG 解决了什么问题？"></a>1. RAG 解决了什么问题？</h4><p>LLM 知识过时、不知道私有数据、产生幻觉。RAG = 给 LLM 配参考书，通过外部检索增强回答质量。</p>
+<h4 id="2-RAG-的三阶段流程？"><a href="#2-RAG-的三阶段流程？" class="headerlink" title="2. RAG 的三阶段流程？"></a>2. RAG 的三阶段流程？</h4><p>预处理（文档切分 + 向量化 + 存入向量库）→ 查询（问题向量化 + 相似度检索）→ 生成（问题 + 检索结果 → LLM 回答）。</p>
+<h4 id="3-Chunking-策略怎么选？"><a href="#3-Chunking-策略怎么选？" class="headerlink" title="3. Chunking 策略怎么选？"></a>3. Chunking 策略怎么选？</h4><p>固定大小分块简单但可能切断语义，语义分块保留完整性但实现复杂，重叠分块避免边界切断问题。推荐 256-1024 tokens + 10-20% 重叠。</p>
+<h4 id="4-RAG-和微调的区别？"><a href="#4-RAG-和微调的区别？" class="headerlink" title="4. RAG 和微调的区别？"></a>4. RAG 和微调的区别？</h4><p>RAG 不修改模型，通过检索增强知识，适合实时更新场景。微调修改模型参数，适合改变行为风格。两者可结合使用。</p>
+<h4 id="5-Embedding-Model-的作用？"><a href="#5-Embedding-Model-的作用？" class="headerlink" title="5. Embedding Model 的作用？"></a>5. Embedding Model 的作用？</h4><p>将文本转为向量，语义相近的文本向量距离也近。RAG 中用同一个 Embedding 模型将问题和文档都向量化，通过余弦相似度匹配。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/AI/">AI</a>
+                    
+                      <a class="hover-with-bg" href="/tags/RAG/">RAG</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90/">检索增强生成</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Embedding/">Embedding</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93/">向量数据库</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/Function%20Calling%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E5%8E%9F%E7%90%86%E4%B8%8E%E5%9C%BA%E6%99%AF/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Function Calling（函数调用）：原理、流程与应用场景</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8BPromptEngineeringSystemPrompt%E4%B8%8E%E6%80%9D%E7%BB%B4%E9%93%BE/">
+                        <span class="hidden-mobile">提示工程（Prompt Engineering）：System Prompt、Few-shot、思维链</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

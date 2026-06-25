@@ -1,0 +1,535 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>提示工程（Prompt Engineering）：System Prompt、Few-shot、思维链 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/prompt-eng-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="提示工程（Prompt Engineering）：System Prompt、Few-shot、思维链">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 22:05" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.8k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      20
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">提示工程（Prompt Engineering）：System Prompt、Few-shot、思维链</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：20 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、什么是提示工程"><a href="#一、什么是提示工程" class="headerlink" title="一、什么是提示工程"></a>一、什么是提示工程</h2><p>提示工程是通过设计输入给 LLM 的文本（Prompt），引导模型输出期望结果的工程技术。</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">提示工程的本质：<br>├── <span class="hljs-keyword">LLM </span>的能力是固定的（训练完成后不变）<br>├── Prompt 决定了<span class="hljs-string">&quot;激活&quot;</span>模型的哪些能力<br>├── 同一个模型，不同的 Prompt 产出天壤之别<br>└── 提示工程 = 找到让模型表现最好的输入方式<br><br>核心原则：说清楚、给上下文、定约束<br>├── 明确（Specific）：说清楚你要什么<br>├── 结构化（Structured）：分段落、用分隔符<br>├── 提供上下文（<span class="hljs-built_in">Context</span>）：背景越充分，输出越精准<br>└── 定义约束（Constraints）：格式、长度、风格、禁忌<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、System-Prompt"><a href="#二、System-Prompt" class="headerlink" title="二、System Prompt"></a>二、System Prompt</h2><p>System Prompt 是在对话开始前给模型的全局指令，设定角色、行为规则和输出约束。它贯穿整个对话始终。</p>
+<figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs crmsh">System Prompt vs <span class="hljs-keyword">User</span> <span class="hljs-title">Prompt</span>：<br>┌─────────────────────────────────────────────────────────┐<br>│  System Prompt（系统提示词）── 开发者设定                │<br>│  ├── 角色定义：<span class="hljs-string">&quot;你是资深的 Java 架构师&quot;</span>                 │<br>│  ├── 行为规则：<span class="hljs-string">&quot;用中文回答，技术术语保留英文&quot;</span>           │<br>│  ├── 约束条件：<span class="hljs-string">&quot;不知道就说不知道，不要编造&quot;</span>             │<br>│  └── 输出格式：<span class="hljs-string">&quot;用 Markdown 格式输出&quot;</span>                   │<br>│                                                          │<br>│  <span class="hljs-keyword">User</span> <span class="hljs-title">Prompt</span>（用户提示词）── 用户每次输入               │<br>│  └── 具体问题：<span class="hljs-string">&quot;Spring 循环依赖怎么解决？&quot;</span>              │<br>└─────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="System-Prompt-为什么有效"><a href="#System-Prompt-为什么有效" class="headerlink" title="System Prompt 为什么有效"></a>System Prompt 为什么有效</h3><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs gams">原因一：位置优势<br>├── 模型在 Attention 中更关注序列开头的 Token<br>├── <span class="hljs-keyword">System</span> Prompt 位于整个序列的起点<br>└── 越靠近开头的指令，模型越容易遵循<br><br>原因二：训练数据模式<br>├── 训练数据中有大量<span class="hljs-string">&quot;任务描述在前，具体内容在后&quot;</span>的样本<br>├── 模型学会了<span class="hljs-string">&quot;开头的指令控制后续输出&quot;</span>的模式<br>└── <span class="hljs-keyword">System</span> Prompt 触发了这种学习模式<br><br>原因三：持续上下文<br>├── <span class="hljs-keyword">System</span> Prompt 在每一轮对话中都存在<br>├── 不会被后续对话<span class="hljs-string">&quot;冲淡&quot;</span><br>└── 持续约束模型行为<br><br>编写 <span class="hljs-keyword">System</span> Prompt 的最佳实践：<br>├── 正面表述 &gt; 负面表述<br>│   ✅ <span class="hljs-string">&quot;提供准确的代码示例&quot;</span><br>│   ❌ <span class="hljs-string">&quot;不要写错误的代码&quot;</span><br>├── 具体 &gt; 模糊<br>│   ✅ <span class="hljs-string">&quot;输出格式：JSON，包含 code 和 message 字段&quot;</span><br>│   ❌ <span class="hljs-string">&quot;输出格式规范一些&quot;</span><br>├── 分层次写<br>│   ├── 第一层：角色定义<br>│   ├── 第二层：行为规则<br>│   └── 第三层：输出格式<br>└── 包含拒绝策略<br>    ✅ <span class="hljs-string">&quot;不确定的问题请说明你的分析过程&quot;</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="三、Few-shot-与-Zero-shot"><a href="#三、Few-shot-与-Zero-shot" class="headerlink" title="三、Few-shot 与 Zero-shot"></a>三、Few-shot 与 Zero-shot</h2><h3 id="Zero-shot（零样本）"><a href="#Zero-shot（零样本）" class="headerlink" title="Zero-shot（零样本）"></a>Zero-shot（零样本）</h3><p>不给任何例子，直接提问。适合模型已经非常熟悉的任务。</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm"><span class="hljs-built_in">Zero</span>-<span class="hljs-keyword">shot </span>示例：<br><span class="hljs-string">&quot;将以下句子翻译成英文：今天天气真好。&quot;</span><br><br>模型依赖训练时学到的翻译能力来完成任务。<br>优点：简洁，省 Token<br>缺点：对复杂或不常见的任务格式效果不稳定<br></code></pre></td></tr></table></figure>
+
+<h3 id="Few-shot（少样本）"><a href="#Few-shot（少样本）" class="headerlink" title="Few-shot（少样本）"></a>Few-shot（少样本）</h3><p>给出几个输入输出例子，让模型模仿模式。</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs vim">Few-shot 示例：<br><span class="hljs-comment">&quot;将中文句子翻译成英文：</span><br>例子 <span class="hljs-number">1</span>：<br>输入：我爱编程<br>输出：I love programming<br><br>例子 <span class="hljs-number">2</span>：<br>输入：今天很忙<br>输出：Today <span class="hljs-keyword">is</span> busy<br><br>现在翻译：明天会更好<span class="hljs-comment">&quot;</span><br><br>为什么 Few-shot 有效：<br>├── 例子为模型提供了输出格式<span class="hljs-string">&quot;锚点&quot;</span><br>├── 模型通过类比学习模式而不仅仅是指令<br>├── 减少了格式猜测的空间<br>└── <span class="hljs-number">3</span>-<span class="hljs-number">5</span> 个例子通常是最佳数量<br><br>Few-shot 使用要点：<br>├── 例子要有代表性（覆盖常见变体）<br>├── 例子要高质量（模型会模仿你给的例子质量）<br>├── 例子按难度从简单到复杂排列<br>└── 太多例子会浪费上下文、稀释注意力<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、Chain-of-Thought（思维链）"><a href="#四、Chain-of-Thought（思维链）" class="headerlink" title="四、Chain-of-Thought（思维链）"></a>四、Chain-of-Thought（思维链）</h2><p>Chain-of-Thought（CoT）是让模型”一步一步思考”再给出答案的技术，能显著提高推理任务的准确率。</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs asciidoc">CoT 的原理：<br>├── 直接答案 → 模型&quot;跳步&quot;容易出错<br>├── 逐步推理 → 每一步都可见，错误可定位<br>├── 中间步骤减少了&quot;工作记忆&quot;负担<br>└── 推理链条让复杂问题被分解为简单子问题<br><br>对比：<br>❌ 直接问：&quot;24 × 37 = ？&quot;<br>模型可能直接输出错误答案<br><br>✅ CoT 问法：<br>&quot;24 × 37 = 24 × 30 + 24 × 7<br><span class="hljs-section">= 720 + 168</span><br><span class="hljs-section">= 888&quot;</span><br><br>所以答案是 888。<br>→ 模型按照你的推理步骤，更容易得到正确结果<br><br>CoT 的变体：<br>├── Zero-shot CoT：在 Prompt 末尾加&quot;让我们一步一步思考&quot;<br>├── Few-shot CoT：给几个带推理步骤的例子<br>├── Self-Consistency：多次运行 CoT，投票选最一致的答案<br>│   ├── 解决 CoT 单次随机性问题<br>│   └── 适合数学和逻辑推理<br>└── Tree-of-Thought（ToT）：同时探索多条推理路径<br><span class="hljs-code">    ├── 模型同时考虑多个方向</span><br><span class="hljs-code">    ├── 遇到死胡同就回退</span><br><span class="hljs-code">    └── 适合复杂决策和策略规划</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="五、常用技巧"><a href="#五、常用技巧" class="headerlink" title="五、常用技巧"></a>五、常用技巧</h2><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs 1c"><span class="hljs-number">1</span>. 角色扮演（Role Playing）<br>   给模型一个身份，限制知识范围和表达方式<br>   <span class="hljs-string">&quot;你是一本 Java 教科书，用教材风格回答问题&quot;</span><br>   效果：模型会模仿该角色的语言风格和知识框架<br><br><span class="hljs-number">2</span>. 反思与自我修正（Reflection）<br>   先让模型回答，再让它检查自己的回答<br>   <span class="hljs-string">&quot;回答之后，请检查你的回答是否有错误或遗漏&quot;</span><br>   效果：第二轮回答通常比第一轮更准确<br><br><span class="hljs-number">3</span>. 分隔符（Delimiters）<br>   用明确的符号区分指令和输入<br>   使用 ---、<span class="hljs-string">&quot;&quot;&quot;、&lt;xml&gt; 等分隔符</span><br>   <span class="hljs-string">&quot;&quot;&quot;</span><br>   【指令】提取以下文本中的日期<br>   【文本】今天是 <span class="hljs-number">2026</span> 年 <span class="hljs-number">6</span> 月 <span class="hljs-number">25</span> 日，天气晴朗<br>   【输出格式】YYYY-MM-DD<br>   <span class="hljs-string">&quot;&quot;&quot;</span><br>   效果：减少指令和输入之间的混淆<br><br><span class="hljs-number">4</span>. 结构化输出约束<br>   明确要求输出的结构和格式<br>   <span class="hljs-string">&quot;输出格式为 JSON：&#123;&quot;</span>name<span class="hljs-string">&quot;: string, &quot;</span>age<span class="hljs-string">&quot;: number&#125;&quot;</span><br>   效果：显著提高输出格式的符合率<br><br><span class="hljs-number">5</span>. 负面提示（Negative Prompt）<br>   告诉模型不要做什么<br>   <span class="hljs-string">&quot;不要解释，只输出代码。不要反问问题。&quot;</span><br>   效果：减少不必要的输出内容<br><br><span class="hljs-number">6</span>. 元提示（Meta Prompt）<br>   让模型先理解任务本身<br>   <span class="hljs-string">&quot;在回答之前，请先用你自己的话复述一遍我的需求&quot;</span><br>   效果：确保模型真正理解了任务<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、面试题"><a href="#六、面试题" class="headerlink" title="六、面试题"></a>六、面试题</h2><h4 id="1-System-Prompt-和-User-Prompt-的区别？"><a href="#1-System-Prompt-和-User-Prompt-的区别？" class="headerlink" title="1. System Prompt 和 User Prompt 的区别？"></a>1. System Prompt 和 User Prompt 的区别？</h4><p>System Prompt 是开发者设定的全局指令，贯穿整个对话，定义角色、行为规则和输出格式。User Prompt 是用户每次输入的具体问题。System Prompt 在 Attention 中占据更显著的位置。</p>
+<h4 id="2-Few-shot-为什么有效？"><a href="#2-Few-shot-为什么有效？" class="headerlink" title="2. Few-shot 为什么有效？"></a>2. Few-shot 为什么有效？</h4><p>它为模型提供了输出格式的”锚点”和推理模式的参考。模型通过类比学习而不是仅依赖指令理解。3-5 个高质量例子是最佳数量。</p>
+<h4 id="3-Chain-of-Thought-的原理？"><a href="#3-Chain-of-Thought-的原理？" class="headerlink" title="3. Chain-of-Thought 的原理？"></a>3. Chain-of-Thought 的原理？</h4><p>让模型先展示推理过程再给出结论，将隐式推理显式化。减少”跳步”导致的错误，让复杂问题被分解为简单子问题。Zero-shot CoT 只需加”让我们一步一步思考”。</p>
+<h4 id="4-提示工程的核心原则是什么？"><a href="#4-提示工程的核心原则是什么？" class="headerlink" title="4. 提示工程的核心原则是什么？"></a>4. 提示工程的核心原则是什么？</h4><p>明确具体、结构化、提供上下文、定义约束。好的 Prompt = 目标 + 背景 + 格式 + 约束。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/AI/">AI</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Prompt-Engineering/">Prompt Engineering</a>
+                    
+                      <a class="hover-with-bg" href="/tags/System-Prompt/">System Prompt</a>
+                    
+                      <a class="hover-with-bg" href="/tags/CoT/">CoT</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Few-shot/">Few-shot</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/RAG%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90%E5%8E%9F%E7%90%86%E4%B8%8E%E7%BB%84%E4%BB%B6/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">RAG 检索增强生成：原理、工作流与核心组件</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/Volatile%E4%B8%8EJMM%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">Volatile与JMM：可见性、有序性、Happens-Before</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

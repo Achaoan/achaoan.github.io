@@ -1,0 +1,544 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>大语言模型（LLM）基础：Transformer、Token、上下文窗口 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/llm-basics-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="大语言模型（LLM）基础：Transformer、Token、上下文窗口">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 22:00" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      23
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">大语言模型（LLM）基础：Transformer、Token、上下文窗口</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：20 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、什么是大语言模型"><a href="#一、什么是大语言模型" class="headerlink" title="一、什么是大语言模型"></a>一、什么是大语言模型</h2><p>大语言模型（Large Language Model, LLM）是一种基于<strong>深度学习</strong>的神经网络模型，通过海量文本数据训练，能够理解和生成人类语言。</p>
+<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs stata">传统程序 vs 大模型：<br>┌─────────────────────────────────────────────────────────┐<br>│  传统程序：输入 → 固定规则/逻辑 → 确定输出              │<br>│  LLM：    输入 → 概率预测 → 最可能的输出                │<br>└─────────────────────────────────────────────────────────┘<br><br>核心本质：LLM 不是<span class="hljs-string">&quot;理解&quot;</span>语言，而是基于统计规律做<span class="hljs-string">&quot;预测&quot;</span><br>├── 输入一段文本（Prompt）<br>├── 模型根据训练学到的模式<br>├── 逐个 <span class="hljs-keyword">Token</span> 预测最可能的下一个 <span class="hljs-keyword">Token</span><br>└── 生成完整回复<br></code></pre></td></tr></table></figure>
+
+<p>LLM 的训练分为两个阶段：</p>
+<figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs gams">预训练（Pre-training）：<br>├── 在海量互联网文本上训练（TB 级别）<br>├── 目标：预测下一个 Token（自监督学习）<br>├── 学到：语法、事实知识、推理模式<br>├── 成本：数千万到数亿美元（GPU 集群运行数月）<br>└── 产出：基座模型（Base <span class="hljs-keyword">Model</span>），知识丰富但<span class="hljs-string">&quot;不好用&quot;</span><br><br>对齐（Alignment）：<br>├── 在高质量标注数据上微调<br>├── 目标：让模型遵循指令、诚实、无害<br>├── 学到：对话格式、价值观、安全约束<br>├── 成本：相对较低（百万级）<br>└── 产出：对话模型（Chat <span class="hljs-keyword">Model</span>），如 ChatGPT<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、Transformer-架构"><a href="#二、Transformer-架构" class="headerlink" title="二、Transformer 架构"></a>二、Transformer 架构</h2><p>现代 LLM 都基于 Transformer 架构（Google 2017 年论文《Attention Is All You Need》），核心创新是<strong>自注意力机制</strong>。</p>
+<figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs gauss">Transformer 核心组件：<br>┌─────────────────────────────────────┐<br>│  Tokenization（分词）                │<br>│      ↓                              │<br>│  Embedding（向量化）                  │<br>│      ↓                              │<br>│  Self-Attention（自注意力机制） ⭐     │<br>│  ├── QKV（Query/<span class="hljs-built_in">Key</span>/Value）          │<br>│  ├── 每个 <span class="hljs-built_in">Token</span> 关注所有其他 <span class="hljs-built_in">Token</span>    │<br>│  └── 理解上下文关系                   │<br>│      ↓                              │<br>│  Feed-Forward（前馈神经网络）          │<br>│      ↓                              │<br>│  Softmax → 下一个 <span class="hljs-built_in">Token</span> 概率          │<br>└─────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="Self-Attention-详解"><a href="#Self-Attention-详解" class="headerlink" title="Self-Attention 详解"></a>Self-Attention 详解</h3><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs mathematica"><span class="hljs-variable">Self</span><span class="hljs-operator">-</span><span class="hljs-variable">Attention</span> 的计算过程：<br>├── 输入序列：<span class="hljs-string">&quot;我 爱 北京 天安门&quot;</span><br>├── 每个 <span class="hljs-variable">Token</span> 生成三个向量：<span class="hljs-variable">Q</span>（查询）、<span class="hljs-built_in">K</span>（键）、<span class="hljs-variable">V</span>（值）<br>│<br>├── 以<span class="hljs-string">&quot;爱&quot;</span>为例：<br>│   ├── 用<span class="hljs-string">&quot;爱&quot;</span>的 <span class="hljs-variable">Q</span> 与所有 <span class="hljs-variable">Token</span> 的 <span class="hljs-built_in">K</span> 计算相似度（点积）<br>│   ├── <span class="hljs-string">&quot;我&quot;</span>的 <span class="hljs-built_in">K</span>：相似度 <span class="hljs-number">0.6</span><br>│   ├── <span class="hljs-string">&quot;爱&quot;</span>的 <span class="hljs-built_in">K</span>：相似度 <span class="hljs-number">1.0</span>（自己和自己最相似）<br>│   ├── <span class="hljs-string">&quot;北京&quot;</span>的 <span class="hljs-built_in">K</span>：相似度 <span class="hljs-number">0.8</span><br>│   ├── <span class="hljs-string">&quot;天安门&quot;</span>的 <span class="hljs-built_in">K</span>：相似度 <span class="hljs-number">0.5</span><br>│   └── <span class="hljs-variable">Softmax</span> 归一化后加权求和 <span class="hljs-variable">V</span>，得到<span class="hljs-string">&quot;爱&quot;</span>的新表示<br>│<br>├── 结果：每个 <span class="hljs-variable">Token</span> 的新表示都<span class="hljs-string">&quot;看到了&quot;</span>全序列信息<br>│<br>└── 多层叠加：底层学语法，中层学语义，高层学抽象概念<br><br>为什么重要：<br>├── <span class="hljs-variable">RNN</span>：必须逐个处理 <span class="hljs-variable">Token</span>，无法并行，速度慢<br>├── <span class="hljs-variable">CNN</span>：只能看到局部窗口，长距离依赖需要多层堆叠<br>├── <span class="hljs-variable">Transformer</span>：一次处理全部 <span class="hljs-variable">Token</span>，可并行训练<br>└── <span class="hljs-variable">Self</span><span class="hljs-operator">-</span><span class="hljs-variable">Attention</span> 使 <span class="hljs-variable">GPT</span> 规模化成为可能<br></code></pre></td></tr></table></figure>
+
+<h3 id="多头注意力（Multi-Head-Attention）"><a href="#多头注意力（Multi-Head-Attention）" class="headerlink" title="多头注意力（Multi-Head Attention）"></a>多头注意力（Multi-Head Attention）</h3><figure class="highlight lasso"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs lasso">多头注意力 = 多个 <span class="hljs-built_in">Self</span><span class="hljs-params">-Attention</span> 并行计算<br>├── 每个<span class="hljs-string">&quot;头&quot;</span>关注不同的特征维度<br>│   ├── 头 <span class="hljs-number">1</span>：关注语法关系（主谓宾）<br>│   ├── 头 <span class="hljs-number">2</span>：关注位置关系（前后文）<br>│   ├── 头 <span class="hljs-number">3</span>：关注语义关系（同义词）<br>│   └── <span class="hljs-params">...</span><br>├── 所有头的输出拼接在一起<br>├── 经过线性变换得到最终结果<br>└── GPT<span class="hljs-number">-4</span> 可能有 <span class="hljs-number">96</span><span class="hljs-number">-128</span> 个注意力头<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、Token（词元）"><a href="#三、Token（词元）" class="headerlink" title="三、Token（词元）"></a>三、Token（词元）</h2><p>Token 是模型处理文本的最小单位，不是按”字”或”词”简单切分。</p>
+<figure class="highlight maxima"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs maxima">Token 切分示例：<br>├── <span class="hljs-string">&quot;Hello world&quot;</span> → [<span class="hljs-string">&quot;Hello&quot;</span>, <span class="hljs-string">&quot; world&quot;</span>]（<span class="hljs-number">2</span> <span class="hljs-built_in">tokens</span>）<br>├── <span class="hljs-string">&quot;我爱北京天安门&quot;</span> → [<span class="hljs-string">&quot;我爱&quot;</span>, <span class="hljs-string">&quot;北京&quot;</span>, <span class="hljs-string">&quot;天安门&quot;</span>]<br>├── 英文：约 <span class="hljs-number">1</span> 词 ≈ <span class="hljs-number">1.3</span> <span class="hljs-built_in">tokens</span><br>├── 中文：约 <span class="hljs-number">1</span> 字 ≈ <span class="hljs-number">1</span>-<span class="hljs-number">2</span> <span class="hljs-built_in">tokens</span><br>└── 计费 / 上下文限制 都以 Token 为单位<br><br>Tokenization 算法（BPE / Byte-Pair Encoding）：<br>├── 从单个字符开始<br>├── 统计训练语料中最常出现的字符对<br>├── 将高频字符对合并为一个新 Token<br>├── 重复直到达到目标词表大小<br>└── 结果：常见词是一个 Token，罕见词被拆成多个子词<br><br>词表大小：<br>├── GPT-<span class="hljs-number">3</span>/<span class="hljs-number">4</span>：约 100K <span class="hljs-built_in">tokens</span><br>├── Claude：约 100K <span class="hljs-built_in">tokens</span><br>├── Llama <span class="hljs-number">3</span>：128K <span class="hljs-built_in">tokens</span><br>└── 词表越大 → 每字消耗 Token 越少 → 更经济<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、上下文窗口（Context-Window）"><a href="#四、上下文窗口（Context-Window）" class="headerlink" title="四、上下文窗口（Context Window）"></a>四、上下文窗口（Context Window）</h2><p>上下文窗口是模型一次能”看到”的最大 Token 数，决定了能处理多长的内容。</p>
+<figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">上下文窗口演变：<br>├── <span class="hljs-variable">GPT</span><span class="hljs-operator">-</span><span class="hljs-number">3</span>（<span class="hljs-number">2020</span>）：<span class="hljs-number">4</span><span class="hljs-built_in">K</span> <span class="hljs-variable">tokens</span> ≈ <span class="hljs-number">3000</span> 字<br>├── <span class="hljs-variable">GPT</span><span class="hljs-operator">-</span><span class="hljs-number">4</span>（<span class="hljs-number">2023</span>）：<span class="hljs-number">8</span><span class="hljs-built_in">K</span> <span class="hljs-operator">/</span> <span class="hljs-number">32</span><span class="hljs-built_in">K</span> <span class="hljs-operator">/</span> <span class="hljs-number">128</span><span class="hljs-built_in">K</span> <span class="hljs-variable">tokens</span><br>├── <span class="hljs-variable">Claude</span> <span class="hljs-number">3</span>（<span class="hljs-number">2024</span>）：<span class="hljs-number">200</span><span class="hljs-built_in">K</span> <span class="hljs-variable">tokens</span> ≈ <span class="hljs-number">15</span> 万字<br>├── <span class="hljs-variable">Gemini</span> <span class="hljs-number">1.5</span>（<span class="hljs-number">2024</span>）：<span class="hljs-number">1</span><span class="hljs-variable">M</span> <span class="hljs-variable">tokens</span> ≈ <span class="hljs-number">75</span> 万字<br>├── <span class="hljs-variable">Gemini</span> <span class="hljs-number">2.0</span>（<span class="hljs-number">2025</span>）：<span class="hljs-number">2</span><span class="hljs-variable">M</span> <span class="hljs-variable">tokens</span><br>└── 趋势：窗口越来越大<br><br>需要注意的问题：<br>├── 上下文 <span class="hljs-operator">=</span> 输入 <span class="hljs-operator">+</span> 输出<br>├── 超长输入会挤占输出空间<br>├── <span class="hljs-variable">Lost</span> <span class="hljs-variable">in</span> <span class="hljs-variable">the</span> <span class="hljs-variable">Middle</span>：中间部分的信息容易被遗忘<br>│   └── 实验证明：模型对开头和结尾的内容注意力最高<br>├── 计算成本与上下文长度呈平方级增长<br>└── <span class="hljs-variable">RAG</span> 仍是处理超长文本的更好方案<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、参数（Parameters）"><a href="#五、参数（Parameters）" class="headerlink" title="五、参数（Parameters）"></a>五、参数（Parameters）</h2><p>模型的大小用参数量衡量，参数是神经网络中可学习的权重。</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">参数规模的含义：<br>├── <span class="hljs-number">7</span>B（<span class="hljs-number">70</span> 亿）：单张消费级显卡可运行<br>│   ├── 显存需求：FP16 约 <span class="hljs-number">14</span>GB，INT4 约 <span class="hljs-number">4</span>GB<br>│   └── 代表：Mistral <span class="hljs-number">7</span>B、<span class="hljs-keyword">Llama </span><span class="hljs-number">3</span> <span class="hljs-number">8</span>B、Qwen <span class="hljs-number">2</span>.<span class="hljs-number">5</span> <span class="hljs-number">7</span>B<br>│<br>├── <span class="hljs-number">70</span>B（<span class="hljs-number">700</span> 亿）：需要多卡 GPU 服务器<br>│   ├── 显存需求：FP16 约 <span class="hljs-number">140</span>GB，INT4 约 <span class="hljs-number">35</span>GB<br>│   └── 代表：<span class="hljs-keyword">Llama </span><span class="hljs-number">3</span> <span class="hljs-number">70</span>B、Qwen <span class="hljs-number">2</span>.<span class="hljs-number">5</span> <span class="hljs-number">72</span>B<br>│<br>├── 数百 <span class="hljs-keyword">B：仅云端运行</span><br><span class="hljs-keyword"></span>│   ├── 需要分布式推理<br>│   └── 代表：GPT<span class="hljs-number">-4</span>、Claude <span class="hljs-number">4</span>、Gemini <span class="hljs-number">2</span>.<span class="hljs-number">0</span><br>│<br>└── 参数越多 ≠ 一定越聪明<br>    ├── 更小的模型用更好的数据训练也能超越大模型<br>    ├── 训练数据质量比模型大小更重要<br>    └── Phi<span class="hljs-number">-3</span>（<span class="hljs-number">3</span>.<span class="hljs-number">8</span>B）在某些任务上超过 <span class="hljs-keyword">Llama </span><span class="hljs-number">3</span> <span class="hljs-number">8</span>B<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、采样参数"><a href="#六、采样参数" class="headerlink" title="六、采样参数"></a>六、采样参数</h2><h3 id="Temperature（温度）"><a href="#Temperature（温度）" class="headerlink" title="Temperature（温度）"></a>Temperature（温度）</h3><p>控制模型输出随机性的核心参数。</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">Temperature</span> 的作用机制：<br>├── 模型为每个 Token 输出一个概率分布<br>├── Temperature 缩放 Softmax 的输入<br>│   ├── T → <span class="hljs-number">0</span>：概率分布更尖锐，高概率 Token 几乎必选<br>│   ├── T = <span class="hljs-number">1</span>：原始概率分布<br>│   └── T → ∞：概率分布趋于均匀，随机选 Token<br>│<br>├── 低温度（<span class="hljs-number">0</span>.<span class="hljs-number">0</span> <span class="hljs-regexp">~ 0.3）：确定性强</span><br>│   ├── 适合：数学计算、代码生成、事实问答<br>│   └── 几乎每次输出相同<br>│<br>├── 中温度（<span class="hljs-number">0</span>.<span class="hljs-number">5</span> <span class="hljs-regexp">~ 0.8）：平衡模式</span><br>│   ├── 适合：日常对话、文本生成<br>│   └── 兼顾准确性和多样性<br>│<br>├── 高温度（<span class="hljs-number">0</span>.<span class="hljs-number">8</span> <span class="hljs-regexp">~ 1.0）：高随机性</span><br>│   ├── 适合：创意写作、头脑风暴<br>│   └── 每次输出不同<br>│<br>└── &gt; <span class="hljs-number">1</span>.<span class="hljs-number">0</span>：极不稳定<br>    ├── 输出质量大幅下降<br>    └── 几乎不可用于生产<br></code></pre></td></tr></table></figure>
+
+<h3 id="其他采样参数"><a href="#其他采样参数" class="headerlink" title="其他采样参数"></a>其他采样参数</h3><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs mathematica"><span class="hljs-built_in">Top</span><span class="hljs-operator">-</span><span class="hljs-variable">P</span>（<span class="hljs-variable">Nucleus</span> <span class="hljs-variable">Sampling</span>）：<br>├── 只从累积概率达到 <span class="hljs-variable">P</span> 的最小 <span class="hljs-variable">Token</span> 集合中选择<br>├── 例：<span class="hljs-built_in">Top</span><span class="hljs-operator">-</span><span class="hljs-variable">P</span><span class="hljs-operator">=</span><span class="hljs-number">0.9</span>，从累积概率 <span class="hljs-number">90</span><span class="hljs-operator">%</span> 的 <span class="hljs-variable">Token</span> 中选<br>├── 相比 <span class="hljs-built_in">Top</span><span class="hljs-operator">-</span><span class="hljs-built_in">K</span> 更动态，不同位置候选数不同<br>└── 通常与 <span class="hljs-variable">Temperature</span> 配合使用<br><br><span class="hljs-built_in">Top</span><span class="hljs-operator">-</span><span class="hljs-built_in">K</span>：<br>├── 只从概率最高的 <span class="hljs-built_in">K</span> 个 <span class="hljs-variable">Token</span> 中选择<br>├── 例：<span class="hljs-built_in">Top</span><span class="hljs-operator">-</span><span class="hljs-built_in">K</span><span class="hljs-operator">=</span><span class="hljs-number">50</span>，每次只从 <span class="hljs-built_in">Top</span> <span class="hljs-number">50</span> 中采样<br>├── 简单粗暴<br>└── <span class="hljs-built_in">K</span> 太大会引入低质量 <span class="hljs-variable">Token</span><br><br><span class="hljs-variable">Frequency</span> <span class="hljs-variable">Penalty</span>：<br>├── 惩罚已经出现过的 <span class="hljs-variable">Token</span><br>├── 值越大，重复越少<br>├── 适合：长文本生成、避免重复<br>└── 常用值：<span class="hljs-number">0.1</span> <span class="hljs-operator">~</span> <span class="hljs-number">0.5</span><br><br><span class="hljs-variable">Presence</span> <span class="hljs-variable">Penalty</span>：<br>├── 惩罚所有已出现的 <span class="hljs-variable">Token</span>（不论频率）<br>├── 鼓励讨论新主题<br>├── 适合：头脑风暴、多轮对话<br>└── 常与 <span class="hljs-variable">Frequency</span> <span class="hljs-variable">Penalty</span> 搭配使用<br></code></pre></td></tr></table></figure>
+
+<h2 id="七、面试题"><a href="#七、面试题" class="headerlink" title="七、面试题"></a>七、面试题</h2><h4 id="1-LLM-的”理解”和人类的”理解”有什么不同？"><a href="#1-LLM-的”理解”和人类的”理解”有什么不同？" class="headerlink" title="1. LLM 的”理解”和人类的”理解”有什么不同？"></a>1. LLM 的”理解”和人类的”理解”有什么不同？</h4><p>LLM 不是真正理解语言，而是基于统计规律做概率预测。它从前缀推断后缀，不拥有意识或真正的语义理解能力。但高质量的预训练让它能”模拟”理解。</p>
+<h4 id="2-Transformer-的核心创新是什么？"><a href="#2-Transformer-的核心创新是什么？" class="headerlink" title="2. Transformer 的核心创新是什么？"></a>2. Transformer 的核心创新是什么？</h4><p>Self-Attention 机制，让模型能一次性”看到”所有 Token 并计算它们之间的关系。相比 RNN 的串行处理，Transformer 可并行训练，这是 GPT 能规模化的根本原因。</p>
+<h4 id="3-Temperature-的作用是什么？"><a href="#3-Temperature-的作用是什么？" class="headerlink" title="3. Temperature 的作用是什么？"></a>3. Temperature 的作用是什么？</h4><p>控制输出的随机性。低温度（0-0.3）输出确定性强，适合代码和数学。高温度（0.8-1.0）输出多样，适合创意写作。Temperature=0 时完全确定。</p>
+<h4 id="4-上下文窗口越大越好吗？"><a href="#4-上下文窗口越大越好吗？" class="headerlink" title="4. 上下文窗口越大越好吗？"></a>4. 上下文窗口越大越好吗？</h4><p>不完全是。大窗口意味着能处理更长内容，但存在 Lost in the Middle 问题（中间信息容易被忽略），且计算成本随窗口大小平方增长。RAG 仍是处理超长文本的更好方案。</p>
+<h4 id="5-Token-是什么？为什么重要？"><a href="#5-Token-是什么？为什么重要？" class="headerlink" title="5. Token 是什么？为什么重要？"></a>5. Token 是什么？为什么重要？</h4><p>Token 是模型处理文本的最小单位。计费、上下文限制都基于 Token 数。英文约 1 词=1.3 tokens，中文约 1 字=1-2 tokens，中文比英文更”贵”。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/AI/">AI</a>
+                    
+                      <a class="hover-with-bg" href="/tags/LLM/">LLM</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">大模型</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Transformer/">Transformer</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Token/">Token</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/Volatile%E4%B8%8EJMM%E8%AF%A6%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Volatile与JMM：可见性、有序性、Happens-Before</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">线程池详解：核心参数、执行流程、拒绝策略、Executors陷阱</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

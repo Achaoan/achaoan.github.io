@@ -1,0 +1,530 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>投票问卷系统设计：Redis 计数与异步落库 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/survey-system-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="投票问卷系统设计：Redis 计数与异步落库">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-26 00:10" pubdate>
+        2026年6月26日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.4k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      15
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">投票问卷系统设计：Redis 计数与异步落库</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：7 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、投票-问卷系统的核心功能"><a href="#一、投票-问卷系统的核心功能" class="headerlink" title="一、投票/问卷系统的核心功能"></a>一、投票/问卷系统的核心功能</h2><p>投票和问卷系统允许创建者发布问题，用户选择答案。核心挑战在<strong>高并发写入和实时计数</strong>。</p>
+<figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">投票系统的核心功能：<br>├── 创建投票<span class="hljs-operator">/</span>问卷（单选、多选、填空）<br>├── 用户投票（高并发写入）<br>├── 实时结果展示（统计图表）<br>├── 投票截止时间控制<br>├── 防刷票（同一用户只能投一次）<br>└── 问卷结果导出<br><br>与排行榜的区别：<br>├── 排行榜：强调排序和 <span class="hljs-built_in">Top</span> <span class="hljs-built_in">N</span><br>├── 投票：强调计数和防重复<br>├── 排行榜：持续累积<br>├── 投票：有截止时间<br>└── 投票更关注<span class="hljs-string">&quot;谁投了&quot;</span>（幂等性）<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、高并发写入设计"><a href="#二、高并发写入设计" class="headerlink" title="二、高并发写入设计"></a>二、高并发写入设计</h2><p>投票系统的最大挑战是<strong>瞬时高并发写入</strong>。热门投票可能在短时间内收到大量投票请求。</p>
+<figure class="highlight n1ql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs n1ql">问题分析：<br>├── 热门投票：万人同时投票<br>├── MySQL 行锁：同一选项并发 <span class="hljs-keyword">UPDATE</span> → 行锁竞争<br>├── 锁等待 → 响应慢 → 连接池耗尽 → 系统崩溃<br>└── 解决：Redis 计数 + 异步落库<br><br>Redis + 异步落库架构：<br>┌──────────────────────────────────────────────────────────┐<br>│  用户投票 → API 网关                                     │<br>│              │                                            │<br>│          ┌───▼────────┐                                  │<br>│          │  Redis 计数  │  ← 实时计数（INCR）             │<br>│          │  Redis 去重  │  ← 防重复（<span class="hljs-keyword">SET</span>/SISMEMBER）      │<br>│          └───┬────────┘                                  │<br>│              │                                            │<br>│          ┌───▼────────┐                                  │<br>│          │    消息队列   │  ← 异步落库缓冲                │<br>│          └───┬────────┘                                  │<br>│              │                                            │<br>│          ┌───▼────────┐                                  │<br>│          │  MySQL 持久化 │  ← 定时批量写入                │<br>│          └─────────────┘                                  │<br>│                                                          │<br>│  查询结果时直接读 Redis（毫秒级）                         │<br>│  写 MySQL 只是持久化，不参与实时查询                     │<br>└──────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="详细流程"><a href="#详细流程" class="headerlink" title="详细流程"></a>详细流程</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs css">投票流程：<br>① 请求到达 → 校验参数<br>├── 投票 ID 是否存在<br>├── 是否在有效期内<br>└── 选项是否合法<br><br>② Redis 防重复检查<br>├── SISMEMBER vote:&#123;voteId&#125;:users &#123;userId&#125;<br>├── 已投过 → 返回&quot;您已投过票&quot;<br>├── 未投过 → 继续<br>└── 注意：防刷不能 <span class="hljs-number">100%</span> 依靠 Redis（可降级）<br><br>③ Redis 计数<br>├── INCR vote:&#123;voteId&#125;:option:&#123;optionId&#125;<br>├── 多选：每个选中选项分别 INCR<br>├── 总计：INCR vote:&#123;voteId&#125;:total<br>└── 返回投票成功<br><br>④ 异步写入 MQ<br>├── 发送消息 &#123;voteId, userId, optionId, timestamp&#125;<br>├── 消费者批量处理<br>├── 每 <span class="hljs-number">10</span> 秒或积累 <span class="hljs-number">1000</span> 条批量写入 MySQL<br>└── 写入失败 → 重试队列<br><br>⑤ 查询结果<br>├── 直接从 Redis 读取计数<br>├── HGETALL vote:&#123;voteId&#125; → 实时结果<br>└── 毫秒级响应<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、数据存储设计"><a href="#三、数据存储设计" class="headerlink" title="三、数据存储设计"></a>三、数据存储设计</h2><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">Redis 存储结构：<br>└── 投票计数：vote:&#123;voteId&#125;:<span class="hljs-keyword">option</span>:&#123;optionId&#125; → 整数<br>    用户记录：vote:&#123;voteId&#125;:users → <span class="hljs-keyword">Set</span>&lt;userId&gt;<br>    总投票数：vote:&#123;voteId&#125;:total → 整数<br>    投票元信息：vote:&#123;voteId&#125;:meta → Hash&lt;field, <span class="hljs-keyword">value</span>&gt;<br>        例：&#123;title, creator, startTime, endTime, <span class="hljs-keyword">type</span>&#125;<br><br>MySQL 表结构：<br>└── vote（投票主表）<br>    ├── id <span class="hljs-type">BIGINT</span> <span class="hljs-keyword">PRIMARY KEY</span><br>    ├── title <span class="hljs-type">VARCHAR</span>(<span class="hljs-number">200</span>)<br>    ├── creator_id <span class="hljs-type">BIGINT</span><br>    ├── start_time DATETIME<br>    ├── end_time DATETIME<br>    ├── <span class="hljs-keyword">type</span> TINYINT（<span class="hljs-number">1</span>=单选 <span class="hljs-number">2</span>=多选）<br>    └── status TINYINT（<span class="hljs-number">0</span>=草稿 <span class="hljs-number">1</span>=进行中 <span class="hljs-number">2</span>=已结束）<br><br>    vote_option（选项表）<br>    ├── id <span class="hljs-type">BIGINT</span> <span class="hljs-keyword">PRIMARY KEY</span><br>    ├── vote_id <span class="hljs-type">BIGINT</span> <span class="hljs-keyword">INDEX</span><br>    ├── content <span class="hljs-type">VARCHAR</span>(<span class="hljs-number">500</span>)<br>    └── sort_order <span class="hljs-type">INT</span><br><br>    vote_record（投票记录表）<br>    ├── id <span class="hljs-type">BIGINT</span> <span class="hljs-keyword">PRIMARY KEY</span><br>    ├── vote_id <span class="hljs-type">BIGINT</span> <span class="hljs-keyword">INDEX</span><br>    ├── option_id <span class="hljs-type">BIGINT</span><br>    ├── user_id <span class="hljs-type">BIGINT</span> <span class="hljs-keyword">INDEX</span><br>    ├── create_time DATETIME<br>    └── <span class="hljs-keyword">UNIQUE</span> KEY(vote_id, user_id, option_id)  <span class="hljs-comment">-- 防重复</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="四、防刷票设计"><a href="#四、防刷票设计" class="headerlink" title="四、防刷票设计"></a>四、防刷票设计</h2><figure class="highlight sas"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs sas">防刷票是多层防线，不是单点解决：<br><br>第一层：登录验证<br>├── 必须登录才能投票<br>├── 手机号/邮箱验证<br>└── 拦截未登录的批量刷票<br><br>第二层：用户粒度的唯一性<br>├── 同一用户对同一选项只能投一次<br>├── Redis SISMEMBER + MySQL <span class="hljs-meta">UNIQUE</span> <span class="hljs-meta">KEY</span> 双重保证<br>└── 拦截同一用户重复投票<br><br>第三层：频率限制<br>├── 单 IP 每分钟投票次数限制<br>├── 单用户每分钟投票次数限制<br>├── 短时间内大量投票 → 触发验证码<br>└── 拦截机器刷票<br><br>第四层：风控策略<br>├── 用户行为分析（投票时间、频率、选项分布）<br>├── 异常模式检测（全部投同一个选项）<br>├── 可疑投票标记 → 人工审核<br>└── 确认刷票 → 撤销该用户的投票<br><br>降级方案：<br>├── Redis 不可用 → MySQL 直写（牺牲性能保证可用）<br>├── 去重降级 → 只保证 MySQL 层唯一（最终一致）<br>├── 计数降级 → 从 MySQL COUNT 查（延迟增加）<br>└── 极端情况 → 开启<span class="hljs-string">&quot;只读模式&quot;</span>，暂停投票<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、实时结果展示"><a href="#五、实时结果展示" class="headerlink" title="五、实时结果展示"></a>五、实时结果展示</h2><figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs arduino">数据流：<br>投票 → Redis INCR → WebSocket 推送 → 客户端更新<br><br>方案一：推模式<br>├── 投票产生后，通过 WebSocket 推送给所有在看结果的人<br>├── 实时性最好<br>├── 连接数多时压力大<br>└── 适合投票进行中的实时展示<br><br>方案二：拉模式<br>├── 客户端轮询（每 <span class="hljs-number">3</span><span class="hljs-number">-5</span> 秒拉一次）<br>├── 实现简单<br>├── 有延迟（轮询间隔）<br>└── 适合投票结束后的结果展示<br><br>方案三：SSE（<span class="hljs-built_in">Server</span>-Sent Events）<br>├── 服务端推送，单向连接<br>├── 比 WebSocket 轻量<br>├── 浏览器原生支持<br>└── 适合单向数据流（结果展示）<br><br>结果展示内容：<br>├── 总投票数<br>├── 各选项的票数和占比（柱状图/饼图）<br>├── 排名变化趋势<br>├── 参与用户的地域分布（可选）<br>└── 实时更新动画<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、面试题"><a href="#六、面试题" class="headerlink" title="六、面试题"></a>六、面试题</h2><h4 id="1-高并发投票系统的设计思路？"><a href="#1-高并发投票系统的设计思路？" class="headerlink" title="1. 高并发投票系统的设计思路？"></a>1. 高并发投票系统的设计思路？</h4><p>Redis 计数 + 异步落库。Redis INCR 实时计数，MQ 缓冲异步写入 MySQL。查询直接走 Redis 毫秒级响应，MySQL 只做持久化。</p>
+<h4 id="2-怎么防止刷票？"><a href="#2-怎么防止刷票？" class="headerlink" title="2. 怎么防止刷票？"></a>2. 怎么防止刷票？</h4><p>多层防线：登录验证、Redis + MySQL 双重去重、频率限制（IP/用户粒度）、风控策略（异常行为检测）。每层拦截不同的攻击手段。</p>
+<h4 id="3-Redis-和-MySQL-数据不一致怎么办？"><a href="#3-Redis-和-MySQL-数据不一致怎么办？" class="headerlink" title="3. Redis 和 MySQL 数据不一致怎么办？"></a>3. Redis 和 MySQL 数据不一致怎么办？</h4><p>接受最终一致性。投票场景允许秒级延迟，Redis 计数为主，MySQL 异步落库。Redis 宕机时从 MySQL COUNT 恢复计数。</p>
+<h4 id="4-投票结束如何结算？"><a href="#4-投票结束如何结算？" class="headerlink" title="4. 投票结束如何结算？"></a>4. 投票结束如何结算？</h4><p>截止时间到后，开启状态为已结束。从 Redis 同步最终结果到 MySQL 结果表，清理 Redis 缓存。客户端不再显示投票按钮，只展示结果。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">高并发</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%8A%95%E7%A5%A8/">投票</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%97%AE%E5%8D%B7/">问卷</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%BC%82%E6%AD%A5/">异步</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/26/Sentinel%E9%99%90%E6%B5%81%E7%86%94%E6%96%AD%E9%99%8D%E7%BA%A7%E5%AE%9E%E6%88%98/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Sentinel 限流熔断降级实战</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/26/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E4%B8%8E%E4%BD%8D%E5%9B%BE%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">布隆过滤器与位图：原理、实现与应用</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

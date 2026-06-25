@@ -1,0 +1,531 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>分布式定时任务设计：XXL-JOB、Quartz 与 Elastic-Job - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/scheduler-system-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="分布式定时任务设计：XXL-JOB、Quartz 与 Elastic-Job">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-26 00:15" pubdate>
+        2026年6月26日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      18
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">分布式定时任务设计：XXL-JOB、Quartz 与 Elastic-Job</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：7 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、定时任务的核心挑战"><a href="#一、定时任务的核心挑战" class="headerlink" title="一、定时任务的核心挑战"></a>一、定时任务的核心挑战</h2><p>定时任务是在指定时间或间隔执行特定逻辑。单机简单，但<strong>分布式环境下</strong>需要考虑很多问题。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs css">分布式定时任务的挑战：<br>├── 重复执行：集群中多个节点同时执行同一任务 → 数据重复<br>├── 任务调度：谁来触发任务？每个节点自己触发？<br>├── 任务分发：上万个任务怎么均匀分配给各个执行器？<br>├── 失败处理：任务执行到一半宕机了怎么办？<br>├── 任务依赖：<span class="hljs-selector-tag">B</span> 任务依赖 <span class="hljs-selector-tag">A</span> 任务的结果<br>├── 监控告警：任务卡住了、失败了怎么通知？<br>└── 动态管理：运行时修改 cron 表达式、启停任务<br><br>常见误区和陷阱：<br>├── <span class="hljs-keyword">@Scheduled</span> 只适合单机开发环境<br>├── 分布式下 cron 表达式在每台机器同时触发 → 冲突<br>├── 没有幂等性设计的任务重复执行 → 数据错误<br>└── 任务执行时长 &gt; 调度间隔 → 任务堆积<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、方案选型"><a href="#二、方案选型" class="headerlink" title="二、方案选型"></a>二、方案选型</h2><figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs less">方案              调度方式      持久化      适合场景<br>────────────────────────────────────────────────────<br><span class="hljs-variable">@Scheduled</span>        Spring 注解   无          单机、开发测试<br>Quartz            DB 锁         MySQL       中小规模集群<br>XXL-JOB           调度中心      MySQL       **生产首选**<br>Elastic-Job       分布式协调   ZooKeeper   大数据分片<br>PowerJob          调度中心      MySQL       轻量级替代<br><br>推荐：XXL-JOB（国内最流行，功能最全，社区最活跃）<br><br>各方案对比维度：<br>├── 学习成本：<span class="hljs-variable">@Scheduled</span> &lt; XXL-JOB &lt; Quartz &lt; Elastic-Job<br>├── 功能完整度：Elastic-Job &gt; XXL-JOB &gt; Quartz &gt; <span class="hljs-variable">@Scheduled</span><br>├── 运维复杂度：Elastic-Job &gt; Quartz &gt; XXL-JOB &gt; <span class="hljs-variable">@Scheduled</span><br>├── 社区活跃度：XXL-JOB &gt; Elastic-Job &gt; Quartz<br>└── 综合推荐：XXL-JOB 适合大多数场景<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、XXL-JOB-架构"><a href="#三、XXL-JOB-架构" class="headerlink" title="三、XXL-JOB 架构"></a>三、XXL-JOB 架构</h2><p>XXL-JOB 采用<strong>调度中心 + 执行器</strong>架构，调度和执行分离。</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs awk">XXL-JOB 架构：<br>┌──────────────────────────────────────────────────────────┐<br>│  调度中心（XXL-JOB Admin）                                │<br>│  ├── 管理定时任务定义（cron、任务参数）                  │<br>│  ├── 触发任务执行（到时间了通知执行器）                  │<br>│  ├── 任务日志（执行记录、结果查看）                      │<br>│  ├── 告警通知（失败、超时）                              │<br>│  └── 集群部署（保证调度中心高可用）                      │<br>│                                                          │<br>│  调度中心通过 HTTP/RPC 调用执行器                        │<br>│                                                          │<br>│  执行器（Executor）                                       │<br>│  ├── 集群部署，每台机器上运行                            │<br>│  ├── 接收调度中心的执行请求                              │<br>│  ├── 执行具体的业务逻辑                                  │<br>│  ├── 上报执行结果（成功<span class="hljs-regexp">/失败/</span>日志）                      │<br>│  └── 支持自动注册和发现（执行器上下线自动感知）          │<br>└──────────────────────────────────────────────────────────┘<br><br>核心特性：<br>├── 调度和执行完全解耦<br>├── 调度中心不执行任务，只负责任务触发<br>├── 执行器不执行调度逻辑，只接收任务执行<br>├── 调度中心宕机 → 已触发的任务继续执行（执行器独立）<br>├── 执行器宕机 → 调度中心感知并分发给其他执行器<br>└── 执行失败自动重试（可配置重试次数）<br></code></pre></td></tr></table></figure>
+
+<h3 id="路由策略"><a href="#路由策略" class="headerlink" title="路由策略"></a>路由策略</h3><figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs tap">当有多个执行器时，任务分配给哪个执行器执行？<br><br>├── ① 第一个：每次选第一个执行器（固定节点）<br>├── ② 最后一个：每次选最后一个执行器<br>├── ③ 轮询：依次分配给各个执行器（均匀分配）<br>├── ④ 随机：随机选一个执行器（简单均衡）<br>├── ⑤ 一致性哈希：相同参数的任务分配到相同执行器<br>├── ⑥ 最不经常使用：选使用率最低的执行器（负载均衡）<br>├── ⑦ 最近最久未使用：选最久未使用的执行器<br>├── ⑧ 故障转移：检查执行器是否存活，从活着的里面选<br>├── ⑨ 忙碌转移：检查执行器是否忙碌，忙则换一个<br>├── ⑩ 分片广播：所有执行器都执行，每个执行一部分数据<br><br>分片广播是最强大的策略：<br>├── 任务拆分成 N 片（N = 执行器数量）<br>├── 每个执行器拿到自己的分片编号（0,1,2...）<br>├── 按分片编号处理对应的数据<br>├── 例：处理<span class="hljs-number"> 100 </span>万条数据<br>│   └──<span class="hljs-number"> 2 </span>台执行器 → 各处理<span class="hljs-number"> 50 </span>万条<br>│   └──<span class="hljs-number"> 10 </span>台执行器 → 各处理<span class="hljs-number"> 10 </span>万条<br>└── 水平扩展：加机器 → 任务自动分片 → 处理更快<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、分布式锁方案"><a href="#四、分布式锁方案" class="headerlink" title="四、分布式锁方案"></a>四、分布式锁方案</h2><p>如果不使用 XXL-JOB，可以自己用分布式锁实现定时任务防重复。</p>
+<figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs gams">数据库锁（Quartz 方案）：<br>├── 用数据库行锁实现节点抢占<br>├── 表结构：task_name, node_id, lock_time<br>├── 流程：<br>│   ├── ① 尝试 INSERT 或 UPDATE（带上当前节点 ID）<br>│   ├── ② 成功 → 获取锁 → 执行任务<br>│   └── ③ 失败 → 放弃执行<br>├── 问题：数据库单点、锁依赖数据库<br>└── 适合：中小规模集群<br><br>Redis 分布式锁：<br>├── 用 <span class="hljs-keyword">SET</span> NX <span class="hljs-comment">EX</span> 实现<br>├── <span class="hljs-keyword">SET</span> <span class="hljs-comment">lock:&#123;task_name&#125; &#123;node_id&#125; NX EX 30</span><br>├── 成功获取锁 → 执行 → 释放锁（DEL）<br>├── 失败 → 放弃或等待重试<br>├── 注意：设置合理的超时时间<br>└── 适合：已经有 Redis 的场景<br><br>ZooKeeper 分布式锁（<span class="hljs-comment">Elastic-Job</span>）：<br>├── 创建临时顺序节点<br>├── 最小序号获取锁<br>├── 监听前一个节点的删除事件<br>├── 节点宕机 → 临时节点自动消失 → 触发重新选举<br>└── 适合：对一致性要求高的场景<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、任务幂等与失败处理"><a href="#五、任务幂等与失败处理" class="headerlink" title="五、任务幂等与失败处理"></a>五、任务幂等与失败处理</h2><figure class="highlight n1ql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs n1ql">任务的幂等性（最关键的设计原则）：<br>├── 同一个任务执行多次和执行一次效果相同<br>├── 幂等设计方法：<br>│   ├── ① 数据库唯一索引<br>│   │   ├── <span class="hljs-keyword">INSERT</span> ... <span class="hljs-keyword">ON</span> DUPLICATE <span class="hljs-keyword">KEY</span> <span class="hljs-keyword">UPDATE</span><br>│   │   └── 重复提交不会报错<br>│   │<br>│   ├── ② 状态机幂等<br>│   │   ├── <span class="hljs-keyword">UPDATE</span> <span class="hljs-keyword">SET</span> status=<span class="hljs-string">&#x27;done&#x27;</span> <span class="hljs-keyword">WHERE</span> status=<span class="hljs-string">&#x27;pending&#x27;</span><br>│   │   └── 已处理的状态不会被再次处理<br>│   │<br>│   └── ③ 令牌/TaskId<br>│       ├── 每个任务分配唯一 ID<br>│       ├── 执行前检查是否已执行<br>│       └── 已执行过的直接跳过<br><br>失败处理策略：<br>├── 自动重试（最多 <span class="hljs-number">3</span> 次，指数退避）<br>├── 重试间隔逐渐增加（<span class="hljs-number">30</span>s → <span class="hljs-number">2</span><span class="hljs-built_in">min</span> → <span class="hljs-number">5</span><span class="hljs-built_in">min</span>）<br>├── 超过重试次数 → 标记失败 → 人工介入<br>├── 失败告警（短信/电话/钉钉）<br>└── 关键任务需要有补跑脚本<br><br>任务超时处理：<br>├── 设置合理的超时时间<br>├── 超时未返回 → 标记为<span class="hljs-string">&quot;执行超时&quot;</span><br>├── 判断是否需要重新调度（看业务容忍度）<br>├── 慢任务优化：分片 / 异步化<br>└── 监控：P99 执行时长趋势<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、面试题"><a href="#六、面试题" class="headerlink" title="六、面试题"></a>六、面试题</h2><h4 id="1-分布式定时任务和单机定时任务的区别？"><a href="#1-分布式定时任务和单机定时任务的区别？" class="headerlink" title="1. 分布式定时任务和单机定时任务的区别？"></a>1. 分布式定时任务和单机定时任务的区别？</h4><p>单机用 @Scheduled 即可，分布式下需要解决重复执行、任务调度、失败处理、监控告警等问题。生产环境推荐 XXL-JOB（调度中心 + 执行器架构）。</p>
+<h4 id="2-XXL-JOB-的架构？"><a href="#2-XXL-JOB-的架构？" class="headerlink" title="2. XXL-JOB 的架构？"></a>2. XXL-JOB 的架构？</h4><p>调度中心（负责触发任务） + 执行器（负责执行任务），调度和执行完全解耦。支持路由策略（轮询、分片广播等），分片广播是最强大的策略。</p>
+<h4 id="3-分布式定时任务怎么防重复？"><a href="#3-分布式定时任务怎么防重复？" class="headerlink" title="3. 分布式定时任务怎么防重复？"></a>3. 分布式定时任务怎么防重复？</h4><p>使用分布式锁（Redis NX/ZX 锁、数据库行锁）。更彻底的方案：任务本身幂等（数据库唯一索引、状态机幂等），执行多次和执行一次效果相同。</p>
+<h4 id="4-分片广播是怎么工作的？"><a href="#4-分片广播是怎么工作的？" class="headerlink" title="4. 分片广播是怎么工作的？"></a>4. 分片广播是怎么工作的？</h4><p>任务按执行器数量分片，每个执行器拿到分片编号处理对应数据。加机器自动提高处理速度。适合大数据量批处理场景。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1/">定时任务</a>
+                    
+                      <a class="hover-with-bg" href="/tags/XXL-JOB/">XXL-JOB</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Quartz/">Quartz</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/26/%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E8%AF%A6%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">进程与线程详解：概念、状态、IPC 与线程模型</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/26/Sentinel%E9%99%90%E6%B5%81%E7%86%94%E6%96%AD%E9%99%8D%E7%BA%A7%E5%AE%9E%E6%88%98/">
+                        <span class="hidden-mobile">Sentinel 限流熔断降级实战</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

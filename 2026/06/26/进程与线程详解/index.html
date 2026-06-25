@@ -1,0 +1,654 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>进程与线程详解：概念、状态、IPC 与线程模型 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/process-thread-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="进程与线程详解：概念、状态、IPC 与线程模型">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-26 00:20" pubdate>
+        2026年6月26日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.6k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      17
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">进程与线程详解：概念、状态、IPC 与线程模型</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：5 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、进程与线程的概念"><a href="#一、进程与线程的概念" class="headerlink" title="一、进程与线程的概念"></a>一、进程与线程的概念</h2><h3 id="进程（Process）"><a href="#进程（Process）" class="headerlink" title="进程（Process）"></a>进程（Process）</h3><p>进程是<strong>资源分配的最小单位</strong>，是程序的一次执行过程。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs">进程的特性：<br>├── 独立的地址空间（代码段、数据段、堆、栈）<br>├── 每个进程有独立的 PCB（进程控制块）<br>├── 进程间通信需要 IPC 机制<br>└── 进程切换开销大（TLB 刷新、页表切换）<br><br>进程包含的资源：<br>├── 内存地址空间（代码、数据、堆、栈）<br>├── 打开的文件描述符<br>├── 信号处理器<br>├── 环境变量<br>└── 进程 ID、用户 ID 等元信息<br></code></pre></td></tr></table></figure>
+
+<h3 id="线程（Thread）"><a href="#线程（Thread）" class="headerlink" title="线程（Thread）"></a>线程（Thread）</h3><p>线程是<strong>CPU 调度的最小单位</strong>，是进程内的一个执行流。</p>
+<figure class="highlight lasso"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs lasso">线程的特性：<br>├── 共享进程的地址空间（堆、方法区、全局变量）<br>├── 每个线程独有：程序计数器、栈、寄存器<br>├── 线程间通信简单（直接读写共享变量）<br>└── 线程切换开销小（只需保存寄存器）<br><br>线程独有资源：<br>├── 栈（局部变量、方法调用帧）<br>├── 程序计数器（下一条指令地址）<br>├── 寄存器状态<br>└── <span class="hljs-keyword">Thread</span> <span class="hljs-built_in">Local</span> 存储（TLS）<br></code></pre></td></tr></table></figure>
+
+<h3 id="进程-vs-线程"><a href="#进程-vs-线程" class="headerlink" title="进程 vs 线程"></a>进程 vs 线程</h3><table>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>进程</th>
+<th>线程</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>地址空间</td>
+<td>独立</td>
+<td>共享进程地址空间</td>
+</tr>
+<tr>
+<td>资源开销</td>
+<td>大（创建/切换）</td>
+<td>小（创建/切换）</td>
+</tr>
+<tr>
+<td>通信方式</td>
+<td>IPC（管道、共享内存等）</td>
+<td>直接读写变量</td>
+</tr>
+<tr>
+<td>独立性</td>
+<td>高（一个进程崩溃不影响其他）</td>
+<td>低（一个线程崩溃可能影响整个进程）</td>
+</tr>
+<tr>
+<td>上下文切换</td>
+<td>慢（页表切换、TLB 刷新）</td>
+<td>快（只切换寄存器）</td>
+</tr>
+<tr>
+<td>创建速度</td>
+<td>慢（分配独立资源）</td>
+<td>快（复用进程资源）</td>
+</tr>
+</tbody></table>
+<h2 id="二、进程状态"><a href="#二、进程状态" class="headerlink" title="二、进程状态"></a>二、进程状态</h2><h3 id="三态模型"><a href="#三态模型" class="headerlink" title="三态模型"></a>三态模型</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs sql">新建（<span class="hljs-keyword">New</span>）──→ 就绪（Ready）──→ 运行（<span class="hljs-keyword">Running</span>）──→ 终止（Terminated）<br>                  ↑                │<br>                  │                ↓<br>                  └── 等待<span class="hljs-operator">/</span>阻塞（Blocked）<br><br>状态说明：<br>├── 就绪：获得除 CPU 外所有资源，等待调度<br>├── 运行：正在 CPU 上执行<br>└── 阻塞：等待 IO、锁、信号等外部事件<br></code></pre></td></tr></table></figure>
+
+<h3 id="五态模型（Linux）"><a href="#五态模型（Linux）" class="headerlink" title="五态模型（Linux）"></a>五态模型（Linux）</h3><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs asciidoc">新建 → 就绪 ↔ 运行 → 终止<br><span class="hljs-code">              ↓</span><br><span class="hljs-code">            睡眠（可中断/不可中断）</span><br><span class="hljs-code">              │</span><br><span class="hljs-code">              ↓</span><br><span class="hljs-code">             就绪</span><br><br>├── TASK<span class="hljs-emphasis">_RUNNING：就绪或运行（对应三态的 就绪+运行）</span><br><span class="hljs-emphasis">├── TASK_INTERRUPTIBLE：可中断睡眠（等待 IO 完成）</span><br><span class="hljs-emphasis">├── TASK_UNINTERRUPTIBLE：不可中断睡眠（等待磁盘 IO）</span><br><span class="hljs-emphasis">├── TASK_STOPPED：停止（收到 SIGSTOP 信号）</span><br><span class="hljs-emphasis">└── TASK_</span>ZOMBIE：僵尸（进程已终止，但 PCB 未回收）<br></code></pre></td></tr></table></figure>
+
+<h3 id="进程切换（上下文切换）"><a href="#进程切换（上下文切换）" class="headerlink" title="进程切换（上下文切换）"></a>进程切换（上下文切换）</h3><figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs armasm">上下文切换的步骤：<br>① 保存当前进程的上下文（寄存器、<span class="hljs-built_in">PC</span>、栈指针）<br>② 更新 PCB（进程控制块）<br>③ 将当前进程移入相应队列（就绪/阻塞）<br>④ 选择下一个执行的进程（调度算法）<br>⑤ 加载新进程的上下文<br>⑥ 开始执行新进程<br><br>切换开销：<br>├── 直接开销：保存/恢复寄存器（约 <span class="hljs-number">1</span>-<span class="hljs-number">5</span>μs）<br>├── 间接开销：TLB 刷新 → 缓存 miss → 内存访问变慢<br>└── 切换太频繁 → 系统吞吐量下降<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、Java-线程状态"><a href="#三、Java-线程状态" class="headerlink" title="三、Java 线程状态"></a>三、Java 线程状态</h2><p>Java 的线程状态与 OS 线程状态不同，由 JVM 管理：</p>
+<figure class="highlight isbl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs isbl"><span class="hljs-variable">Java</span> 线程状态（<span class="hljs-variable">Thread.State</span>）：<br>├── <span class="hljs-variable">NEW</span>：新建，未调用 <span class="hljs-function"><span class="hljs-title">start</span>()</span><br>├── <span class="hljs-variable">RUNNABLE</span>：就绪或运行中（<span class="hljs-variable">JVM</span> 不区分就绪和运行）<br>├── <span class="hljs-variable">BLOCKED</span>：等待监视器锁（<span class="hljs-variable">synchronized</span> 阻塞）<br>├── <span class="hljs-variable">WAITING</span>：无限期等待（<span class="hljs-variable"><span class="hljs-class">Object</span>.wait</span>() 无超时、<span class="hljs-variable">Thread.join</span>()）<br>├── <span class="hljs-variable">TIMED_WAITING</span>：有限期等待（<span class="hljs-variable">Thread.sleep</span>()、<span class="hljs-function"><span class="hljs-title">wait</span>(超时)）</span><br><span class="hljs-function">└── <span class="hljs-variable">TERMINATED</span>：执行结束</span><br><span class="hljs-function"></span><br><span class="hljs-function"><span class="hljs-variable">Java</span> 线程与 <span class="hljs-variable">OS</span> 线程映射：</span><br><span class="hljs-function">├── 主流 <span class="hljs-variable">JVM</span> 采用 <span class="hljs-number">1</span>:<span class="hljs-number">1</span> 映射（一个 <span class="hljs-variable">Java</span> 线程 = 一个内核线程）</span><br><span class="hljs-function">├── 纤程/虚拟线程（<span class="hljs-variable">JDK</span> <span class="hljs-number">21</span>）：<span class="hljs-variable">M</span>:<span class="hljs-variable">N</span> 映射</span><br><span class="hljs-function">└── <span class="hljs-variable">Java</span> <span class="hljs-variable">RUNNABLE</span> 状态跨越了 <span class="hljs-variable">OS</span> 的就绪和运行</span><br><span class="hljs-function"></span><br><span class="hljs-function">线程状态转换：</span><br><span class="hljs-function"><span class="hljs-variable">NEW</span> → <span class="hljs-title">start</span>() → <span class="hljs-variable">RUNNABLE</span></span><br><span class="hljs-function"><span class="hljs-variable">RUNNABLE</span> → <span class="hljs-variable">synchronized</span> → <span class="hljs-variable">BLOCKED</span></span><br><span class="hljs-function"><span class="hljs-variable">RUNNABLE</span> → <span class="hljs-title">wait</span>()/<span class="hljs-title">join</span>() → <span class="hljs-variable">WAITING</span></span><br><span class="hljs-function"><span class="hljs-variable">RUNNABLE</span> → <span class="hljs-title"><span class="hljs-built_in">sleep</span></span>()/<span class="hljs-title">wait</span>(<span class="hljs-variable">timeout</span>) → <span class="hljs-variable">TIMED_WAITING</span></span><br><span class="hljs-function"><span class="hljs-variable">WAITING</span>/<span class="hljs-variable">BLOCKED</span> → 条件满足 → <span class="hljs-variable">RUNNABLE</span></span><br><span class="hljs-function"><span class="hljs-variable">RUNNABLE</span> → <span class="hljs-title">run</span>()结束 → <span class="hljs-variable">TERMINATED</span></span><br></code></pre></td></tr></table></figure>
+
+<h2 id="四、线程模型"><a href="#四、线程模型" class="headerlink" title="四、线程模型"></a>四、线程模型</h2><h3 id="用户线程（ULT-User-Level-Thread）"><a href="#用户线程（ULT-User-Level-Thread）" class="headerlink" title="用户线程（ULT - User Level Thread）"></a>用户线程（ULT - User Level Thread）</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">├── 线程管理在用户空间，内核无感知<br>├── 线程切换不涉及内核态（速度快）<br>├── 不需要内核支持（可在无线程内核上实现）<br>├── 缺点：一个线程阻塞 → 整个进程阻塞<br>└── 示例：<span class="hljs-keyword">Java </span>早期绿色线程、Go goroutine<br></code></pre></td></tr></table></figure>
+
+<h3 id="内核线程（KLT-Kernel-Level-Thread）"><a href="#内核线程（KLT-Kernel-Level-Thread）" class="headerlink" title="内核线程（KLT - Kernel Level Thread）"></a>内核线程（KLT - Kernel Level Thread）</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">├── 线程管理由内核完成<br>├── 可以利用多核 CPU（真正并行）<br>├── 一个线程阻塞不影响其他线程<br>├── 缺点：切换需要陷入内核（速度慢）<br>└── 示例：<span class="hljs-keyword">Java </span>平台线程（<span class="hljs-number">1</span>:<span class="hljs-number">1</span> 映射到内核线程）<br></code></pre></td></tr></table></figure>
+
+<h3 id="轻量级进程（LWP-Light-Weight-Process）"><a href="#轻量级进程（LWP-Light-Weight-Process）" class="headerlink" title="轻量级进程（LWP - Light Weight Process）"></a>轻量级进程（LWP - Light Weight Process）</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">├── 用户线程和内核线程的中间层<br>├── <span class="hljs-keyword">LWP </span>是内核线程的<span class="hljs-string">&quot;接口&quot;</span>，用户线程通过 <span class="hljs-keyword">LWP </span>使用内核线程<br>├── N:M 模型：N 个用户线程映射到 M 个 <span class="hljs-keyword">LWP</span><br><span class="hljs-keyword"></span>├── <span class="hljs-keyword">LWP </span>数量可调节，平衡并行性和资源消耗<br>└── 示例：Go 的 GMP 模型（Goroutine → M → P → OS Thread）<br></code></pre></td></tr></table></figure>
+
+<h3 id="三种映射模型"><a href="#三种映射模型" class="headerlink" title="三种映射模型"></a>三种映射模型</h3><table>
+<thead>
+<tr>
+<th align="center">模型</th>
+<th>描述</th>
+<th>优势</th>
+<th>劣势</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1:1</td>
+<td>一个用户线程对应一个内核线程</td>
+<td>利用多核、阻塞不影响其他</td>
+<td>线程创建/切换开销大</td>
+</tr>
+<tr>
+<td align="center">N:1</td>
+<td>N 个用户线程对应一个内核线程</td>
+<td>切换快、创建轻量</td>
+<td>无法利用多核、单线程阻塞全进程</td>
+</tr>
+<tr>
+<td align="center">M:N</td>
+<td>M 个用户线程对应 N 个内核线程</td>
+<td>兼顾性能和并行性</td>
+<td>实现复杂</td>
+</tr>
+</tbody></table>
+<h2 id="五、进程间通信（IPC）"><a href="#五、进程间通信（IPC）" class="headerlink" title="五、进程间通信（IPC）"></a>五、进程间通信（IPC）</h2><table>
+<thead>
+<tr>
+<th>方式</th>
+<th>说明</th>
+<th>特点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>管道（Pipe）</strong></td>
+<td>单向流，父子进程使用</td>
+<td>简单、内核缓冲</td>
+<td>Shell 管道命令</td>
+</tr>
+<tr>
+<td><strong>命名管道（FIFO）</strong></td>
+<td>文件系统路径</td>
+<td>任意进程可通信</td>
+<td>无亲缘关系进程</td>
+</tr>
+<tr>
+<td><strong>消息队列</strong></td>
+<td>消息链表</td>
+<td>有格式、异步</td>
+<td>短消息通信</td>
+</tr>
+<tr>
+<td><strong>共享内存</strong></td>
+<td>直接读写同一块内存</td>
+<td>最快、需同步</td>
+<td>大量数据交换</td>
+</tr>
+<tr>
+<td><strong>信号量</strong></td>
+<td>计数器</td>
+<td>同步而非数据传输</td>
+<td>进程同步互斥</td>
+</tr>
+<tr>
+<td><strong>Socket</strong></td>
+<td>网络通信</td>
+<td>跨机器</td>
+<td>分布式系统</td>
+</tr>
+<tr>
+<td><strong>信号（Signal）</strong></td>
+<td>异步通知</td>
+<td>简单、信息有限</td>
+<td>Ctrl+C、kill</td>
+</tr>
+</tbody></table>
+<h2 id="六、面试题"><a href="#六、面试题" class="headerlink" title="六、面试题"></a>六、面试题</h2><h4 id="1-进程和线程的区别？"><a href="#1-进程和线程的区别？" class="headerlink" title="1. 进程和线程的区别？"></a>1. 进程和线程的区别？</h4><p>进程是资源分配最小单位，独立地址空间，切换开销大。线程是 CPU 调度最小单位，共享进程地址空间，切换开销小。进程间需要 IPC 通信，线程间可直接读写共享变量。</p>
+<h4 id="2-线程切换比进程切换快在哪里？"><a href="#2-线程切换比进程切换快在哪里？" class="headerlink" title="2. 线程切换比进程切换快在哪里？"></a>2. 线程切换比进程切换快在哪里？</h4><p>线程共享地址空间，切换时不需要切换页表和刷新 TLB，只需要保存/恢复寄存器。进程切换需要切换地址空间、刷新 TLB、更新页表。</p>
+<h4 id="3-Java-线程状态有哪些？"><a href="#3-Java-线程状态有哪些？" class="headerlink" title="3. Java 线程状态有哪些？"></a>3. Java 线程状态有哪些？</h4><p>NEW、RUNNABLE（就绪+运行）、BLOCKED（synchronized 阻塞）、WAITING（无限等待）、TIMED_WAITING（超时等待）、TERMINATED。</p>
+<h4 id="4-进程间通信方式有哪些？"><a href="#4-进程间通信方式有哪些？" class="headerlink" title="4. 进程间通信方式有哪些？"></a>4. 进程间通信方式有哪些？</h4><p>管道（父子进程）、命名管道（任意进程）、消息队列（短消息）、共享内存（大量数据，最快）、信号量（同步）、Socket（跨网络）、信号（异步通知）。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E8%BF%9B%E7%A8%8B/">进程</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%BA%BF%E7%A8%8B/">线程</a>
+                    
+                      <a class="hover-with-bg" href="/tags/IPC/">IPC</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/26/%E6%AD%BB%E9%94%81%E5%8E%9F%E7%90%86%E4%B8%8E%E5%A4%84%E7%90%86%E7%AD%96%E7%95%A5/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">死锁原理与处理策略：必要条件、预防、避免与检测</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/26/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E8%AE%BE%E8%AE%A1XXL-JOB/">
+                        <span class="hidden-mobile">分布式定时任务设计：XXL-JOB、Quartz 与 Elastic-Job</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

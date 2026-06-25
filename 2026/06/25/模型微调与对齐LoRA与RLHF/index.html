@@ -1,0 +1,535 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>模型微调与对齐：LoRA、RLHF、DPO 原理与实践 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/finetuning-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="模型微调与对齐：LoRA、RLHF、DPO 原理与实践">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 22:45" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      19
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">模型微调与对齐：LoRA、RLHF、DPO 原理与实践</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：17 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、什么是微调"><a href="#一、什么是微调" class="headerlink" title="一、什么是微调"></a>一、什么是微调</h2><p>微调（Fine-tuning）是在预训练模型的基础上，用特定领域数据进一步训练，让模型适应特定任务。</p>
+<figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs excel">预训练 vs 微调：<br>┌──────────────────────────────────────────────────────────┐<br>│  预训练（Pre-training）：                                 │<br>│  数据：TB 级互联网文本                                  │<br>│  成本：数百万到数亿美元                                  │<br>│  产出：基座模型（<span class="hljs-built_in">Base</span> Model），知识丰富但<span class="hljs-string">&quot;不好用&quot;</span>        │<br>│                                                          │<br>│  微调（Fine-tuning）：                                   │<br>│  数据：千到万级标注数据                                  │<br>│  成本：几十到几万元                                      │<br>│  产出：专用模型，在特定任务上表现优异                   │<br>│                                                          │<br>│  微调的目标不是注入新知识，而是改变模型的行为            │<br>│  （预训练已经学到了知识，微调让模型知道怎么用）          │<br>└──────────────────────────────────────────────────────────┘<br><br>全量微调的挑战：<br>├── 完整模型需要存储在显存中<br>├── 所有参数都要计算梯度<br>├── 每个任务一个完整模型副本<br>├── <span class="hljs-number">70</span>B 全量微调需要 <span class="hljs-number">8</span>×<span class="hljs-symbol">A100</span> 运行数周<br>└── LoRA 解决了这个问题<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、LoRA（低秩适配）"><a href="#二、LoRA（低秩适配）" class="headerlink" title="二、LoRA（低秩适配）"></a>二、LoRA（低秩适配）</h2><p>LoRA（Low-Rank Adaptation）是一种参数高效的微调方法，只训练少量新增参数。</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs powershell">LoRA 的核心思想：<br>┌──────────────────────────────────────────────────────────┐<br>│  全量微调：                                              │<br>│  W<span class="hljs-string">&#x27; = W + ΔW                                             │</span><br><span class="hljs-string">│  更新所有参数 W → 每个任务一个完整模型                   │</span><br><span class="hljs-string">│                                                          │</span><br><span class="hljs-string">│  LoRA：                                                  │</span><br><span class="hljs-string">│  W&#x27;</span> = W + A × B                                          │<br>│  冻结原始权重 W，只训练 A 和 B                           │<br>│  A ∈ ℝᵈˣʳ, B ∈ ℝʳˣᵈ, <span class="hljs-built_in">r</span> &lt;&lt; d（<span class="hljs-built_in">r</span>=<span class="hljs-number">8</span>~<span class="hljs-number">64</span>）                │<br>│  参数量减少 <span class="hljs-number">10000</span>+ 倍                                    │<br>│                                                          │<br>│  训练后：A×B 可合并回 W，推理时零额外开销               │<br>│  切换任务：加载不同的 LoRA 权重，原始模型不动            │<br>└──────────────────────────────────────────────────────────┘<br><br>LoRA 的超参数：<br>├── <span class="hljs-built_in">r</span>（rank）：低秩的维度<br>│   ├── <span class="hljs-built_in">r</span>=<span class="hljs-number">8</span>：轻量微调，适合简单任务<br>│   ├── <span class="hljs-built_in">r</span>=<span class="hljs-number">16</span>：标准设置<br>│   ├── <span class="hljs-built_in">r</span>=<span class="hljs-number">64</span>：强力微调，适合复杂任务<br>│   └── <span class="hljs-built_in">r</span> 越大 → 参数量越大 → 适配能力越强<br>│<br>├── alpha：缩放系数<br>│   ├── 控制 LoRA 对原始权重的影响程度<br>│   └── 通常设为 <span class="hljs-built_in">r</span> 的 <span class="hljs-number">1</span><span class="hljs-literal">-2</span> 倍<br>│<br>├── target_modules：在哪些层上应用 LoRA<br>│   ├── q_proj, v_proj：最常选（注意力层的 Q 和 V 矩阵）<br>│   ├── 所有线性层：最强适配，但参数量大<br>│   └── 默认只选 Q 和 V 即可<br><br>QLoRA = Quantization + LoRA<br>├── 先将模型量化到 <span class="hljs-number">4</span><span class="hljs-literal">-bit</span>（NF4 格式）<br>├── 量化模型上做 LoRA 微调<br>├── 单张 <span class="hljs-number">24</span>GB 显卡可微调 <span class="hljs-number">70</span>B 模型<br>└── 微调成本从万元级降到几百元级<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs awk">LoRA 的使用场景：<br>├── 领域适配：通用模型 → 法律<span class="hljs-regexp">/医疗/</span>金融专家<br>├── 风格迁移：学习特定的输出格式（JSON、SQL）<br>├── 指令微调：提升模型的指令跟随能力<br>├── 任务定制：为特定任务优化模型<br>└── 消除不良行为：修正模型在特定场景下的错误输出<br><br>LoRA 的局限：<br>├── 不适合注入新知识（那是 RAG 的工作）<br>├── 多个 LoRA 叠加使用效果会下降<br>├── 极低质量的数据微调反而会降低模型能力<br>└── LoRA 权重和基座模型版本绑定（基座升级后 LoRA 要重做）<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、RLHF（基于人类反馈的强化学习）"><a href="#三、RLHF（基于人类反馈的强化学习）" class="headerlink" title="三、RLHF（基于人类反馈的强化学习）"></a>三、RLHF（基于人类反馈的强化学习）</h2><p>RLHF（Reinforcement Learning from Human Feedback）是让模型行为符合人类偏好的训练方法。</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">为什么需要对模型<span class="hljs-string">&quot;对齐&quot;</span>：<br>├── 预训练模型只是<span class="hljs-string">&quot;文本预测器&quot;</span><br>├── 模型知道<span class="hljs-string">&quot;正确答案&quot;</span>，但可能选择<span class="hljs-string">&quot;错误写法&quot;</span><br>├── 模型可能输出有害、偏见、虚假内容<br>├── 模型可能生成冗长但无用的回答<br>└── 对齐 = 让模型说<span class="hljs-string">&quot;人爱听的话&quot;</span>且<span class="hljs-string">&quot;不说坏话&quot;</span><br><br>RLHF 三步流程：<br>┌──────────────────────────────────────────────────────────┐<br>│  第一步：收集人类偏好数据                                │<br>│  ├── 让模型生成多个回答                                │<br>│  ├── 人工标注员排序（好 &gt; 中 &gt; 差）                    │<br>│  ├── 构建对比数据集                                    │<br>│  └── 成本最高的步骤（需要大量人工）                    │<br>│                                                          │<br>│  第二步：训练奖励模型（Reward Model）                    │<br>│  ├── 学习预测人会给哪个回答更高分                      │<br>│  ├── 本质：一个 <span class="hljs-keyword">LLM </span>换成回归头，输出分数                │<br>│  ├── 训练好之后可以自动评分，替代人工                  │<br>│  └── 奖励模型也是一个需要维护的模型                    │<br>│                                                          │<br>│  第三步：PPO 强化学习                                   │<br>│  ├── 用奖励模型给 <span class="hljs-keyword">LLM </span>的每个回答打分                   │<br>│  ├── 更新 <span class="hljs-keyword">LLM </span>参数以获取更高分数                       │<br>│  ├── KL 散度约束：不让模型偏离原始版本太远             │<br>│  └── 迭代多次直到收敛                                  │<br>└──────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">RLHF</span> 的问题：<br>├── 流程复杂（三步，需要 <span class="hljs-number">3</span>-<span class="hljs-number">4</span> 个独立模型）<br>├── 不稳定（PPO 强化学习本身就不稳定）<br>├── 超参数敏感（KL 系数、学习率等）<br>├── 需要大量人工标注<br>├── Reward Hacking：模型找到钻空子的方式<br>│   （模型学会了<span class="hljs-string">&quot;看起来好&quot;</span>而不是<span class="hljs-string">&quot;真的好&quot;</span>）<br>└── 奖励模型也会引入偏见<br><br>这些问题的存在催生了更简单的方法——DPO<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、DPO（直接偏好优化）"><a href="#四、DPO（直接偏好优化）" class="headerlink" title="四、DPO（直接偏好优化）"></a>四、DPO（直接偏好优化）</h2><p>DPO（Direct Preference Optimization）是 RLHF 的简化替代方案。</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs armasm"><span class="hljs-symbol">DPO</span> vs RLHF：<br>┌──────────────────────────────────────────────────────────┐<br>│  RLHF：                                                  │<br>│  ① 收集偏好数据 → ② 训练奖励模型 → ③ PPO 优化 LLM    │<br>│  需要 <span class="hljs-number">3</span>-<span class="hljs-number">4</span> 个模型，流程复杂不稳定                        │<br>│                                                          │<br>│  DPO：                                                   │<br>│  ① 收集偏好数据 → ② 直接优化 LLM                      │<br>│  不需要奖励模型，不需要 PPO                              │<br>│                                                          │<br>│  数学原理：                                              │<br>│  RLHF 有显式的奖励模型 + PPO 优化                       │<br>│  DPO 从数学上推导出：偏好数据直接隐含了奖励函数          │<br>│  优化目标 = 提高偏好回答的概率 - 降低非偏好回答的概率   │<br>│                                                          │<br>│  效果：                                                   │<br>│  DPO 在大多数任务上达到或超过 RLHF                       │<br>│  但 DPO 对数据质量更敏感                                 │<br>└──────────────────────────────────────────────────────────┘<br><br><span class="hljs-symbol">DPO</span> 的优势：<br>├── 实现简单（几十行代码）<br>├── 训练稳定（监督学习，不是强化学习）<br>├── 不需要奖励模型（少维护一个模型）<br>├── 训练速度快（RLHF 的 <span class="hljs-number">1</span>/<span class="hljs-number">3</span> 时间）<br>└── 已成为新一代模型的首选对齐方法<br><br>代表模型的对齐方式：<br>├── ChatGPT → RLHF（InstructGPT 论文）<br>├── Claude → Constitutional AI + RLHF<br>├── Llama <span class="hljs-number">3</span> → RLHF<br>├── DeepSeek <span class="hljs-built_in">R1</span> → RLHF + 规则奖励<br>├── Mistral / Qwen → DPO<br>└── 趋势：DPO 正在取代 RLHF 成为主流<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、面试题"><a href="#五、面试题" class="headerlink" title="五、面试题"></a>五、面试题</h2><h4 id="1-LoRA-的原理？"><a href="#1-LoRA-的原理？" class="headerlink" title="1. LoRA 的原理？"></a>1. LoRA 的原理？</h4><p>冻结原始权重，插入两个小矩阵 A×B（低秩分解）。训练时只更新 A 和 B，推理时合并回原始权重，零额外开销。参数量减少 10000 倍。</p>
+<h4 id="2-LoRA-的-rank-参数怎么选？"><a href="#2-LoRA-的-rank-参数怎么选？" class="headerlink" title="2. LoRA 的 rank 参数怎么选？"></a>2. LoRA 的 rank 参数怎么选？</h4><p>r=8 适合简单任务，r=16 标准设置，r=64 适合复杂任务。rank 越大适配能力越强但参数量也越大。target_modules 通常选 Q 和 V 矩阵即可。</p>
+<h4 id="3-QLoRA-是什么？"><a href="#3-QLoRA-是什么？" class="headerlink" title="3. QLoRA 是什么？"></a>3. QLoRA 是什么？</h4><p>QLoRA = Quantization + LoRA。先将模型量化到 4-bit 再做 LoRA 微调。单张 24GB 显卡可微调 70B 模型，将微调成本从万元级降到几百元级。</p>
+<h4 id="4-RLHF-的三步流程？"><a href="#4-RLHF-的三步流程？" class="headerlink" title="4. RLHF 的三步流程？"></a>4. RLHF 的三步流程？</h4><p>收集人类偏好数据 → 训练奖励模型 → PPO 优化 LLM。流程复杂（3-4 个模型），不稳定，且需要大量人工标注。Reward Hacking 是主要风险。</p>
+<h4 id="5-DPO-和-RLHF-的区别？"><a href="#5-DPO-和-RLHF-的区别？" class="headerlink" title="5. DPO 和 RLHF 的区别？"></a>5. DPO 和 RLHF 的区别？</h4><p>DPO 不需要奖励模型和 PPO，直接用偏好数据优化 LLM。实现简单、训练稳定，效果接近或达到 RLHF。DPO 正在成为新一代模型对齐的主流方法。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/AI/">AI</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%BE%AE%E8%B0%83/">微调</a>
+                    
+                      <a class="hover-with-bg" href="/tags/LoRA/">LoRA</a>
+                    
+                      <a class="hover-with-bg" href="/tags/RLHF/">RLHF</a>
+                    
+                      <a class="hover-with-bg" href="/tags/DPO/">DPO</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%AF%B9%E9%BD%90/">对齐</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/SpringBean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E8%AF%A6%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Spring Bean生命周期：从实例化到销毁的完整过程</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E6%A8%A1%E5%9E%8B%E9%87%8F%E5%8C%96%E4%B8%8E%E8%92%B8%E9%A6%8F%E6%8A%80%E6%9C%AF%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">模型量化与蒸馏：技术原理、格式对比与实践</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

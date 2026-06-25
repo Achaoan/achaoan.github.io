@@ -180,31 +180,27 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/08/18/SpringBoot%E5%9F%BA%E7%A1%80%E5%8F%8A%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" target="_self">
-          <img src="/img/springboot-cover.png" srcset="/img/loading.gif" lazyload alt="SpringBoot基础及相关问题">
+        <a href="/2026/06/25/AQS%E8%AF%A6%E8%A7%A3%E4%B8%8EReentrantLock%E5%8E%9F%E7%90%86/" target="_self">
+          <img src="/img/aqs-cover.png" srcset="/img/loading.gif" lazyload alt="AQS源码详解：ReentrantLock、独占锁、条件队列原理">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2021/08/18/SpringBoot%E5%9F%BA%E7%A1%80%E5%8F%8A%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" target="_self">
-          SpringBoot基础及相关问题
+        <a href="/2026/06/25/AQS%E8%AF%A6%E8%A7%A3%E4%B8%8EReentrantLock%E5%8E%9F%E7%90%86/" target="_self">
+          AQS源码详解：ReentrantLock、独占锁、条件队列原理
         </a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2021/08/18/SpringBoot%E5%9F%BA%E7%A1%80%E5%8F%8A%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" target="_self">
+        <a href="/2026/06/25/AQS%E8%AF%A6%E8%A7%A3%E4%B8%8EReentrantLock%E5%8E%9F%E7%90%86/" target="_self">
           
           
             
           
-          一、Spring Boot 简介Spring Boot 是 Spring 框架的快速开发脚手架，核心设计理念是 **”约定优于配置”**。
-主要特点
-自动配置：根据 classpath 下的依赖自动配置 Bean
-内嵌服务器：默认集成 Tomcat/Jetty/Undertow，支持 java -jar 独立运行
-起步依赖（Starter）：将常用依赖打包，一行引入即可
-生产就绪：监控（Actua
+          一、AQS 概述什么是 AQS？AbstractQueuedSynchronizer（抽象队列同步器）是 JUC 锁和同步器的基础框架。
+123456AQS（基础框架）  ├── ReentrantLock          — 独占锁  ├── Semaphore              — 共享锁  ├── CountDownLatch         — 共享锁  ├── Reentran
         </a>
       </p>
 
@@ -212,271 +208,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2021-08-18 21:56" pubdate>
-              2021-08-18
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Spring/">Spring</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
-            
-              <a href="/tags/SpringBoot/">SpringBoot</a>
-            
-              <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/08/18/Mybatis%E5%9F%BA%E7%A1%80%E5%8F%8A%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" target="_self">
-          <img src="/img/mybatis-cover.png" srcset="/img/loading.gif" lazyload alt="Mybatis基础及相关问题">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/08/18/Mybatis%E5%9F%BA%E7%A1%80%E5%8F%8A%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" target="_self">
-          Mybatis基础及相关问题
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/08/18/Mybatis%E5%9F%BA%E7%A1%80%E5%8F%8A%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" target="_self">
-          
-          
-            
-          
-          一、MyBatis 简介MyBatis 是一款基于 Java 的半自动化 ORM（对象关系映射）持久层框架，前身是 iBatis。它内部封装了 JDBC，使开发者只需要关注 SQL 语句本身。
-核心优势：
-
-半自动化 ORM：SQL 需手动编写，灵活可控
-动态 SQL：通过标签灵活拼接 SQL
-缓存机制：内置一级缓存和二级缓存
-易于整合：无缝集成 Spring、Spring Boot
-
-与 Hib
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-08-18 21:56" pubdate>
-              2021-08-18
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/MyBatis/">MyBatis</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
-            
-              <a href="/tags/MyBatis/">MyBatis</a>
-            
-              <a href="/tags/ORM/">ORM</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/08/18/Spring%E5%9F%BA%E7%A1%80%E5%8F%8A%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" target="_self">
-          <img src="/img/spring-cover.png" srcset="/img/loading.gif" lazyload alt="Spring基础及相关问题">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/08/18/Spring%E5%9F%BA%E7%A1%80%E5%8F%8A%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" target="_self">
-          Spring基础及相关问题
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/08/18/Spring%E5%9F%BA%E7%A1%80%E5%8F%8A%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" target="_self">
-          
-          
-            
-          
-          一、IoC（控制反转）概念IoC（Inversion of Control）控制反转，对象的创建权从业务代码转移到 Spring 容器。容器通过反射机制根据配置或注解动态创建对象。
-DI（依赖注入）DI 是 IoC 的具体实现，有三种方式：
-
-构造器注入：通过构造方法注入依赖
-Setter 注入：通过 setter 方法注入
-注解注入：通过 @Autowired、@Resource 等注解注入
-
-
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-08-18 21:56" pubdate>
-              2021-08-18
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Spring/">Spring</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
-            
-              <a href="/tags/java/">java</a>
-            
-              <a href="/tags/Spring/">Spring</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/08/18/JVM%E5%9F%BA%E7%A1%80%E5%8F%8A%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95/" target="_self">
-          <img src="/img/jvm-cover.png" srcset="/img/loading.gif" lazyload alt="JVM基础及回收算法">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/08/18/JVM%E5%9F%BA%E7%A1%80%E5%8F%8A%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95/" target="_self">
-          JVM基础及回收算法
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/08/18/JVM%E5%9F%BA%E7%A1%80%E5%8F%8A%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95/" target="_self">
-          
-          
-            
-          
-          一、JVM 内存区域线程私有区域
-程序计数器：当前线程所执行的字节码行号指示器，记录下一条要执行的指令地址
-虚拟机栈：每个方法执行时创建栈帧，存储局部变量表、操作数栈、动态链接、方法出口
-本地方法栈：为虚拟机使用到的 Native 方法服务
-
-线程共享区域
-堆（Heap）：存放对象实例，GC 管理的主要区域，可细分为新生代（Eden/S0/S1）+ 老年代
-方法区：存储类信息、常量、静态变量。JD
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-08-18 21:54" pubdate>
-              2021-08-18
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/JVM/">JVM</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
-            
-              <a href="/tags/JVM/">JVM</a>
-            
-              <a href="/tags/java/">java</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/08/18/java%E7%BA%BF%E7%A8%8B/" target="_self">
-          <img src="/img/thread-cover.png" srcset="/img/loading.gif" lazyload alt="java线程">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/08/18/java%E7%BA%BF%E7%A8%8B/" target="_self">
-          java线程
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/08/18/java%E7%BA%BF%E7%A8%8B/" target="_self">
-          
-          
-            
-          
-          Java 多线程详解1. 多线程的实现方式四种方式：
-方式一：继承 Thread 类12345678public class MyThread extends Thread &#123;    @Override    public void run() &#123;        System.out.println(&quot;线程运行中&quot;);    &#125;&#125;// 使
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-08-18 21:54" pubdate>
-              2021-08-18
+            <time datetime="2026-06-25 20:30" pubdate>
+              2026-06-25
             </time>
           </div>
         
@@ -492,11 +225,19 @@ Setter 注入：通过 setter 方法注入
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
+              <a href="/tags/Java/">Java</a>
+            
               <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
             
-              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+              <a href="/tags/JUC/">JUC</a>
             
-              <a href="/tags/java/">java</a>
+              <a href="/tags/AQS/">AQS</a>
+            
+              <a href="/tags/ReentrantLock/">ReentrantLock</a>
+            
+              <a href="/tags/%E6%BA%90%E7%A0%81/">源码</a>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
             
           </div>
         
@@ -508,28 +249,26 @@ Setter 注入：通过 setter 方法注入
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/08/01/golang%E9%9D%A2%E8%AF%95%E6%95%B4%E7%90%86/" target="_self">
-          <img src="/img/golang.webp" srcset="/img/loading.gif" lazyload alt="golang面试整理">
+        <a href="/2026/06/25/ArrayList%E4%B8%8ELinkedList%E6%BA%90%E7%A0%81%E5%AF%B9%E6%AF%94/" target="_self">
+          <img src="/img/arraylist-cover.png" srcset="/img/loading.gif" lazyload alt="ArrayList与LinkedList源码对比分析">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2021/08/01/golang%E9%9D%A2%E8%AF%95%E6%95%B4%E7%90%86/" target="_self">
-          golang面试整理
+        <a href="/2026/06/25/ArrayList%E4%B8%8ELinkedList%E6%BA%90%E7%A0%81%E5%AF%B9%E6%AF%94/" target="_self">
+          ArrayList与LinkedList源码对比分析
         </a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2021/08/01/golang%E9%9D%A2%E8%AF%95%E6%95%B4%E7%90%86/" target="_self">
+        <a href="/2026/06/25/ArrayList%E4%B8%8ELinkedList%E6%BA%90%E7%A0%81%E5%AF%B9%E6%AF%94/" target="_self">
           
           
             
           
-          1. 项目中用到的锁Go 中锁分为两种：互斥锁 和 读写锁。
-互斥锁并发程序对公共资源访问的限制最常见的就是使用互斥锁的方式。在 Go 中，sync.Mutex 提供了互斥锁的实现。
-12345678910111213func main() &#123;    var mutex sync.Mutex    count := 0    for r := 0; r &lt; 50; r++ &#12
+          一、ArrayList 源码分析数据结构123456789public class ArrayList&lt;E&gt; extends AbstractList&lt;E&gt;        implements List&lt;E&gt;, RandomAccess, Cloneable, java.io.Serializable &#123;        // 底层数组    trans
         </a>
       </p>
 
@@ -537,68 +276,8 @@ Setter 注入：通过 setter 方法注入
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2021-08-01 10:11" pubdate>
-              2021-08-01
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/golang%E9%9D%A2%E8%AF%95%E9%A2%98/">golang面试题</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
-            
-              <a href="/tags/golang/">golang</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/07/21/java%E5%9F%BA%E7%A1%80%E9%97%AE%E9%A2%98/" target="_self">
-          <img src="/img/501.webp" srcset="/img/loading.gif" lazyload alt="java基础问题">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/07/21/java%E5%9F%BA%E7%A1%80%E9%97%AE%E9%A2%98/" target="_self">
-          java基础问题
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/07/21/java%E5%9F%BA%E7%A1%80%E9%97%AE%E9%A2%98/" target="_self">
-          
-          
-            
-          
-          说说进程和线程的区别？进程是程序的一次执行，是系统进行资源分配和调度的独立单位，他的作用是是程序能够并发执行提高资源利用率和吞吐率。
-由于进程是资源分配和调度的基本单位，因为进程的创建、销毁、切换产生大量的时间和空间的开销，进程的数量不能太多，而线程是比进程更小的能独立运行的基本单位，他是进程的一个实体，可以减少程序并发执行时的时间和空间开销，使得操作系统具有更好的并发性。
-线程基本不拥有系统资源
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-07-21 11:41" pubdate>
-              2021-07-21
+            <time datetime="2026-06-25 20:00" pubdate>
+              2026-06-25
             </time>
           </div>
         
@@ -614,9 +293,17 @@ Setter 注入：通过 setter 方法注入
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
+              <a href="/tags/Java/">Java</a>
+            
+              <a href="/tags/%E6%BA%90%E7%A0%81/">源码</a>
+            
               <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
             
-              <a href="/tags/java/">java</a>
+              <a href="/tags/%E9%9B%86%E5%90%88/">集合</a>
+            
+              <a href="/tags/ArrayList/">ArrayList</a>
+            
+              <a href="/tags/LinkedList/">LinkedList</a>
             
           </div>
         
@@ -628,44 +315,29 @@ Setter 注入：通过 setter 方法注入
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/07/15/java%E6%95%B0%E7%BB%84%E5%9F%BA%E7%A1%80%E4%BB%A5%E5%8F%8A%E5%AF%B9%E6%AF%94/" target="_self">
-          <img src="/img/4-1.png" srcset="/img/loading.gif" lazyload alt="java数组基础以及对比">
+        <a href="/2026/06/25/ConcurrentHashMap%E6%BA%90%E7%A0%81%E8%AF%A6%E8%A7%A3/" target="_self">
+          <img src="/img/chm-cover.png" srcset="/img/loading.gif" lazyload alt="ConcurrentHashMap源码详解：CAS+synchronized、JDK7与JDK8对比">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2021/07/15/java%E6%95%B0%E7%BB%84%E5%9F%BA%E7%A1%80%E4%BB%A5%E5%8F%8A%E5%AF%B9%E6%AF%94/" target="_self">
-          java数组基础以及对比
+        <a href="/2026/06/25/ConcurrentHashMap%E6%BA%90%E7%A0%81%E8%AF%A6%E8%A7%A3/" target="_self">
+          ConcurrentHashMap源码详解：CAS+synchronized、JDK7与JDK8对比
         </a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2021/07/15/java%E6%95%B0%E7%BB%84%E5%9F%BA%E7%A1%80%E4%BB%A5%E5%8F%8A%E5%AF%B9%E6%AF%94/" target="_self">
+        <a href="/2026/06/25/ConcurrentHashMap%E6%BA%90%E7%A0%81%E8%AF%A6%E8%A7%A3/" target="_self">
           
           
             
           
-          数组基础数组是一种线性数据结构，用连续的内存空间存储相同类型的数据。Java 中数组是对象，直接继承自 Object。
-特点：
+          一、概述ConcurrentHashMap 是线程安全的 HashMap，用于高并发场景。
+12345JDK 7：分段锁（Segment 数组 + HashEntry）        每个 Segment 继承 ReentrantLockJDK 8：CAS + synchronized（Node 数组 + 链表/红黑树）        并发粒度更细（每个数组元素）
 
-长度固定，一旦创建不可变
-内存连续，支持随机访问 O(1)
-插入和删除需要移动元素 O(n)
-
-集合框架对比1. ArrayList 源码分析底层结构： 动态数组 Object[] elementData
-核心特性：
-
-
-
-特性
-值
-
-
-
-初始容量
-10（懒加载，第一次
+二、JDK 7 实现（分段锁）
         </a>
       </p>
 
@@ -673,8 +345,8 @@ Setter 注入：通过 setter 方法注入
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2021-07-15 23:28" pubdate>
-              2021-07-15
+            <time datetime="2026-06-25 19:30" pubdate>
+              2026-06-25
             </time>
           </div>
         
@@ -690,9 +362,15 @@ Setter 注入：通过 setter 方法注入
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
+              <a href="/tags/Java/">Java</a>
+            
+              <a href="/tags/%E6%BA%90%E7%A0%81/">源码</a>
+            
               <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
             
-              <a href="/tags/java/">java</a>
+              <a href="/tags/%E9%9B%86%E5%90%88/">集合</a>
+            
+              <a href="/tags/ConcurrentHashMap/">ConcurrentHashMap</a>
             
           </div>
         
@@ -704,52 +382,27 @@ Setter 注入：通过 setter 方法注入
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/07/14/java%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/" target="_self">
-          <img src="/img/type.png" srcset="/img/loading.gif" lazyload alt="java基本数据类型">
+        <a href="/2026/06/25/HashMap%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" target="_self">
+          <img src="/img/hashmap-cover.png" srcset="/img/loading.gif" lazyload alt="HashMap源码深度解析：put、resize、红黑树、扩容机制">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2021/07/14/java%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/" target="_self">
-          java基本数据类型
+        <a href="/2026/06/25/HashMap%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" target="_self">
+          HashMap源码深度解析：put、resize、红黑树、扩容机制
         </a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2021/07/14/java%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/" target="_self">
+        <a href="/2026/06/25/HashMap%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/" target="_self">
           
           
             
           
-          
-
-
-基本数据类型
-占用字节
-大小
-
-
-
-byte
-1
-8位，最大存储数据量是255，存放的数据范围是-128~127之间
-
-
-short
-2
-16位，最大数据存储量是65536，数据范围是-32768~32767之间。
-
-
-int
-4
-32位，最大数据存储容量是2的32次方减1，数据范围是负的2的31次方到正的2的31次方减1。
-
-
-long
-8
-64位，最大数据存储容量是2的64次方减1，数据
+          一、HashMap 概述数据结构JDK 7：数组 + 链表JDK 8+：数组 + 链表 + 红黑树
+123456数组（Node&lt;K,V&gt;[] table）  │  ├── 0: Node(key1, value1) → Node(key2, value2)  // 链表  ├── 1: null  ├── 2: TreeNode(key3, value3) → TreeNode(key
         </a>
       </p>
 
@@ -757,8 +410,8 @@ long
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2021-07-14 23:25" pubdate>
-              2021-07-14
+            <time datetime="2026-06-25 19:00" pubdate>
+              2026-06-25
             </time>
           </div>
         
@@ -774,9 +427,15 @@ long
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
+              <a href="/tags/Java/">Java</a>
+            
+              <a href="/tags/%E6%BA%90%E7%A0%81/">源码</a>
+            
               <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
             
-              <a href="/tags/java/">java</a>
+              <a href="/tags/%E9%9B%86%E5%90%88/">集合</a>
+            
+              <a href="/tags/HashMap/">HashMap</a>
             
           </div>
         
@@ -788,31 +447,40 @@ long
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/07/14/3NF%E8%8C%83%E5%BC%8F/" target="_self">
-          <img src="/img/3nf6.png" srcset="/img/loading.gif" lazyload alt="3NF范式">
+        <a href="/2026/06/25/SpringSecurity%E8%AF%A6%E8%A7%A3/" target="_self">
+          <img src="/img/spring-security-cover.png" srcset="/img/loading.gif" lazyload alt="Spring Security详解：认证授权流程、过滤器链、JWT集成">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2021/07/14/3NF%E8%8C%83%E5%BC%8F/" target="_self">
-          3NF范式
+        <a href="/2026/06/25/SpringSecurity%E8%AF%A6%E8%A7%A3/" target="_self">
+          Spring Security详解：认证授权流程、过滤器链、JWT集成
         </a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2021/07/14/3NF%E8%8C%83%E5%BC%8F/" target="_self">
+        <a href="/2026/06/25/SpringSecurity%E8%AF%A6%E8%A7%A3/" target="_self">
           
           
             
           
-          NF是normal form，是数据库设计的原则。1、1NF要求每个字段都是原子不可分的。假如学校要建立一个所有学生信息的数据库，有一个字段是学生的家庭住址。
-字段如下：中国湖南省邵阳市隆回县顺子镇王炸村1号。
-这个字段可以切割成4个字段：
-国籍，省份，市，具体地址
-2、2NF要求每张表都要有一个主键，其它记录完全依赖主键。例如，如果花名册里只有名字，没有学号，则重名的话会很麻烦。
-3、3NF所有
+          一、Spring Security 核心概念核心功能1231. 认证（Authentication）：你是谁？→ 登录验证2. 授权（Authorization）：你能做什么？→ 权限控制3. 防护：CSRF、Session Fixation、Clickjacking 等
+
+核心组件
+
+
+组件
+说明
+
+
+
+SecurityContextHolder
+存储当前线程的安全上下文
+
+
+SecurityC
         </a>
       </p>
 
@@ -820,8 +488,343 @@ long
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2021-07-14 23:07" pubdate>
-              2021-07-14
+            <time datetime="2026-06-25 18:00" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Spring/">Spring</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/Spring-Security/">Spring Security</a>
+            
+              <a href="/tags/Spring/">Spring</a>
+            
+              <a href="/tags/%E8%AE%A4%E8%AF%81/">认证</a>
+            
+              <a href="/tags/%E6%8E%88%E6%9D%83/">授权</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/JVM%E8%B0%83%E4%BC%98%E5%AE%9E%E6%88%98/" target="_self">
+          <img src="/img/jvm-tuning-cover.png" srcset="/img/loading.gif" lazyload alt="JVM调优实战：内存调优、GC调优、性能监控工具">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/JVM%E8%B0%83%E4%BC%98%E5%AE%9E%E6%88%98/" target="_self">
+          JVM调优实战：内存调优、GC调优、性能监控工具
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/JVM%E8%B0%83%E4%BC%98%E5%AE%9E%E6%88%98/" target="_self">
+          
+          
+            
+          
+          一、JVM 调优目标1234调优不是&quot;优化性能&quot;，而是&quot;满足需求&quot;：├── 响应时间（RT）：接口必须在 X ms 内返回├── 吞吐量（TPS）：系统每秒能处理多少请求└── 内存占用：堆内存不超过 Y GB
+
+调优三部曲1231. 监控：GC 日志 + 内存/CPU/IO 监控2. 分析：找到瓶颈（GC 频繁？内存泄漏？线程竞争？）3. 调优：调整 JV
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 17:30" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/JVM/">JVM</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">Java</a>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/JVM/">JVM</a>
+            
+              <a href="/tags/%E8%B0%83%E4%BC%98/">调优</a>
+            
+              <a href="/tags/GC/">GC</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/Docker%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8%E4%B8%8E%E5%AE%9E%E6%88%98/" target="_self">
+          <img src="/img/docker-cover.png" srcset="/img/loading.gif" lazyload alt="Docker基础入门与实战：核心概念、常用命令、Dockerfile">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/Docker%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8%E4%B8%8E%E5%AE%9E%E6%88%98/" target="_self">
+          Docker基础入门与实战：核心概念、常用命令、Dockerfile
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/Docker%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8%E4%B8%8E%E5%AE%9E%E6%88%98/" target="_self">
+          
+          
+            
+          
+          一、Docker 核心概念什么是 Docker？Docker 是一个开源的应用容器引擎，让开发者可以打包应用及依赖到一个轻量级、可移植的容器中。
+123传统部署：应用直接运行在 OS 上，环境冲突、依赖地狱虚拟机：模拟完整 OS，资源占用大，启动慢（分钟级）容器：共享宿主机内核，资源隔离，启动快（秒级）
+
+三大核心概念
+
+
+概念
+说明
+类比
+
+
+
+镜像（Image）
+只读模板，包含运行环境和配置
+
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 16:30" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/">开发工具</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/DevOps/">DevOps</a>
+            
+              <a href="/tags/Docker/">Docker</a>
+            
+              <a href="/tags/%E5%AE%B9%E5%99%A8/">容器</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/Kafka%E6%B7%B1%E5%85%A5%E8%AF%A6%E8%A7%A3/" target="_self">
+          <img src="/img/kafka-cover.png" srcset="/img/loading.gif" lazyload alt="Kafka深入详解：架构、分区、副本、消息可靠性">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/Kafka%E6%B7%B1%E5%85%A5%E8%AF%A6%E8%A7%A3/" target="_self">
+          Kafka深入详解：架构、分区、副本、消息可靠性
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/Kafka%E6%B7%B1%E5%85%A5%E8%AF%A6%E8%A7%A3/" target="_self">
+          
+          
+            
+          
+          一、Kafka 核心概念架构图1234567891011121314151617Producer（生产者）    │    ▼┌─────────────────────┐│     Kafka Cluster   ││  ┌─────┐ ┌─────┐   ││  │B0(P)│ │B1(P)│   │  Broker（服务器节点）│  │B0(F)│ │B1(F)│   │  分区副本│  └
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 16:00" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6/">消息中间件</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+            
+              <a href="/tags/Kafka/">Kafka</a>
+            
+              <a href="/tags/%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6/">消息中间件</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/Redis%E9%AB%98%E7%BA%A7%E8%BF%9B%E9%98%B6/" target="_self">
+          <img src="/img/redis-adv-cover.png" srcset="/img/loading.gif" lazyload alt="Redis高级进阶：持久化、集群、哨兵、RedLock、缓存策略">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/Redis%E9%AB%98%E7%BA%A7%E8%BF%9B%E9%98%B6/" target="_self">
+          Redis高级进阶：持久化、集群、哨兵、RedLock、缓存策略
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/Redis%E9%AB%98%E7%BA%A7%E8%BF%9B%E9%98%B6/" target="_self">
+          
+          
+            
+          
+          一、Redis 持久化RDB（快照）将内存数据在某个时间点保存到磁盘的二进制快照。
+12345678# 触发方式save 900 1      # 900 秒内有 1 次修改，触发快照save 300 10     # 300 秒内有 10 次修改save 60 10000   # 60 秒内有 10000 次修改# 手动触发redis-cli SAVE       # 同步阻塞redis-cli
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 15:30" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/NoSQL/">NoSQL</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%BC%93%E5%AD%98/">缓存</a>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/NoSQL/">NoSQL</a>
+            
+              <a href="/tags/Redis/">Redis</a>
+            
+              <a href="/tags/%E9%AB%98%E7%BA%A7/">高级</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/MySQL%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%E4%B8%8E%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB/" target="_self">
+          <img src="/img/replication-cover.png" srcset="/img/loading.gif" lazyload alt="MySQL主从复制原理与读写分离架构详解">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/MySQL%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%E4%B8%8E%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB/" target="_self">
+          MySQL主从复制原理与读写分离架构详解
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/MySQL%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%E4%B8%8E%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB/" target="_self">
+          
+          
+            
+          
+          一、主从复制概述作用12341. 读写分离：主库写，从库读，提升吞吐量2. 数据备份：从库作为备份节点，不影响主库3. 高可用：主库故障时可切换从库4. 数据分发：从库用于数据分析、报表查询
+
+架构图1234567891011客户端  │  ├── 写请求 → 主库（Master） → binlog  │                               │  │            
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 15:00" pubdate>
+              2026-06-25
             </time>
           </div>
         
@@ -839,9 +842,13 @@ long
             
               <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
             
-              <a href="/tags/%E8%8C%83%E5%BC%8F/">范式</a>
-            
               <a href="/tags/MySQL/">MySQL</a>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/">主从复制</a>
+            
+              <a href="/tags/%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB/">读写分离</a>
             
           </div>
         
@@ -853,7 +860,7 @@ long
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <a class="extend prev" rel="prev" href="/page/7/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/#board">6</a><a class="page-number" href="/page/7/#board">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/#board">9</a><a class="extend next" rel="next" href="/page/9/#board"><i class="iconfont icon-arrowright"></i></a>
+      <a class="extend prev" rel="prev" href="/page/7/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/#board">6</a><a class="page-number" href="/page/7/#board">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/#board">9</a><a class="page-number" href="/page/10/#board">10</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/#board">12</a><a class="extend next" rel="next" href="/page/9/#board"><i class="iconfont icon-arrowright"></i></a>
     </span>
   </nav>
 

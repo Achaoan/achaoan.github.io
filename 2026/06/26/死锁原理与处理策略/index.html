@@ -1,0 +1,530 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>死锁原理与处理策略：必要条件、预防、避免与检测 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/deadlock-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="死锁原理与处理策略：必要条件、预防、避免与检测">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-26 00:25" pubdate>
+        2026年6月26日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      17
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">死锁原理与处理策略：必要条件、预防、避免与检测</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：5 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、什么是死锁"><a href="#一、什么是死锁" class="headerlink" title="一、什么是死锁"></a>一、什么是死锁</h2><p>死锁是指两个或多个进程互相等待对方持有的资源，导致所有相关进程都无法继续执行的状态。</p>
+<figure class="highlight tp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs tp">死锁示例：<br>进程 A         进程 B<br>持有锁 <span class="hljs-keyword">X</span>       持有锁 <span class="hljs-keyword">Y</span><br>等待锁 <span class="hljs-keyword">Y</span>       等待锁 <span class="hljs-keyword">X</span><br><br>A 不释放 <span class="hljs-keyword">X</span> 直到获取 <span class="hljs-keyword">Y</span><br>B 不释放 <span class="hljs-keyword">Y</span> 直到获取 <span class="hljs-keyword">X</span><br>→ 双方永远等下去 → 死锁<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、死锁的必要条件（四个必须同时满足）"><a href="#二、死锁的必要条件（四个必须同时满足）" class="headerlink" title="二、死锁的必要条件（四个必须同时满足）"></a>二、死锁的必要条件（四个必须同时满足）</h2><figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs armasm">① 互斥（Mutual Exclusion）<br>├── 资源一次只能被一个进程占用<br>├── 其他进程请求该资源必须等待<br>└── 例：打印机、数据库行锁<br><br>② 持有并等待（Hold <span class="hljs-keyword">and</span> Wait）<br>├── 进程持有至少一个资源<br>├── 同时在等待获取其他进程持有的资源<br>└── 例：事务 A 持有行 <span class="hljs-number">1</span> 的锁，等待行 <span class="hljs-number">2</span><br><br>③ 不可剥夺（No Preemption）<br>├── 已分配给进程的资源不能被强制收回<br>├── 只能由持有者主动释放<br>└── 例：MySQL 行锁不可被其他事务强行解锁<br><br>④ 循环等待（Circular Wait）<br>├── 多个进程形成环形等待链<br>├── <span class="hljs-built_in">P1</span> 等 <span class="hljs-built_in">P2</span> 的资源，<span class="hljs-built_in">P2</span> 等 <span class="hljs-built_in">P3</span> 的资源...Pn 等 <span class="hljs-built_in">P1</span> 的资源<br>└── 例：A→B→C→A 的等待环<br><br>注意：四个条件必须同时满足才会发生死锁<br>缺少任意一个 → 死锁不会发生<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、死锁处理策略"><a href="#三、死锁处理策略" class="headerlink" title="三、死锁处理策略"></a>三、死锁处理策略</h2><h3 id="策略一：预防（Prevention）"><a href="#策略一：预防（Prevention）" class="headerlink" title="策略一：预防（Prevention）"></a>策略一：预防（Prevention）</h3><p>预防的思路是<strong>破坏四个必要条件之一</strong>，从根源上杜绝死锁。</p>
+<figure class="highlight tp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs tp">破坏互斥条件：<br>├── 资源改为可共享访问<br>├── 现实：有些资源天然互斥（打印机），无法破坏<br>└── 可行性：低<br><br>破坏持有并等待：<br>├── 进程在开始前一次性申请所有需要的资源<br>├── ├── 优点：简单实现<br>├── └── 缺点：资源利用率低<br>│        （进程可能提前很久占用资源，造成浪费）<br>└── 可行性：中等<br><br>破坏不可剥夺：<br>├── 进程申请不到新资源时，释放已持有的资源<br>├── ├── 优点：有效<br>├── └── 缺点：实现复杂，可能造成之前的工作失效<br>│        （已修改的数据需要回滚）<br>└── 可行性：中等<br><br>破坏循环等待：<br>├── 所有资源按固定顺序编号，进程按序申请<br>├── ├── 优点：广泛使用<br>├── └── 缺点：编号难以确定，降低资源利用率<br>│        （例：所有进程先申请 <span class="hljs-keyword">X</span> 再申请 <span class="hljs-keyword">Y</span>）<br>└── 可行性：高（数据库表锁排序、锁顺序规定）<br></code></pre></td></tr></table></figure>
+
+<h3 id="策略二：避免（Avoidance）"><a href="#策略二：避免（Avoidance）" class="headerlink" title="策略二：避免（Avoidance）"></a>策略二：避免（Avoidance）</h3><p>避免是在<strong>运行时动态判断</strong>，确保系统始终处于安全状态。</p>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs ada">银行家算法（Banker<span class="hljs-symbol">&#x27;s</span> Algorithm）：<br>├── 类比：银行不会把所有钱贷出去，留一部分备用<br>├── 操作系统判断：分配资源后，系统是否仍处于安全状态<br>├── 安全状态：存在一个安全序列，所有进程能按序执行完<br>└── 不安全状态 ≠ 死锁（可能死锁，也可能没事）<br><br>银行家算法流程：<br>① 进程申请资源<br>② 假设分配资源给该进程<br>③ 检查分配后是否处于安全状态<br>④ 安全 → 真的分配；不安全 → 拒绝分配<br><br>局限：<br>├── 需要预先知道每个进程的最大需求量（现实中很难）<br>├── 进程数量动态变化（新进程不断出现）<br>├── 资源类型多，计算复杂度高<br>└── 实际 OS 中很少使用（理论意义大于实践）<br></code></pre></td></tr></table></figure>
+
+<h3 id="策略三：检测与恢复（Detection-amp-Recovery）"><a href="#策略三：检测与恢复（Detection-amp-Recovery）" class="headerlink" title="策略三：检测与恢复（Detection &amp; Recovery）"></a>策略三：检测与恢复（Detection &amp; Recovery）</h3><figure class="highlight fix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs fix"><span class="hljs-attr">检测方法：资源分配图</span><br><span class="hljs-attr">├── 节点 </span>=<span class="hljs-string"> 进程 + 资源</span><br><span class="hljs-string">├── 边 = 请求边（进程→资源）+ 分配边（资源→进程）</span><br><span class="hljs-string">├── 环路检测：图中存在环路 → 可能存在死锁</span><br><span class="hljs-string">└── InnoDB：事务等待图（等待关系的环路检测）</span><br><span class="hljs-string"></span><br><span class="hljs-string">检测时机：</span><br><span class="hljs-string">├── 定时检测（每分钟/每次分配时）</span><br><span class="hljs-string">├── 资源利用率低时触发检测</span><br><span class="hljs-string">└── 响应变慢时触发检测</span><br><span class="hljs-string"></span><br><span class="hljs-string">恢复方法：</span><br><span class="hljs-string">├── 终止进程</span><br><span class="hljs-string">│   ├── 一次性终止所有死锁进程（代价大）</span><br><span class="hljs-string">│   └── 逐个终止，每次检查死锁是否解除（代价小但慢）</span><br><span class="hljs-string">│</span><br><span class="hljs-string">├── 抢占资源</span><br><span class="hljs-string">│   ├── 从死锁进程中强制剥夺资源</span><br><span class="hljs-string">│   ├── 将资源分配给其他进程</span><br><span class="hljs-string">│   └── 需要回滚被剥夺的进程（代价高）</span><br><span class="hljs-string">│</span><br><span class="hljs-string">└── 选择终止/回滚哪个进程？</span><br><span class="hljs-string">    ├── 优先级最低的</span><br><span class="hljs-string">    ├── 执行时间最短的</span><br><span class="hljs-string">    ├── 已使用资源最多的</span><br><span class="hljs-string">    ├── 剩余时间最长的</span><br><span class="hljs-string">    └── 回滚代价最小的</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="策略四：忽略（Ostrich-Algorithm）"><a href="#策略四：忽略（Ostrich-Algorithm）" class="headerlink" title="策略四：忽略（Ostrich Algorithm）"></a>策略四：忽略（Ostrich Algorithm）</h3><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs 1c">鸵鸟算法：假装死锁不会发生<br>├── 实际项目中使用最多的<span class="hljs-string">&quot;策略&quot;</span><br>├── 因为死锁预防/避免的代价远大于死锁发生时的损失<br>└── 大多数应用遇到死锁 → 重启即可<br><br>场景：<br>├── 开发环境：不考虑死锁（出问题重启）<br>├── 生产环境：死锁极少发生，加预防反而降低性能<br>├── 单机数据库：死锁偶尔发生，检测后回滚重试<br>└── 分布式系统：通过超时机制避免永久死锁<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、实际场景中的死锁处理"><a href="#四、实际场景中的死锁处理" class="headerlink" title="四、实际场景中的死锁处理"></a>四、实际场景中的死锁处理</h2><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">MySQL InnoDB：<br>├── 死锁检测：等待图（Waits-<span class="hljs-keyword">for</span> Graph）<br>├── 检测到死锁 → 选择回滚代价最小的事务<br>├── 每次加锁时检查，不需要额外线程<br>└── 超时设置：innodb_lock_wait_timeout（默认 <span class="hljs-number">50</span>s）<br><br>Java 并发：<br>├── 尽量减少锁的持有时间<br>├── 统一锁获取顺序（所有线程按相同顺序加锁）<br>├── 使用 <span class="hljs-keyword">try</span><span class="hljs-constructor">Lock()</span> 带超时（lock.<span class="hljs-keyword">try</span><span class="hljs-constructor">Lock(1, TimeUnit.SECONDS)</span>）<br>├── 避免在持有锁时调用外部方法（可能也在加锁）<br>└── 使用并发工具类替代手动加锁（ConcurrentHashMap、BlockingQueue）<br><br>分布式系统：<br>├── 设置全局超时时间（Redis Lock 的 TTL）<br>├── 分布式锁 + 租约机制<br>├── 幂等设计 + 重试机制<br>└── 最终一致性 + 补偿事务<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、面试题"><a href="#五、面试题" class="headerlink" title="五、面试题"></a>五、面试题</h2><h4 id="1-死锁的四个必要条件？"><a href="#1-死锁的四个必要条件？" class="headerlink" title="1. 死锁的四个必要条件？"></a>1. 死锁的四个必要条件？</h4><p>互斥（资源一次只能一个进程用）、持有并等待（持有资源等别的资源）、不可剥夺（不能强制收回）、循环等待（形成环形等待链）。缺一不可。</p>
+<h4 id="2-死锁的处理策略有哪些？"><a href="#2-死锁的处理策略有哪些？" class="headerlink" title="2. 死锁的处理策略有哪些？"></a>2. 死锁的处理策略有哪些？</h4><p>预防（破坏必要条件）、避免（银行家算法判断安全状态）、检测与恢复（资源分配图检测环路 + 终止进程或抢占资源）、忽略（鸵鸟算法，实际最常用）。</p>
+<h4 id="3-银行家算法的原理？"><a href="#3-银行家算法的原理？" class="headerlink" title="3. 银行家算法的原理？"></a>3. 银行家算法的原理？</h4><p>类比银行放贷：分配资源前先假设分配，检查系统是否处于安全状态（存在安全序列）。安全则分配，不安全则拒绝。局限是需要预知最大需求量。</p>
+<h4 id="4-MySQL-如何处理死锁？"><a href="#4-MySQL-如何处理死锁？" class="headerlink" title="4. MySQL 如何处理死锁？"></a>4. MySQL 如何处理死锁？</h4><p>等待图检测死锁，选择回滚代价最小的事务。超时设置 innodb_lock_wait_timeout（默认 50s）。防止死锁：按固定顺序加锁、减少锁持有时间。</p>
+<h4 id="5-实际项目中怎么避免死锁？"><a href="#5-实际项目中怎么避免死锁？" class="headerlink" title="5. 实际项目中怎么避免死锁？"></a>5. 实际项目中怎么避免死锁？</h4><p>锁排序（固定获取顺序）、tryLock 超时、减少锁粒度、缩短锁持有时间、使用无锁数据结构。分布式场景加超时和重试机制。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%AD%BB%E9%94%81/">死锁</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/26/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%88%86%E9%A1%B5/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">内存管理：虚拟内存、分页与页面置换算法</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/26/%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">进程与线程详解：概念、状态、IPC 与线程模型</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

@@ -1,0 +1,535 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>AI Agent 智能体：ReAct 模式、记忆系统与规划策略 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/agent-basics-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="AI Agent 智能体：ReAct 模式、记忆系统与规划策略">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 22:20" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.5k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      17
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">AI Agent 智能体：ReAct 模式、记忆系统与规划策略</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：19 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、什么是-AI-Agent"><a href="#一、什么是-AI-Agent" class="headerlink" title="一、什么是 AI Agent"></a>一、什么是 AI Agent</h2><p>AI Agent（智能体）是能够<strong>自主感知环境、做出决策、执行行动</strong>的 LLM 驱动系统。</p>
+<figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs sqf"><span class="hljs-built_in">Agent</span> = LLM + 记忆 + 工具 + 规划<br><br>核心循环：<br>┌──────────────────────────────────────┐<br>│  ① 感知（Perceive）                   │<br>│  ├── 接收用户输入                     │<br>│  ├── 感知外部环境状态                 │<br>│  └── 读取自身记忆                     │<br>│                                      │<br>│  ② 思考/规划（Think/Plan）           │<br>│  ├── 分析当前状态                     │<br>│  ├── 拆解任务为步骤                   │<br>│  └── 决定用什么工具                   │<br>│                                      │<br>│  ③ 行动（Act）                       │<br>│  ├── 调用 Function / Tool            │<br>│  ├── 获取执行结果                     │<br>│  └── 更新记忆                         │<br>│                                      │<br>│  ④ 循环直到任务完成                  │<br>└──────────────────────────────────────┘<br><br><span class="hljs-built_in">Agent</span> vs 普通 LLM 调用：<br>├── 普通调用：一问一答，无状态，每次独立<br>├── <span class="hljs-built_in">Agent</span>：多轮交互，自主决策，目标驱动<br>└── <span class="hljs-built_in">Agent</span> = LLM 有了<span class="hljs-string">&quot;行动能力&quot;</span>和<span class="hljs-string">&quot;记忆&quot;</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="二、ReAct-模式"><a href="#二、ReAct-模式" class="headerlink" title="二、ReAct 模式"></a>二、ReAct 模式</h2><p>ReAct（Reasoning + Acting）是最主流的 Agent 模式，让模型交替进行推理和行动。它的名字来自论文《ReAct: Synergizing Reasoning and Acting in Language Models》。</p>
+<figure class="highlight avrasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs avrasm">ReAct 循环（Thought → Action → Observation）：<br><br>用户： <span class="hljs-string">&quot;帮我查一下北京的天气，然后安排明天的会议&quot;</span><br><br><span class="hljs-symbol">Thought:</span> 用户想知道北京天气，还需要安排会议。我先查天气。<br><span class="hljs-symbol">Action:</span> <span class="hljs-keyword">call</span>(get_weather, city=<span class="hljs-string">&quot;北京&quot;</span>)<br><span class="hljs-symbol">Observation:</span> &#123;<span class="hljs-string">&quot;temp&quot;</span>: <span class="hljs-number">28</span>, <span class="hljs-string">&quot;condition&quot;</span>: <span class="hljs-string">&quot;晴&quot;</span>&#125;<br><br><span class="hljs-symbol">Thought:</span> 北京明天晴天。现在需要安排会议，需要查空闲时段。<br><span class="hljs-symbol">Action:</span> <span class="hljs-keyword">call</span>(find_free_slots, date=<span class="hljs-string">&quot;2026-06-26&quot;</span>)<br><span class="hljs-symbol">Observation:</span> &#123;<span class="hljs-string">&quot;slots&quot;</span>: [<span class="hljs-string">&quot;10:00&quot;</span>, <span class="hljs-string">&quot;14:00&quot;</span>, <span class="hljs-string">&quot;16:00&quot;</span>]&#125;<br><br><span class="hljs-symbol">Thought:</span> 有三个空闲时段，下午 <span class="hljs-number">14</span>:<span class="hljs-number">00</span> 比较合适。<br><span class="hljs-symbol">Action:</span> <span class="hljs-keyword">call</span>(schedule_meeting, title=<span class="hljs-string">&quot;项目评审&quot;</span>, time=<span class="hljs-string">&quot;14:00&quot;</span>)<br><span class="hljs-symbol">Observation:</span> &#123;<span class="hljs-string">&quot;status&quot;</span>: <span class="hljs-string">&quot;success&quot;</span>, <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;mtg_001&quot;</span>&#125;<br><br><span class="hljs-symbol">Thought:</span> 所有任务完成，可以给用户总结。<br><span class="hljs-symbol">Final:</span> <span class="hljs-string">&quot;北京明天晴，28°C。已帮你安排了明天 14:00 的项目评审会议。&quot;</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="ReAct-的三种输出类型"><a href="#ReAct-的三种输出类型" class="headerlink" title="ReAct 的三种输出类型"></a>ReAct 的三种输出类型</h3><figure class="highlight fortran"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs fortran">ReAct 循环中，模型每次输出三种类型之一：<br><br><span class="hljs-number">1.</span> Thought（思考）<br>   ├── 模型<span class="hljs-string">&quot;出声思考&quot;</span><br>   ├── 分析当前进展和下一步计划<br>   └── 提高推理质量的关键步骤<br><br><span class="hljs-number">2.</span> <span class="hljs-keyword">Action</span>（行动）<br>   ├── 调用工具的请求<br>   ├── 格式：<span class="hljs-keyword">call</span>(function_name, args)<br>   └── 外部系统执行并返回 Observation<br><br><span class="hljs-number">3.</span> <span class="hljs-keyword">Final</span>（最终回答）<br>   ├── 任务完成后的总结输出<br>   ├── 直接返回给用户<br>   └── 结束循环<br></code></pre></td></tr></table></figure>
+
+<h3 id="为什么-ReAct-有效"><a href="#为什么-ReAct-有效" class="headerlink" title="为什么 ReAct 有效"></a>为什么 ReAct 有效</h3><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">ReAct 相比纯推理或纯行动的优势：<br>├── 纯推理（Reasoning-<span class="hljs-keyword">only</span>）<br>│   模型只在头脑中思考，无法获取外部信息<br>│   &quot;我猜北京明天晴&quot;（猜的，可能错）<br>│<br>├── 纯行动（Acting-<span class="hljs-keyword">only</span>）<br>│   模型直接调工具，不思考步骤<br>│   &quot;帮我查天气&quot;（然后呢？会议呢？）<br>│<br>├── ReAct（两者结合）<br>│   边想边做，每一步都有依据<br>│   &quot;先查天气 → 再安排会议 → 确认完成&quot;<br>│<br>└── Thought 步骤是关键<br>    让模型&quot;出声思考&quot;而不是暗箱操作<br>    中间步骤可追溯、可干预<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、记忆系统"><a href="#三、记忆系统" class="headerlink" title="三、记忆系统"></a>三、记忆系统</h2><p>Agent 需要管理多种类型的记忆来维持长期交互。</p>
+<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs stata">Agent 记忆架构：<br>┌──────────────────────────────────────────────────────────┐<br>│  短期记忆（Short-term <span class="hljs-keyword">Memory</span>）                          │<br>│  ├── 当前对话的所有内容                                  │<br>│  ├── 保存在上下文窗口中                                  │<br>│  ├── 有限（受上下文窗口限制）但精确                     │<br>│  └── 对话结束或超出窗口后丢失                           │<br>│                                                          │<br>│  长期记忆（Long-term <span class="hljs-keyword">Memory</span>）                           │<br>│  ├── 过去对话的摘要和关键信息                            │<br>│  ├── 用户偏好和习惯                                      │<br>│  ├── 存储在外部存储器中（向量数据库 / 文件）            │<br>│  ├── 通过 RAG 检索回上下文                              │<br>│  └── 跨会话持久化                                        │<br>│                                                          │<br>│  工作记忆（Working <span class="hljs-keyword">Memory</span>）                             │<br>│  ├── 当前任务的进度                                      │<br>│  ├── 已完成和待完成的步骤                                │<br>│  └── 临时的中间结果                                      │<br>└──────────────────────────────────────────────────────────┘<br><br>记忆管理的挑战：<br>├── 上下文窗口限制：放不下完整历史<br>├── 相关信息检索：需要高效摘要和索引<br>├── 记忆的优先级：哪些重要，哪些可丢弃<br>└── 一致性维护：长期记忆和短期记忆不矛盾<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、规划策略"><a href="#四、规划策略" class="headerlink" title="四、规划策略"></a>四、规划策略</h2><figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs sqf"><span class="hljs-number">1</span>. 任务分解（Task Decomposition）<br>   将复杂任务拆成子任务，逐步执行<br>   <span class="hljs-string">&quot;写一个用户管理系统&quot;</span><br>   → ① 定义数据模型 ② 实现 Repository ③ 实现 Service ④ 实现 Controller ⑤ 写测试<br><br><span class="hljs-number">2</span>. 反思（Self-Reflection）<br>   定期检查进度和质量<br>   <span class="hljs-string">&quot;我已经完成了哪些步骤？下一步是什么？</span><br><span class="hljs-string">   有没有遗漏？有没有错误？&quot;</span><br>   发现错误 → 回退 → 修正<br><br><span class="hljs-number">3</span>. 多路径搜索（Tree-of-Thought）<br>   同时探索多个方案，选择最优<br>   适合：策略规划、复杂推理<br>   成本：需要多次 LLM 调用<br><br><span class="hljs-number">4</span>. 子 <span class="hljs-built_in">Agent</span> 协作<br>   一个 <span class="hljs-built_in">Agent</span> 无法完成时，创建子 <span class="hljs-built_in">Agent</span><br>   子 <span class="hljs-built_in">Agent</span> 专注不同领域，结果汇总<br>   Supervisor <span class="hljs-built_in">Agent</span> 协调和分配任务<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、应用场景"><a href="#五、应用场景" class="headerlink" title="五、应用场景"></a>五、应用场景</h2><figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs sqf">├── 代码助手<br>│   理解需求 → 写代码 → 测试 → 修复<br>│   <span class="hljs-built_in">Agent</span> 可以自主完成<span class="hljs-string">&quot;写代码 → 编译 → 修复&quot;</span>的循环<br>│<br>├── 数据分析<br>│   连接数据库 → 写 SQL → 分析 → 出图<br>│   <span class="hljs-built_in">Agent</span> 可以自主完成完整的数据分析流程<br>│<br>├── 自动化运维<br>│   监控告警 → 排查 → 修复 → 通知<br>│   <span class="hljs-built_in">Agent</span> 可以 <span class="hljs-number">7</span>x24 小时响应运维事件<br>│<br>├── 客服系统<br>│   理解问题 → 查知识库 → 创建工单 → 跟进<br>│   <span class="hljs-built_in">Agent</span> 处理常规问题，复杂问题转人工<br>│<br>├── 研究助手<br>│   搜索 → 阅读 → 总结 → 写报告<br>│   <span class="hljs-built_in">Agent</span> 可以完成多步骤的研究任务<br>│<br>└── Workflow 编排<br>    串联多个 API，跨系统操作<br>    <span class="hljs-built_in">Agent</span> 连接不同系统，自动完成跨系统流程<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、面试题"><a href="#六、面试题" class="headerlink" title="六、面试题"></a>六、面试题</h2><h4 id="1-AI-Agent-和普通-LLM-调用的区别？"><a href="#1-AI-Agent-和普通-LLM-调用的区别？" class="headerlink" title="1. AI Agent 和普通 LLM 调用的区别？"></a>1. AI Agent 和普通 LLM 调用的区别？</h4><p>普通 LLM 调用是一问一答无状态的。Agent 能感知环境、自主规划、调用工具、管理记忆，是目标驱动的多轮系统。Agent = LLM + 工具 + 记忆 + 规划。</p>
+<h4 id="2-ReAct-模式的三步循环是什么？"><a href="#2-ReAct-模式的三步循环是什么？" class="headerlink" title="2. ReAct 模式的三步循环是什么？"></a>2. ReAct 模式的三步循环是什么？</h4><p>Thought（出声思考当前状态和下一步）→ Action（调用工具）→ Observation（工具返回结果）。循环直到任务完成。</p>
+<h4 id="3-Agent-的三种记忆？"><a href="#3-Agent-的三种记忆？" class="headerlink" title="3. Agent 的三种记忆？"></a>3. Agent 的三种记忆？</h4><p>短期记忆（当前对话，在上下文窗口中）、长期记忆（跨会话持久化，存在外部存储中）、工作记忆（当前任务进度）。通过 RAG 检索长期记忆回上下文。</p>
+<h4 id="4-Agent-的规划策略有哪些？"><a href="#4-Agent-的规划策略有哪些？" class="headerlink" title="4. Agent 的规划策略有哪些？"></a>4. Agent 的规划策略有哪些？</h4><p>任务分解（拆成子步骤）、反思（定期检查和修正）、多路径搜索（探索多种方案）、子 Agent 协作（分工合作）。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/AI/">AI</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Agent/">Agent</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%99%BA%E8%83%BD%E4%BD%93/">智能体</a>
+                    
+                      <a class="hover-with-bg" href="/tags/ReAct/">ReAct</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E8%A7%84%E5%88%92/">规划</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E8%AE%B0%E5%BF%86/">记忆</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/MCP%E5%8D%8F%E8%AE%AE%E6%A8%A1%E5%9E%8B%E4%B8%8A%E4%B8%8B%E6%96%87%E5%8D%8F%E8%AE%AE%E6%9E%B6%E6%9E%84%E4%B8%8E%E8%83%BD%E5%8A%9B/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">MCP 模型上下文协议：架构、三种能力与 Skill 概念</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/Function%20Calling%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E5%8E%9F%E7%90%86%E4%B8%8E%E5%9C%BA%E6%99%AF/">
+                        <span class="hidden-mobile">Function Calling（函数调用）：原理、流程与应用场景</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

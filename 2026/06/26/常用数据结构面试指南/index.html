@@ -1,0 +1,548 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>常用数据结构面试指南：数组、链表、栈、队列、哈希表 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/data-structures-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="常用数据结构面试指南：数组、链表、栈、队列、哈希表">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-26 00:35" pubdate>
+        2026年6月26日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.8k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      20
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">常用数据结构面试指南：数组、链表、栈、队列、哈希表</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：4 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、数组"><a href="#一、数组" class="headerlink" title="一、数组"></a>一、数组</h2><h3 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h3><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">内存：连续内存空间<br>访问：随机访问 <span class="hljs-constructor">O(1)</span>（通过下标计算地址）<br>插入/删除：平均 <span class="hljs-constructor">O(<span class="hljs-params">n</span>)</span>（需要移动元素）<br><br>优点：<br>├── 随机访问快（CPU 缓存友好）<br>├── 内存连续（空间局部性好）<br>└── 没有额外开销（比链表省空间）<br><br>缺点：<br>├── 插入/删除慢（需要移动元素）<br>├── 大小固定（动态数组需要扩容）<br>└── 内存碎片（大块连续内存可能分配失败）<br></code></pre></td></tr></table></figure>
+
+<h3 id="动态数组（ArrayList）"><a href="#动态数组（ArrayList）" class="headerlink" title="动态数组（ArrayList）"></a>动态数组（ArrayList）</h3><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">扩容机制：<br>├── 初始容量：<span class="hljs-number">10</span><br>├── 扩容因子：<span class="hljs-number">1.5</span> 倍（<span class="hljs-keyword">new</span> = old + old &gt;&gt; <span class="hljs-number">1</span>）<br>├── 扩容操作：新建数组 → 逐个拷贝 → 更新引用<br>└── 时间复杂度：均摊 <span class="hljs-constructor">O(1)</span><br><br>性能对比：<br>├── 尾部插入：<span class="hljs-constructor">O(1)</span>（不需要移动）<br>├── 指定位置插入：<span class="hljs-constructor">O(<span class="hljs-params">n</span>)</span>（需要移动后续元素）<br>├── 随机访问：<span class="hljs-constructor">O(1)</span><br>└── 遍历：<span class="hljs-constructor">O(<span class="hljs-params">n</span>)</span>（缓存友好，比链表快）<br><br>适用场景：<br>├── 随机访问多（按索引查询）<br>├── 尾部插入/删除多<br>├── 不需要频繁在中间插入/删除<br>└── 数据量可预估或增长稳定<br></code></pre></td></tr></table></figure>
+
+<h3 id="常见数组题目"><a href="#常见数组题目" class="headerlink" title="常见数组题目"></a>常见数组题目</h3><figure class="highlight processing"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs processing">├── 两数之和（<span class="hljs-keyword">HashMap</span> 辅助）<br>├── 三数之和（排序 + 双指针）<br>├── 盛最多水的容器（双指针）<br>├── 买卖股票最佳时机（一次遍历，记录最低价）<br>├── 旋转数组（反转三次：整体反→前半反→后半反）<br>├── 合并两个有序数组（双指针从后往前）<br>└── 下一个排列（找拐点 → 交换 → 反转）<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、链表"><a href="#二、链表" class="headerlink" title="二、链表"></a>二、链表</h2><h3 id="特点-1"><a href="#特点-1" class="headerlink" title="特点"></a>特点</h3><figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs crmsh">内存：非连续内存，通过指针链接<br>访问：随机访问 O(n)（需要遍历）<br>插入/删除：O(<span class="hljs-number">1</span>)（已知节点位置）<br><br>类型：<br>├── 单向链表：<span class="hljs-keyword">Node</span> <span class="hljs-title">&#123; val</span>, next &#125;<br>├── 双向链表：<span class="hljs-keyword">Node</span> <span class="hljs-title">&#123; val</span>, prev, next &#125;<br>├── 循环链表：尾节点指向头节点（约瑟夫问题）<br>└── 带头链表：虚拟头节点（dummy head）简化边界<br><br>优点：<br>├── 插入/删除快（不需要移动元素）<br>├── 大小动态扩展<br>└── 内存不需要连续<br><br>缺点：<br>├── 随机访问慢<br>├── 额外存储指针开销（<span class="hljs-number">8</span> 字节/节点）<br>└── 对 CPU 缓存不友好<br></code></pre></td></tr></table></figure>
+
+<h3 id="经典技巧"><a href="#经典技巧" class="headerlink" title="经典技巧"></a>经典技巧</h3><figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs llvm">虚拟头节点（Dummy Head）：<br>├── 避免处理头节点为空的边界情况<br>├── 所有操作统一，不需要特殊判断<br>└── 例：ListNode dummy <span class="hljs-operator">=</span> new ListNode(<span class="hljs-number">0</span>)<span class="hljs-comment">; dummy.next = head;</span><br><br>快慢指针：<br>├── 找中点：slow 走一步，<span class="hljs-keyword">fast</span> 走两步<br>├── 检测环：slow 走一步，<span class="hljs-keyword">fast</span> 走两步<br>├── 找倒数第 K 个：<span class="hljs-keyword">fast</span> 先走 K 步，然后两指针同步走<br>└── 回文链表：快慢找中点 → 反转后半 → 对比<br><br>反转链表：<br>├── 迭代：prev → cur → next 三指针<br>├── 递归：反转后的尾节点指向当前节点<br>└── 画图辅助理解<br><br>适用场景：<br>├── 频繁在中间插入/删除<br>├── 数据量不确定（动态增长）<br>├── 不需要随机访问<br>└── LRU 缓存（双向链表 + HashMap）<br></code></pre></td></tr></table></figure>
+
+<h3 id="常见链表题目"><a href="#常见链表题目" class="headerlink" title="常见链表题目"></a>常见链表题目</h3><figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs excel">├── 反转链表（迭代/递归）⭐<br>├── 环形链表检测（快慢指针）<br>├── 合并两个有序链表（递归/迭代）<br>├── 删除链表倒数第 <span class="hljs-built_in">N</span> 个节点（快慢指针）<br>├── 两链表相交（双指针，走完自己的路走别人的路）<br>└── LRU 缓存（LinkedHashMap / 双向链表 + HashMap）<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、栈"><a href="#三、栈" class="headerlink" title="三、栈"></a>三、栈</h2><h3 id="特点-2"><a href="#特点-2" class="headerlink" title="特点"></a>特点</h3><figure class="highlight avrasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs avrasm">先进后出（LIFO - Last <span class="hljs-keyword">In</span> First <span class="hljs-keyword">Out</span>）<br>操作：<br>├── <span class="hljs-keyword">push</span>：入栈<br>├── <span class="hljs-keyword">pop</span>：出栈<br>└── peek：查看栈顶（不删除）<br><br>Java 实现：<br>├── Stack（遗留类，不推荐）<br>├── ArrayDeque（推荐，效率高，无锁）<br>└── LinkedList（也可，但有额外链表开销）<br><br>底层对比：<br>├── ArrayDeque：基于数组，循环使用<br>│   ├── <span class="hljs-keyword">push</span>：尾部插入<br>│   ├── <span class="hljs-keyword">pop</span>：尾部移除<br>│   └── 扩容：翻倍<br>│<br>└── LinkedList：基于链表<br>    ├── <span class="hljs-keyword">push</span>：头部插入<br>    ├── <span class="hljs-keyword">pop</span>：头部移除<br>    └── 不需要扩容<br></code></pre></td></tr></table></figure>
+
+<h3 id="常见应用"><a href="#常见应用" class="headerlink" title="常见应用"></a>常见应用</h3><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">括号匹配：<br>├── 遇到左括号入栈<br>├── 遇到右括号出栈匹配<br>└── 最终栈为空 → 有效<br><br>表达式求值：<br>├── 两个栈：操作数栈 + 运算符栈<br>├── 根据运算符优先级决定计算时机<br>└── 后缀表达式（逆波兰）不需要括号<br><br>单调栈：<br>├── 栈内元素保持单调递增/递减<br>├── 典型：下一个更大元素<br>├── 当新元素破坏单调性 → 出栈计算<br>└── 时间复杂 <span class="hljs-constructor">O(<span class="hljs-params">n</span>)</span>（每个元素入栈出栈一次）<br><br>其他应用：<br>├── 函数调用栈<br>├── 浏览器后退<br>├── 撤销操作（Ctrl+Z）<br>└── DFS 的迭代实现<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、队列"><a href="#四、队列" class="headerlink" title="四、队列"></a>四、队列</h2><h3 id="特点-3"><a href="#特点-3" class="headerlink" title="特点"></a>特点</h3><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">先进先出（<span class="hljs-variable">FIFO</span> <span class="hljs-operator">-</span> <span class="hljs-built_in">First</span> <span class="hljs-built_in">In</span> <span class="hljs-built_in">First</span> <span class="hljs-built_in">Out</span>）<br>操作：<br>├── <span class="hljs-variable">offer</span>：入队（尾部添加）<br>├── <span class="hljs-variable">poll</span>：出队（头部移除）<br>└── <span class="hljs-variable">peek</span>：查看队头（不删除）<br><br><span class="hljs-variable">Java</span> 实现：<br>├── <span class="hljs-variable">ArrayDeque</span>：基于数组，双端<br>├── <span class="hljs-variable">LinkedList</span>：基于链表<br>└── <span class="hljs-variable">PriorityQueue</span>：优先队列（堆）<br></code></pre></td></tr></table></figure>
+
+<h3 id="优先队列（堆）"><a href="#优先队列（堆）" class="headerlink" title="优先队列（堆）"></a>优先队列（堆）</h3><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">最大堆 <span class="hljs-operator">/</span> 最小堆：<br>├── 最小堆：堆顶是最小元素<br>├── 最大堆：堆顶是最大元素<br>└── <span class="hljs-variable">Java</span> <span class="hljs-variable">PriorityQueue</span> 默认最小堆<br><br>操作复杂度：<br>├── <span class="hljs-variable">offer</span>：<span class="hljs-built_in">O</span><span class="hljs-punctuation">(</span><span class="hljs-variable">log</span> <span class="hljs-variable">n</span><span class="hljs-punctuation">)</span><br>├── <span class="hljs-variable">poll</span>：<span class="hljs-built_in">O</span><span class="hljs-punctuation">(</span><span class="hljs-variable">log</span> <span class="hljs-variable">n</span><span class="hljs-punctuation">)</span><br>├── <span class="hljs-variable">peek</span>：<span class="hljs-built_in">O</span><span class="hljs-punctuation">(</span><span class="hljs-number">1</span><span class="hljs-punctuation">)</span><br>└── <span class="hljs-variable">remove</span>：<span class="hljs-built_in">O</span><span class="hljs-punctuation">(</span><span class="hljs-variable">n</span><span class="hljs-punctuation">)</span><br><br>应用：<br>├── <span class="hljs-built_in">Top</span> <span class="hljs-built_in">K</span> 问题（最小堆维护 <span class="hljs-built_in">Top</span> <span class="hljs-built_in">K</span> 大）<br>├── 合并 <span class="hljs-built_in">K</span> 个有序链表<br>├── <span class="hljs-variable">Dijkstra</span> 最短路径<br>├── 数据流中位数（最大堆 <span class="hljs-operator">+</span> 最小堆）<br>└── 任务调度（按优先级执行）<br></code></pre></td></tr></table></figure>
+
+<h3 id="常见队列题目"><a href="#常见队列题目" class="headerlink" title="常见队列题目"></a>常见队列题目</h3><figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs armasm">├── 滑动窗口最大值（单调队列 + 双端队列）<br>├── 设计循环队列（数组 + 头尾指针）<br>├── 用两个栈实现队列（<span class="hljs-keyword">push</span> 栈 + <span class="hljs-keyword">pop</span> 栈）<br>├── 用队列实现栈（一个队列，入队后旋转）<br>└── 命令模式/异步任务队列<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、哈希表"><a href="#五、哈希表" class="headerlink" title="五、哈希表"></a>五、哈希表</h2><h3 id="特点-4"><a href="#特点-4" class="headerlink" title="特点"></a>特点</h3><figure class="highlight processing"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs processing">Java <span class="hljs-keyword">HashMap</span> 底层：<br>├── 数组 + 链表 + 红黑树<br>├── 数组长度：<span class="hljs-number">2</span> 的幂（方便取模）<br>├── 初始容量：<span class="hljs-number">16</span><br>├── 负载因子：<span class="hljs-number">0.75</span><br>└── 扩容：翻倍<br><br>put 流程：<br>① 计算 <span class="hljs-built_in">key</span> 的 hashCode，二次哈希<br>② 定位桶索引（hash &amp; (n<span class="hljs-number">-1</span>)，等价于取模）<br>③ 桶为空 → 直接插入<br>④ 桶不为空 → 遍历链表/树<br>   ├── <span class="hljs-built_in">key</span> 已存在 → 覆盖 value<br>   └── <span class="hljs-built_in">key</span> 不存在 → 尾部插入<br>⑤ 链表长度 ≥ <span class="hljs-number">8</span> 且总长度 ≥ <span class="hljs-number">64</span> → 树化<br>⑥ 元素数 &gt; 阈值 → 扩容<br><br>HashSet：<br>├── 底层是 <span class="hljs-keyword">HashMap</span><br>├── value 是一个固定的 <span class="hljs-keyword">Object</span><br>└── 利用 <span class="hljs-keyword">HashMap</span> 的 <span class="hljs-built_in">key</span> 唯一性<br></code></pre></td></tr></table></figure>
+
+<h3 id="哈希冲突处理"><a href="#哈希冲突处理" class="headerlink" title="哈希冲突处理"></a>哈希冲突处理</h3><figure class="highlight subunit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs subunit">链地址法（Java 使用）：<br>├── 冲突的 key 存放在同一个桶的链表/树中<br>├── 查找：计算 hash → 定位桶 → 遍历链表/树<br>└── 性能取决于链表的长度<br><br>开放地址法：<br>├── 冲突时找下一个空闲位置<br>├── 线性探测：<span class="hljs-string">+1</span>, <span class="hljs-string">+2</span>, <span class="hljs-string">+3</span>...<br>├── 二次探测：<span class="hljs-string">+1</span>², <span class="hljs-string">+2</span>², <span class="hljs-string">+3</span>²...<br>└── ThreadLocalMap 使用线性探测<br><br>再哈希法：<br>├── 冲突时使用另一个哈希函数<br>├── 需要多个无关的哈希函数<br>└── 实现复杂，不常用<br><br>建立公共溢出区：<br>├── 将冲突的 key 放入单独的区域<br>└── 适用：冲突率低的场景<br></code></pre></td></tr></table></figure>
+
+<h3 id="哈希表应用"><a href="#哈希表应用" class="headerlink" title="哈希表应用"></a>哈希表应用</h3><figure class="highlight processing"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs processing">├── 两数之和（空间换时间）<br>├── 缓存（Redis、本地缓存）<br>├── 去重（判断元素是否出现过）<br>├── 频率统计（单词计数、字符频率）<br>├── 索引（数据库索引、倒排索引）<br>├── LRU 缓存（<span class="hljs-keyword">HashMap</span> + 双向链表）<br>└── 分布式（一致性哈希表）<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、面试题"><a href="#六、面试题" class="headerlink" title="六、面试题"></a>六、面试题</h2><h4 id="1-ArrayList-和-LinkedList-的区别？"><a href="#1-ArrayList-和-LinkedList-的区别？" class="headerlink" title="1. ArrayList 和 LinkedList 的区别？"></a>1. ArrayList 和 LinkedList 的区别？</h4><p>ArrayList 基于数组，随机访问 O(1)，尾部插入快，中间插入慢。LinkedList 基于链表，随机访问 O(n)，任意位置插入删除快。ArrayList 更节省内存（没有指针开销）。</p>
+<h4 id="2-HashMap-的-put-流程？"><a href="#2-HashMap-的-put-流程？" class="headerlink" title="2. HashMap 的 put 流程？"></a>2. HashMap 的 put 流程？</h4><p>计算 hash → 定位桶 → 桶空直接插入，桶不空遍历链表/树 → key 存在覆盖，key 不存在插入 → 链表超长树化 → 元素超阈值扩容。</p>
+<h4 id="3-栈和队列的应用场景？"><a href="#3-栈和队列的应用场景？" class="headerlink" title="3. 栈和队列的应用场景？"></a>3. 栈和队列的应用场景？</h4><p>栈：函数调用、括号匹配、表达式求值、撤销操作、DFS。<br>队列：BFS、生产者消费者、异步任务、滑动窗口、消息队列。</p>
+<h4 id="4-链表快慢指针有什么用？"><a href="#4-链表快慢指针有什么用？" class="headerlink" title="4. 链表快慢指针有什么用？"></a>4. 链表快慢指针有什么用？</h4><p>找中点（slow 走一步，fast 走两步）、检测环（相遇即有环）、找倒数第 K 个（fast 先走 K 步）、回文判断（找中点 + 反转后半）。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">数据结构</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%95%B0%E7%BB%84/">数组</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%93%BE%E8%A1%A8/">链表</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%A0%88/">栈</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%98%9F%E5%88%97/">队列</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%93%88%E5%B8%8C%E8%A1%A8/">哈希表</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/26/%E7%AE%97%E6%B3%95%E6%A8%A1%E6%9D%BF%E4%B8%8E%E9%9D%A2%E8%AF%95%E6%8A%80%E5%B7%A7/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">算法模板与面试技巧：排序、二分、双指针、DFS、BFS、DP</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/26/SpringCloudAlibaba%E8%AF%A6%E8%A7%A3NacosGatewayFeign/">
+                        <span class="hidden-mobile">Spring Cloud Alibaba：Nacos、Gateway、OpenFeign 实战</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

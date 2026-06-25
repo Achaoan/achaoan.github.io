@@ -1,0 +1,656 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>gRPC 原理与实战：Protocol Buffers、流式调用、性能对比 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/grpc-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="gRPC 原理与实战：Protocol Buffers、流式调用、性能对比">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-26 02:50" pubdate>
+        2026年6月26日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.8k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      29
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">gRPC 原理与实战：Protocol Buffers、流式调用、性能对比</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：1 小时前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、gRPC-概述"><a href="#一、gRPC-概述" class="headerlink" title="一、gRPC 概述"></a>一、gRPC 概述</h2><h3 id="是什么？"><a href="#是什么？" class="headerlink" title="是什么？"></a>是什么？</h3><p>gRPC 是 Google 开源的高性能 RPC 框架，基于 <strong>HTTP/2</strong> 协议和 <strong>Protocol Buffers</strong> 序列化。</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs awk">特点：<br>├── 高性能：HTTP/<span class="hljs-number">2</span> 多路复用 + ProtoBuf 二进制序列化<br>├── 跨语言：自动生成多语言客户端/服务端代码<br>├── 四种通信模式：一元<span class="hljs-regexp">/服务端流/</span>客户端流/双向流<br>├── 双向流：基于 HTTP/<span class="hljs-number">2</span> 的全双工通信<br>└── 生态完善：负载均衡、健康检查、拦截器等<br></code></pre></td></tr></table></figure>
+
+<h3 id="与-Dubbo-HTTP-对比"><a href="#与-Dubbo-HTTP-对比" class="headerlink" title="与 Dubbo/HTTP 对比"></a>与 Dubbo/HTTP 对比</h3><table>
+<thead>
+<tr>
+<th align="left">对比</th>
+<th align="center">gRPC</th>
+<th align="center">Dubbo</th>
+<th align="center">HTTP (RestTemplate)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>传输协议</strong></td>
+<td align="center">HTTP/2</td>
+<td align="center">Netty (TCP)</td>
+<td align="center">HTTP/1.1</td>
+</tr>
+<tr>
+<td align="left"><strong>序列化</strong></td>
+<td align="center">ProtoBuf（二进制）</td>
+<td align="center">Hessian/JSON</td>
+<td align="center">JSON（文本）</td>
+</tr>
+<tr>
+<td align="left"><strong>性能</strong></td>
+<td align="center">⭐⭐⭐ 高</td>
+<td align="center">⭐⭐⭐ 高</td>
+<td align="center">⭐⭐ 中</td>
+</tr>
+<tr>
+<td align="left"><strong>跨语言</strong></td>
+<td align="center">✅ 10+ 语言</td>
+<td align="center">❌ Java 为主</td>
+<td align="center">✅ 任意语言</td>
+</tr>
+<tr>
+<td align="left"><strong>流式通信</strong></td>
+<td align="center">✅ 双向流</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td align="left"><strong>浏览器调用</strong></td>
+<td align="center">❌（需 gRPC-Web）</td>
+<td align="center">❌</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td align="left"><strong>调试友好</strong></td>
+<td align="center">❌ 二进制难读</td>
+<td align="center">❌</td>
+<td align="center">✅ 直接 curl</td>
+</tr>
+<tr>
+<td align="left"><strong>适用</strong></td>
+<td align="center">微服务间高性能通信</td>
+<td align="center">Java 微服务</td>
+<td align="center">开放 API/前端</td>
+</tr>
+</tbody></table>
+<h2 id="二、Protocol-Buffers"><a href="#二、Protocol-Buffers" class="headerlink" title="二、Protocol Buffers"></a>二、Protocol Buffers</h2><h3 id="定义服务"><a href="#定义服务" class="headerlink" title="定义服务"></a>定义服务</h3><figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs protobuf"><span class="hljs-comment">// user.proto</span><br>syntax = <span class="hljs-string">&quot;proto3&quot;</span>;<br><br><span class="hljs-keyword">package</span> user;<br><br><span class="hljs-keyword">option</span> java_package = <span class="hljs-string">&quot;com.example.grpc&quot;</span>;<br><span class="hljs-keyword">option</span> java_multiple_files = <span class="hljs-literal">true</span>;<br><br><span class="hljs-comment">// 请求/响应消息</span><br><span class="hljs-class"><span class="hljs-keyword">message</span> <span class="hljs-title">GetUserRequest</span> </span>&#123;<br>  <span class="hljs-built_in">int64</span> user_id = <span class="hljs-number">1</span>;<br>&#125;<br><br><span class="hljs-class"><span class="hljs-keyword">message</span> <span class="hljs-title">GetUserResponse</span> </span>&#123;<br>  <span class="hljs-built_in">int64</span> user_id = <span class="hljs-number">1</span>;<br>  <span class="hljs-built_in">string</span> name = <span class="hljs-number">2</span>;<br>  <span class="hljs-built_in">string</span> email = <span class="hljs-number">3</span>;<br>  <span class="hljs-built_in">int32</span> age = <span class="hljs-number">4</span>;<br>  <span class="hljs-keyword">repeated</span> <span class="hljs-built_in">string</span> tags = <span class="hljs-number">5</span>;  <span class="hljs-comment">// 数组</span><br>&#125;<br><br><span class="hljs-comment">// 服务定义</span><br><span class="hljs-class"><span class="hljs-keyword">service</span> <span class="hljs-title">UserService</span> </span>&#123;<br>  <span class="hljs-function"><span class="hljs-keyword">rpc</span> GetUser (GetUserRequest) <span class="hljs-keyword">returns</span> (GetUserResponse)</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h3><figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs protobuf"><span class="hljs-comment">// 标量类型</span><br>syntax = <span class="hljs-string">&quot;proto3&quot;</span>;<br><br><span class="hljs-class"><span class="hljs-keyword">message</span> <span class="hljs-title">Example</span> </span>&#123;<br>  <span class="hljs-built_in">int32</span>    int_field  = <span class="hljs-number">1</span>;   <span class="hljs-comment">// int32/int64</span><br>  <span class="hljs-built_in">float</span>    float_val = <span class="hljs-number">2</span>;   <span class="hljs-comment">// float/double</span><br>  <span class="hljs-built_in">bool</span>     flag      = <span class="hljs-number">3</span>;   <span class="hljs-comment">// bool</span><br>  <span class="hljs-built_in">string</span>   name      = <span class="hljs-number">4</span>;   <span class="hljs-comment">// string (UTF-8)</span><br>  <span class="hljs-built_in">bytes</span>    data      = <span class="hljs-number">5</span>;   <span class="hljs-comment">// 二进制</span><br>  <br>  <span class="hljs-comment">// 复合类型</span><br>  <span class="hljs-keyword">repeated</span> <span class="hljs-built_in">string</span> tags = <span class="hljs-number">10</span>;  <span class="hljs-comment">// 数组（列表）</span><br>  map&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">string</span>&gt; meta = <span class="hljs-number">11</span>;  <span class="hljs-comment">// 字典</span><br>  <span class="hljs-keyword">oneof</span> payload &#123;              <span class="hljs-comment">// 互斥字段</span><br>    <span class="hljs-built_in">string</span> text = <span class="hljs-number">12</span>;<br>    <span class="hljs-built_in">bytes</span>  file = <span class="hljs-number">13</span>;<br>  &#125;<br>  <br>  <span class="hljs-comment">// 枚举</span><br>  <span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">Status</span> </span>&#123;<br>    UNKNOWN = <span class="hljs-number">0</span>;    <span class="hljs-comment">// 枚举第一个必须是 0</span><br>    ACTIVE = <span class="hljs-number">1</span>;<br>    INACTIVE = <span class="hljs-number">2</span>;<br>  &#125;<br>  Status status = <span class="hljs-number">14</span>;<br>&#125;<br><br><span class="hljs-comment">// 嵌套消息</span><br><span class="hljs-class"><span class="hljs-keyword">message</span> <span class="hljs-title">Order</span> </span>&#123;<br>  <span class="hljs-built_in">string</span> order_id = <span class="hljs-number">1</span>;<br>  <span class="hljs-class"><span class="hljs-keyword">message</span> <span class="hljs-title">Item</span> </span>&#123;<br>    <span class="hljs-built_in">string</span> product_id = <span class="hljs-number">1</span>;<br>    <span class="hljs-built_in">int32</span> quantity = <span class="hljs-number">2</span>;<br>  &#125;<br>  <span class="hljs-keyword">repeated</span> Item items = <span class="hljs-number">2</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 安装 protoc</span><br>brew install protobuf<br><br><span class="hljs-comment"># 生成 Java 代码</span><br>protoc --java_out=src/main/java \<br>       --grpc-java_out=src/main/java \<br>       user.proto<br><br><span class="hljs-comment"># Maven 插件方式（推荐）</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-comment">&lt;!-- pom.xml --&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">build</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">extensions</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">extension</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>kr.motd.maven<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>os-maven-plugin<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>1.7.1<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>        <span class="hljs-tag">&lt;/<span class="hljs-name">extension</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">extensions</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">plugins</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">plugin</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.xolstice.maven.plugins<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>protobuf-maven-plugin<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>0.6.1<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">configuration</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">protocArtifact</span>&gt;</span>com.google.protobuf:protoc:3.25.0:exe:$&#123;os.detected.classifier&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">protocArtifact</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">pluginId</span>&gt;</span>grpc-java<span class="hljs-tag">&lt;/<span class="hljs-name">pluginId</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">pluginArtifact</span>&gt;</span>io.grpc:protoc-gen-grpc-java:1.62.0:exe:$&#123;os.detected.classifier&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">pluginArtifact</span>&gt;</span><br>            <span class="hljs-tag">&lt;/<span class="hljs-name">configuration</span>&gt;</span><br>        <span class="hljs-tag">&lt;/<span class="hljs-name">plugin</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">plugins</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">build</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="三、四种通信模式"><a href="#三、四种通信模式" class="headerlink" title="三、四种通信模式"></a>三、四种通信模式</h2><h3 id="1-一元-RPC（Unary）"><a href="#1-一元-RPC（Unary）" class="headerlink" title="1. 一元 RPC（Unary）"></a>1. 一元 RPC（Unary）</h3><figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs protobuf"><span class="hljs-function"><span class="hljs-keyword">rpc</span> GetUser (GetUserRequest) <span class="hljs-keyword">returns</span> (GetUserResponse)</span>;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 服务端</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserServiceImpl</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">UserServiceGrpc</span>.<span class="hljs-title">UserServiceImplBase</span> </span>&#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">getUser</span><span class="hljs-params">(GetUserRequest request, </span></span><br><span class="hljs-params"><span class="hljs-function">                        StreamObserver&lt;GetUserResponse&gt; responseObserver)</span> </span>&#123;<br>        GetUserResponse response = GetUserResponse.newBuilder()<br>            .setUserId(request.getUserId())<br>            .setName(<span class="hljs-string">&quot;张三&quot;</span>)<br>            .setEmail(<span class="hljs-string">&quot;zhangsan@example.com&quot;</span>)<br>            .build();<br>        <br>        responseObserver.onNext(response);<br>        responseObserver.onCompleted();  <span class="hljs-comment">// 必须调用</span><br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 客户端</span><br>UserServiceGrpc.UserServiceBlockingStub stub = UserServiceGrpc.newBlockingStub(channel);<br>GetUserResponse response = stub.getUser(<br>    GetUserRequest.newBuilder().setUserId(<span class="hljs-number">1001</span>).build());<br>System.out.println(response.getName());<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-服务端流（Server-Streaming）"><a href="#2-服务端流（Server-Streaming）" class="headerlink" title="2. 服务端流（Server Streaming）"></a>2. 服务端流（Server Streaming）</h3><figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs protobuf"><span class="hljs-function"><span class="hljs-keyword">rpc</span> ListUsers (ListUsersRequest) <span class="hljs-keyword">returns</span> (stream ListUsersResponse)</span>;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 服务端：流式返回多个用户</span><br><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">listUsers</span><span class="hljs-params">(ListUsersRequest request,</span></span><br><span class="hljs-params"><span class="hljs-function">                      StreamObserver&lt;ListUsersResponse&gt; responseObserver)</span> </span>&#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++) &#123;<br>        ListUsersResponse resp = ListUsersResponse.newBuilder()<br>            .setUserId(i)<br>            .setName(<span class="hljs-string">&quot;User-&quot;</span> + i)<br>            .build();<br>        responseObserver.onNext(resp);  <span class="hljs-comment">// 多次发送</span><br>    &#125;<br>    responseObserver.onCompleted();<br>&#125;<br><br><span class="hljs-comment">// 客户端：逐个接收</span><br>Iterator&lt;ListUsersResponse&gt; users = stub.listUsers(request);<br><span class="hljs-keyword">while</span> (users.hasNext()) &#123;<br>    ListUsersResponse user = users.next();<br>    System.out.println(user.getName());<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-客户端流（Client-Streaming）"><a href="#3-客户端流（Client-Streaming）" class="headerlink" title="3. 客户端流（Client Streaming）"></a>3. 客户端流（Client Streaming）</h3><figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs protobuf"><span class="hljs-function"><span class="hljs-keyword">rpc</span> BatchCreateUser (stream CreateUserRequest) <span class="hljs-keyword">returns</span> (BatchCreateUserResponse)</span>;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 服务端：接收完批量处理</span><br><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> StreamObserver&lt;CreateUserRequest&gt; <span class="hljs-title">batchCreateUser</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">        StreamObserver&lt;BatchCreateUserResponse&gt; responseObserver)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> StreamObserver&lt;CreateUserRequest&gt;() &#123;<br>        List&lt;Long&gt; ids = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();<br>        <br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onNext</span><span class="hljs-params">(CreateUserRequest request)</span> </span>&#123;<br>            ids.add(request.getUserId());  <span class="hljs-comment">// 逐个接收</span><br>        &#125;<br>        <br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onError</span><span class="hljs-params">(Throwable t)</span> </span>&#123;<br>            log.error(<span class="hljs-string">&quot;Error&quot;</span>, t);<br>        &#125;<br>        <br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onCompleted</span><span class="hljs-params">()</span> </span>&#123;<br>            <span class="hljs-comment">// 全部接收完成后回复</span><br>            responseObserver.onNext(BatchCreateUserResponse.newBuilder()<br>                .addAllUserIds(ids).build());<br>            responseObserver.onCompleted();<br>        &#125;<br>    &#125;;<br>&#125;<br><br><span class="hljs-comment">// 客户端：流式发送</span><br>StreamObserver&lt;CreateUserRequest&gt; requestObserver = <br>    stub.batchCreateUser(responseObserver);<br><span class="hljs-keyword">for</span> (Long id : userIds) &#123;<br>    requestObserver.onNext(CreateUserRequest.newBuilder()<br>        .setUserId(id).build());<br>&#125;<br>requestObserver.onCompleted();  <span class="hljs-comment">// 通知完成</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="4-双向流（Bidirectional-Streaming）"><a href="#4-双向流（Bidirectional-Streaming）" class="headerlink" title="4. 双向流（Bidirectional Streaming）"></a>4. 双向流（Bidirectional Streaming）</h3><figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs protobuf"><span class="hljs-function"><span class="hljs-keyword">rpc</span> Chat (stream ChatMessage) <span class="hljs-keyword">returns</span> (stream ChatMessage)</span>;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 服务端：边收边发</span><br><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> StreamObserver&lt;ChatMessage&gt; <span class="hljs-title">chat</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">        StreamObserver&lt;ChatMessage&gt; responseObserver)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> StreamObserver&lt;ChatMessage&gt;() &#123;<br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onNext</span><span class="hljs-params">(ChatMessage request)</span> </span>&#123;<br>            <span class="hljs-comment">// 收到消息立即回复</span><br>            ChatMessage reply = ChatMessage.newBuilder()<br>                .setContent(<span class="hljs-string">&quot;收到: &quot;</span> + request.getContent())<br>                .build();<br>            responseObserver.onNext(reply);<br>        &#125;<br>        <br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onError</span><span class="hljs-params">(Throwable t)</span> </span>&#123;<br>            log.error(<span class="hljs-string">&quot;Chat error&quot;</span>, t);<br>        &#125;<br>        <br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onCompleted</span><span class="hljs-params">()</span> </span>&#123;<br>            responseObserver.onCompleted();<br>        &#125;<br>    &#125;;<br>&#125;<br><br><span class="hljs-comment">// 客户端：同时读写</span><br>StreamObserver&lt;ChatMessage&gt; sender = stub.chat(responseHandler);<br>sender.onNext(ChatMessage.newBuilder().setContent(<span class="hljs-string">&quot;Hello&quot;</span>).build());<br>sender.onNext(ChatMessage.newBuilder().setContent(<span class="hljs-string">&quot;World&quot;</span>).build());<br>sender.onCompleted();<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、Spring-Boot-集成-gRPC"><a href="#四、Spring-Boot-集成-gRPC" class="headerlink" title="四、Spring Boot 集成 gRPC"></a>四、Spring Boot 集成 gRPC</h2><h3 id="Maven-依赖"><a href="#Maven-依赖" class="headerlink" title="Maven 依赖"></a>Maven 依赖</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>net.devh<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>grpc-server-spring-boot-starter<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>3.1.0.RELEASE<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>net.devh<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>grpc-client-spring-boot-starter<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>3.1.0.RELEASE<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># application.yml</span><br><span class="hljs-attr">grpc:</span><br>  <span class="hljs-attr">server:</span><br>    <span class="hljs-attr">port:</span> <span class="hljs-number">9090</span><br>  <span class="hljs-attr">client:</span><br>    <span class="hljs-attr">user-service:</span><br>      <span class="hljs-attr">address:</span> <span class="hljs-string">static://localhost:9090</span><br>      <span class="hljs-attr">negotiation-type:</span> <span class="hljs-string">plaintext</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="服务端"><a href="#服务端" class="headerlink" title="服务端"></a>服务端</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@GrpcService</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserGrpcService</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">UserServiceGrpc</span>.<span class="hljs-title">UserServiceImplBase</span> </span>&#123;<br>    <br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> UserMapper userMapper;<br>    <br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">getUser</span><span class="hljs-params">(GetUserRequest request,</span></span><br><span class="hljs-params"><span class="hljs-function">                        StreamObserver&lt;GetUserResponse&gt; responseObserver)</span> </span>&#123;<br>        GetUserResponse response = GetUserResponse.newBuilder()<br>            .setUserId(request.getUserId())<br>            .setName(<span class="hljs-string">&quot;张三&quot;</span>)<br>            .setEmail(<span class="hljs-string">&quot;zhangsan@example.com&quot;</span>)<br>            .build();<br>        responseObserver.onNext(response);<br>        responseObserver.onCompleted();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@GrpcClient(&quot;user-service&quot;)</span><br><span class="hljs-keyword">private</span> Channel userServiceChannel;<br><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">callGrpc</span><span class="hljs-params">()</span> </span>&#123;<br>    UserServiceGrpc.UserServiceBlockingStub stub = <br>        UserServiceGrpc.newBlockingStub(userServiceChannel);<br>    <br>    GetUserResponse user = stub.getUser(<br>        GetUserRequest.newBuilder().setUserId(<span class="hljs-number">1001</span>).build());<br>    System.out.println(user.getName());<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、高级特性"><a href="#五、高级特性" class="headerlink" title="五、高级特性"></a>五、高级特性</h2><h3 id="拦截器"><a href="#拦截器" class="headerlink" title="拦截器"></a>拦截器</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 服务端拦截器（日志、鉴权、限流）</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LogInterceptor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ServerInterceptor</span> </span>&#123;<br>    <br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> &lt;ReqT, RespT&gt; ServerCall.<span class="hljs-function">Listener&lt;ReqT&gt; <span class="hljs-title">interceptCall</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">            ServerCall&lt;ReqT, RespT&gt; call,</span></span><br><span class="hljs-params"><span class="hljs-function">            Metadata headers,</span></span><br><span class="hljs-params"><span class="hljs-function">            ServerCallHandler&lt;ReqT, RespT&gt; next)</span> </span>&#123;<br>        <br>        String method = call.getMethodDescriptor().getFullMethodName();<br>        <span class="hljs-keyword">long</span> start = System.currentTimeMillis();<br>        <br>        ServerCall&lt;ReqT, RespT&gt; wrapped = <span class="hljs-keyword">new</span> ForwardingServerCall.SimpleForwardingServerCall&lt;&gt;(call) &#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">close</span><span class="hljs-params">(Status status, Metadata trailers)</span> </span>&#123;<br>                <span class="hljs-keyword">long</span> elapsed = System.currentTimeMillis() - start;<br>                log.info(<span class="hljs-string">&quot;gRPC &#123;&#125; &#123;&#125;: &#123;&#125;ms&quot;</span>, method, status.getCode(), elapsed);<br>                <span class="hljs-keyword">super</span>.close(status, trailers);<br>            &#125;<br>        &#125;;<br>        <br>        <span class="hljs-keyword">return</span> next.startCall(wrapped, headers);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">grpc:</span><br>  <span class="hljs-attr">client:</span><br>    <span class="hljs-attr">user-service:</span><br>      <span class="hljs-attr">address:</span> <span class="hljs-string">static://localhost:9090,localhost:9091,localhost:9092</span><br>      <span class="hljs-attr">default-loadbalancing-policy:</span> <span class="hljs-string">round_robin</span>  <span class="hljs-comment"># 轮询</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="六、性能对比"><a href="#六、性能对比" class="headerlink" title="六、性能对比"></a>六、性能对比</h2><h3 id="gRPC-vs-JSON-HTTP"><a href="#gRPC-vs-JSON-HTTP" class="headerlink" title="gRPC vs JSON HTTP"></a>gRPC vs JSON HTTP</h3><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">场景：<span class="hljs-number">1000</span> 次调用，传输 <span class="hljs-keyword">User</span> 对象（ID, <span class="hljs-type">Name</span>, Email）<br><br>gRPC (ProtoBuf)：<br>├── 序列化后大小：~<span class="hljs-number">50</span> 字节<br>├── 序列化时间：~<span class="hljs-number">0.5</span>μs<br>└── 总传输大小：小（二进制，无头开销）<br><br><span class="hljs-type">JSON</span> HTTP：<br>├── 序列化后大小：~<span class="hljs-number">120</span> 字节<br>├── 序列化时间：~<span class="hljs-number">1.5</span>μs<br>└── 总传输大小：大（文本 + HTTP 头部）<br><br>结论：gRPC 比 <span class="hljs-type">JSON</span> HTTP 快 <span class="hljs-number">3</span><span class="hljs-number">-5</span> 倍，带宽节省 <span class="hljs-number">60</span>%+<br></code></pre></td></tr></table></figure>
+
+<h3 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h3><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">gRPC</span> 适合：<br>├── 微服务间内部通信（高性能要求）<br>├── 实时流式处理（IoT、日志、监控）<br>├── 多语言异构系统<br>└── 移动端服务端通信（带宽敏感）<br><br>gRPC 不适合：<br>├── 浏览器端调用（需 gRPC-Web 桥接）<br>├── 开放 API（推荐 RESTful）<br>└── 轻量级简单接口<br></code></pre></td></tr></table></figure>
+
+<h2 id="七、与-Dubbo-对比"><a href="#七、与-Dubbo-对比" class="headerlink" title="七、与 Dubbo 对比"></a>七、与 Dubbo 对比</h2><table>
+<thead>
+<tr>
+<th align="left">对比</th>
+<th align="center">gRPC</th>
+<th align="center">Dubbo</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>序列化</strong></td>
+<td align="center">ProtoBuf（强类型 schema）</td>
+<td align="center">Hessian/Kryo/JSON</td>
+</tr>
+<tr>
+<td align="left"><strong>协议</strong></td>
+<td align="center">HTTP/2（标准协议）</td>
+<td align="center">Dubbo 私有协议（TCP）</td>
+</tr>
+<tr>
+<td align="left"><strong>跨语言</strong></td>
+<td align="center">✅ 原生支持</td>
+<td align="center">❌ 需额外支持</td>
+</tr>
+<tr>
+<td align="left"><strong>流式</strong></td>
+<td align="center">✅ 双向流</td>
+<td align="center">❌ 不支持</td>
+</tr>
+<tr>
+<td align="left"><strong>服务治理</strong></td>
+<td align="center">需额外工具</td>
+<td align="center">✅ 内置完善</td>
+</tr>
+<tr>
+<td align="left"><strong>学习成本</strong></td>
+<td align="center">需学 ProtoBuf</td>
+<td align="center">低（对 Java 开发者）</td>
+</tr>
+</tbody></table>
+<h2 id="八、面试题"><a href="#八、面试题" class="headerlink" title="八、面试题"></a>八、面试题</h2><h4 id="1-gRPC-和-REST-的区别？"><a href="#1-gRPC-和-REST-的区别？" class="headerlink" title="1. gRPC 和 REST 的区别？"></a>1. gRPC 和 REST 的区别？</h4><p>gRPC 使用 HTTP/2 + ProtoBuf 二进制协议，性能高、支持流式通信。REST 使用 HTTP/1.1 + JSON，调试友好、浏览器兼容好。gRPC 适合内部服务通信，REST 适合开放 API。</p>
+<h4 id="2-ProtoBuf-的编码原理？"><a href="#2-ProtoBuf-的编码原理？" class="headerlink" title="2. ProtoBuf 的编码原理？"></a>2. ProtoBuf 的编码原理？</h4><p>使用 Varint（变长整数）和 ZigZag 编码。Tag-Value 结构：每个字段由 field_number + wire_type 标识，数值小的字段占用字节少。比 JSON 省 3-5 倍空间。</p>
+<h4 id="3-gRPC-的四种通信模式？"><a href="#3-gRPC-的四种通信模式？" class="headerlink" title="3. gRPC 的四种通信模式？"></a>3. gRPC 的四种通信模式？</h4><p>一元（Unary）、服务端流（Server Streaming）、客户端流（Client Streaming）、双向流（Bidirectional Streaming）。</p>
+<h4 id="4-HTTP-2-如何提升-gRPC-性能？"><a href="#4-HTTP-2-如何提升-gRPC-性能？" class="headerlink" title="4. HTTP/2 如何提升 gRPC 性能？"></a>4. HTTP/2 如何提升 gRPC 性能？</h4><p>多路复用（一个 TCP 连接并行多个请求）、头部压缩（HPACK）、二进制帧、服务端推送。避免了 HTTP/1.1 的队头阻塞问题。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/">开发工具</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/RPC/">RPC</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a>
+                    
+                      <a class="hover-with-bg" href="/tags/gRPC/">gRPC</a>
+                    
+                      <a class="hover-with-bg" href="/tags/ProtoBuf/">ProtoBuf</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/26/%E5%A4%A7%E5%8E%82%E9%9D%A2%E7%BB%8F%E6%B1%87%E6%80%BB%E4%B8%8E%E7%AD%94%E9%A2%98%E6%80%9D%E8%B7%AF/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java 大厂面经汇总：BAT/字节/美团 面试真题与答题思路</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/26/WebSocket%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/">
+                        <span class="hidden-mobile">WebSocket 原理与 Spring Boot 集成实战</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

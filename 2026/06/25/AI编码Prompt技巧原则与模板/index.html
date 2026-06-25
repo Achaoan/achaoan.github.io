@@ -1,0 +1,551 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>AI 编码 Prompt 技巧：原则、模板与常见问题修正 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/prompt-skills-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="AI 编码 Prompt 技巧：原则、模板与常见问题修正">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 23:45" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.3k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      25
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">AI 编码 Prompt 技巧：原则、模板与常见问题修正</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：24 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、编写代码-Prompt-的核心原则"><a href="#一、编写代码-Prompt-的核心原则" class="headerlink" title="一、编写代码 Prompt 的核心原则"></a>一、编写代码 Prompt 的核心原则</h2><h3 id="为什么同样的需求，产出差距巨大"><a href="#为什么同样的需求，产出差距巨大" class="headerlink" title="为什么同样的需求，产出差距巨大"></a>为什么同样的需求，产出差距巨大</h3><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs 1c">不清晰的 Prompt：<br>├── <span class="hljs-string">&quot;写一个用户管理系统&quot;</span> → 太宽泛，AI 不知道从哪里开始<br>├── <span class="hljs-string">&quot;帮我修复这个 bug&quot;</span> → 没说现象和预期<br>├── <span class="hljs-string">&quot;优化这段代码&quot;</span> → 不知道优化目标<br>└── <span class="hljs-string">&quot;写个排序算法&quot;</span> → 没说输入输出和数据量<br><br>清晰的 Prompt：<br>├── 背景 + 目标 + 约束 + 输出格式<br>├── 让 AI 充分理解上下文<br>├── 让 AI 知道<span class="hljs-string">&quot;做到什么程度算完成&quot;</span><br>└── 避免来回返工修改<br><br>原则：AI 不是你肚子里的蛔虫，说清楚比什么都重要<br></code></pre></td></tr></table></figure>
+
+<h3 id="黄金结构"><a href="#黄金结构" class="headerlink" title="黄金结构"></a>黄金结构</h3><p>一个高质量的代码 Prompt 包含四个要素：</p>
+<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs 1c"><span class="hljs-meta">## 背景（Context）</span><br>告诉 AI 这段代码在项目中的位置和作用<br><span class="hljs-string">&quot;这个方法是 OrderService 的 core 方法，</span><br>被 PaymentController 调用，<br>需要在事务中执行。<span class="hljs-string">&quot;</span><br><br><span class="hljs-meta">## 目标（Goal）</span><br>具体、可验证的目标<br><span class="hljs-string">&quot;实现一个带分页的用户搜索接口，</span><br>支持按姓名模糊搜索和按创建时间排序。<span class="hljs-string">&quot;</span><br><br><span class="hljs-meta">## 约束（Constraints）</span><br>技术栈、代码风格、限制条件<br><span class="hljs-string">&quot;使用 Java 17 + Spring Boot 3，</span><br>不能引入新的依赖，<br>遵循项目现有的异常处理方式。<span class="hljs-string">&quot;</span><br><br><span class="hljs-meta">## 输出格式（Format）</span><br>期望的输出形式<br><span class="hljs-string">&quot;先给接口定义，再给实现类，</span><br>最后给单元测试。不要生成文档。<span class="hljs-string">&quot;</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="四要素的使用效果对比"><a href="#四要素的使用效果对比" class="headerlink" title="四要素的使用效果对比"></a>四要素的使用效果对比</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs awk">❌ 不好的写法：<br><span class="hljs-string">&quot;帮我写个订单查询接口，要有分页。&quot;</span><br><br>✅ 好的写法：<br><span class="hljs-string">&quot;&quot;&quot;</span><br><span class="hljs-string">背景：订单管理模块，需要给管理员提供订单查询功能。</span><br><span class="hljs-string">目标：GET /api/orders?status=&amp;page=&amp;size=</span><br><span class="hljs-string">      支持按订单状态筛选，分页返回。</span><br><span class="hljs-string">约束：</span><br><span class="hljs-string">  - 使用 Spring Data JPA 的 Pageable</span><br><span class="hljs-string">  - 按创建时间降序排列</span><br><span class="hljs-string">  - 字段只返回 id、status、amount、createTime</span><br><span class="hljs-string">输出：Controller + Service + Repository</span><br><span class="hljs-string">&quot;&quot;&quot;</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="二、分步生成法"><a href="#二、分步生成法" class="headerlink" title="二、分步生成法"></a>二、分步生成法</h2><h3 id="为什么分步"><a href="#为什么分步" class="headerlink" title="为什么分步"></a>为什么分步</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs">一次性生成完整功能的问题：<br>├── AI 长文生成能力有限，越长越容易出错<br>├── 中间结果无法人工校验<br>├── 一个错误逻辑会污染后续所有代码<br>└── 后期修改成本高<br><br>分步生成的优势：<br>├── 每步的上下文更聚焦<br>├── 上一步输出可作为下一步输入<br>├── 某步出错时只影响该步<br>└── 每步都可独立验证<br></code></pre></td></tr></table></figure>
+
+<h3 id="标准分步流程"><a href="#标准分步流程" class="headerlink" title="标准分步流程"></a>标准分步流程</h3><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs 1c">以<span class="hljs-string">&quot;订单查询接口&quot;</span>为例：<br><br>第 <span class="hljs-number">1</span> 步：定义数据模型<br><span class="hljs-string">&quot;这是 User 实体：[粘贴]。帮我定义 Order 实体类，</span><br>包含 id、userId、status、amount、createTime 字段。<span class="hljs-string">&quot;</span><br><br>第 <span class="hljs-number">2</span> 步：实现 Repository<br><span class="hljs-string">&quot;基于上面的 Order 实体，创建 OrderRepository，</span><br>支持 findByStatus(Pageable) 分页查询。<span class="hljs-string">&quot;</span><br><br>第 <span class="hljs-number">3</span> 步：实现 Service<br><span class="hljs-string">&quot;基于 OrderRepository，实现 OrderService。</span><br>注意：查询不到时返回空页，不要抛异常。<span class="hljs-string">&quot;</span><br><br>第 <span class="hljs-number">4</span> 步：实现 Controller<br><span class="hljs-string">&quot;基于 OrderService，创建 OrderController，</span><br>GET /api/orders?status=<span class="hljs-meta">&amp;page=&amp;size=&quot;</span><br><br>第 <span class="hljs-number">5</span> 步：写测试<br><span class="hljs-string">&quot;为 OrderController 写单元测试，</span><br>Mock Service 层，覆盖正常查询、空结果、无效参数三种情况。<span class="hljs-string">&quot;</span><br><br>每步之间：审查 → 确认 → 下一步<br></code></pre></td></tr></table></figure>
+
+<h3 id="什么时候可以一次性生成"><a href="#什么时候可以一次性生成" class="headerlink" title="什么时候可以一次性生成"></a>什么时候可以一次性生成</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs awk">适合一次性生成的场景：<br>├── 工具函数（纯函数，输入输出明确）<br>├── 数据模型 <span class="hljs-regexp">/ VO /</span> DTO<br>├── 简单的 CRUD 模板<br>├── 配置类（Config、Properties）<br>└── 测试数据工厂<br><br>需要分步的场景：<br>├── 涉及多个业务逻辑分支<br>├── 需要和现有代码交互<br>├── 包含复杂的事务/并发处理<br>├── 安全性敏感的功能<br>└── 跨多个文件的修改<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、让-AI-理解现有代码的-4-种策略"><a href="#三、让-AI-理解现有代码的-4-种策略" class="headerlink" title="三、让 AI 理解现有代码的 4 种策略"></a>三、让 AI 理解现有代码的 4 种策略</h2><h3 id="策略-1：先总结，再生成"><a href="#策略-1：先总结，再生成" class="headerlink" title="策略 1：先总结，再生成"></a>策略 1：先总结，再生成</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs markdown">适用：AI 需要理解完整文件后才能修改<br><br>&quot;阅读这个文件，先告诉我：<br><span class="hljs-bullet">1.</span> 这个类的核心职责<br><span class="hljs-bullet">2.</span> 主要方法的输入输出<br><span class="hljs-bullet">3.</span> 它依赖了哪些其他组件<br><br>然后才建议怎么添加新功能。&quot;<br></code></pre></td></tr></table></figure>
+
+<h3 id="策略-2：提供代码地图"><a href="#策略-2：提供代码地图" class="headerlink" title="策略 2：提供代码地图"></a>策略 2：提供代码地图</h3><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs 1c">适用：需要理解项目结构后才能修改<br><br><span class="hljs-string">&quot;项目结构如下：</span><br>src/<br>├── service/       ← 业务逻辑层<br>│   ├── OrderService.java<br>│   └── UserService.java<br>├── repository/    ← 数据访问层<br>├── controller/    ← API 接口层<br>└── model/         ← 数据模型<br><br>我要在 service 层加一个 RefundService，<br>请参考 OrderService 的架构风格来实现。<span class="hljs-string">&quot;</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="策略-3：类比法"><a href="#策略-3：类比法" class="headerlink" title="策略 3：类比法"></a>策略 3：类比法</h3><figure class="highlight haml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs haml">适用：新功能在架构上和已有的功能类似<br><br>&quot;参考 OrderService 的实现方式：<br>-<span class="ruby"> 先定义接口 → 再实现 → 再注册 Bean</span><br><span class="ruby"></span>-<span class="ruby"> 使用 <span class="hljs-variable">@Transactional</span> 管理事务</span><br><span class="ruby"></span>-<span class="ruby"> 异常用 BizException 包装</span><br><span class="ruby"></span><br>按照这个模式实现 RefundService。&quot;<br></code></pre></td></tr></table></figure>
+
+<h3 id="策略-4：角色设定-风格锚定"><a href="#策略-4：角色设定-风格锚定" class="headerlink" title="策略 4：角色设定 + 风格锚定"></a>策略 4：角色设定 + 风格锚定</h3><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs asciidoc">适用：需要约束 AI 的输出风格<br><br>&quot;你是一个有 10 年经验的高级 Java 开发者。<br>项目的代码规范：<br><span class="hljs-bullet">- </span>类名用名词，方法名用动词<br><span class="hljs-bullet">- </span>每个方法不超过 50 行<br><span class="hljs-bullet">- </span>异常先捕获再抛自定义异常<br><span class="hljs-bullet">- </span>Controller 层不做业务逻辑<br><br>请按照这个风格实现 [功能]。&quot;<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、代码-Prompt-核心模板库"><a href="#四、代码-Prompt-核心模板库" class="headerlink" title="四、代码 Prompt 核心模板库"></a>四、代码 Prompt 核心模板库</h2><h3 id="生成新代码"><a href="#生成新代码" class="headerlink" title="生成新代码"></a>生成新代码</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs css">用 <span class="hljs-selector-attr">[语言/框架]</span> 实现 <span class="hljs-selector-attr">[功能简述]</span>。<br>输入：<span class="hljs-selector-attr">[具体参数]</span><br>输出：<span class="hljs-selector-attr">[期望结果]</span><br>约束：<span class="hljs-selector-attr">[业务规则、技术限制]</span><br>请先给出接口定义，再给实现类，最后写测试。<br></code></pre></td></tr></table></figure>
+
+<h3 id="修改现有代码"><a href="#修改现有代码" class="headerlink" title="修改现有代码"></a>修改现有代码</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs css">文件 <span class="hljs-selector-attr">[文件名]</span> 的方法 <span class="hljs-selector-attr">[方法名]</span> 存在 <span class="hljs-selector-attr">[问题描述]</span>。<br>当前行为：<span class="hljs-selector-attr">[实际表现]</span><br>预期行为：<span class="hljs-selector-attr">[期望结果]</span><br>请分析原因并给出修改方案。<br>修改时保持接口不变，不破坏现有调用方。<br></code></pre></td></tr></table></figure>
+
+<h3 id="代码解释"><a href="#代码解释" class="headerlink" title="代码解释"></a>代码解释</h3><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs angelscript">解释这段代码的核心逻辑：<br><span class="hljs-string">[粘贴代码]</span><br><br>重点说明：<br><span class="hljs-string">[数据流 / 并发处理方式 / 用到的设计模式 / 潜在风险]</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="性能优化"><a href="#性能优化" class="headerlink" title="性能优化"></a>性能优化</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs css"><span class="hljs-selector-attr">[粘贴代码]</span><br><br>已知瓶颈：<span class="hljs-selector-attr">[如果有则说明]</span><br>目标：<span class="hljs-selector-attr">[减少延迟 / 降低内存 / 提高吞吐]</span><br>约束：保持接口不变，兼容现有调用方<br>请先分析瓶颈，再给出优化方案，最后评估优化效果。<br></code></pre></td></tr></table></figure>
+
+<h3 id="添加测试"><a href="#添加测试" class="headerlink" title="添加测试"></a>添加测试</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs css">为下面的类添加单元测试：<br><span class="hljs-selector-attr">[粘贴代码 / 类名]</span><br><br>覆盖场景：<br><span class="hljs-number">1</span>. <span class="hljs-selector-attr">[正常场景]</span><br><span class="hljs-number">2</span>. <span class="hljs-selector-attr">[边界条件]</span><br><span class="hljs-number">3</span>. <span class="hljs-selector-attr">[异常场景]</span><br><br>使用：<span class="hljs-selector-attr">[JUnit 5 / Mockito / Testcontainers]</span><br>测试类名：<span class="hljs-selector-attr">[类名]</span>Test<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、AI-生成代码的常见问题与修正方法"><a href="#五、AI-生成代码的常见问题与修正方法" class="headerlink" title="五、AI 生成代码的常见问题与修正方法"></a>五、AI 生成代码的常见问题与修正方法</h2><h3 id="5-类高频问题"><a href="#5-类高频问题" class="headerlink" title="5 类高频问题"></a>5 类高频问题</h3><figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs livescript"><span class="hljs-number">1.</span> 虚构 API（模型幻觉）<br>  症状：使用了不存在的库、方法或参数<br>  原因：模型从训练数据中模糊记住了类似的API<br>  修正：标注每个 API 的来源<br>  -&gt; <span class="hljs-string">&quot;每个方法调用都标注对应的 Maven/Gradle 依赖&quot;</span><br>  预防：使用支持 LSP 的 AI 工具，实时检测编译错误<br><br><span class="hljs-number">2.</span> 缺少错误处理<br>  症状：只有正常路径，没有 <span class="hljs-literal">null</span> 检查、异常捕获<br>  原因：模型倾向于生成<span class="hljs-string">&quot;理想情况&quot;</span>的代码<br>  修正：明确要求边界条件<br>  -&gt; <span class="hljs-string">&quot;加上参数校验、异常处理、空值检查&quot;</span><br>  预防：在约束中写明<span class="hljs-string">&quot;所有方法都做参数校验&quot;</span><br><br><span class="hljs-number">3.</span> 过于简化的实现<br>  症状：用 TreeMap 做<span class="hljs-string">&quot;缓存&quot;</span>，用 ArrayList 做<span class="hljs-string">&quot;队列&quot;</span><br>  原因：模型选择最简单的方案而非最合适的<br>  修正：明确技术要求<br>  -&gt; <span class="hljs-string">&quot;需要考虑并发访问，使用 ConcurrentHashMap&quot;</span><br>  预防：说明非功能需求（性能、并发量）<br><br><span class="hljs-number">4.</span> 代码风格不一致<br>  症状：混用不同的命名规范、缩进风格<br>  原因：训练数据包含各种风格的代码<br>  修正：提供风格参考<br>  -&gt; <span class="hljs-string">&quot;严格按照这个文件的风格来写：[粘贴示例]&quot;</span><br>  预防：在 CLAUDE.md 中定义统一规范<br><br><span class="hljs-number">5.</span> 缺少测试<br>  症状：只生成了生产代码<br>  原因：用户需求中没有明确提到测试<br>  修正：明确要求测试覆盖<br>  -&gt; <span class="hljs-string">&quot;同时生成对应的单元测试&quot;</span><br>  预防：在工作流中固定<span class="hljs-string">&quot;先写测试&quot;</span>的顺序<br></code></pre></td></tr></table></figure>
+
+<h3 id="修正-Prompt-模板"><a href="#修正-Prompt-模板" class="headerlink" title="修正 Prompt 模板"></a>修正 Prompt 模板</h3><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs 1c">你生成的代码存在以下问题：<br>[列举问题]<br><br>请按以下要求重新生成：<br>[具体修正要求]<br><br>示例：<br><span class="hljs-string">&quot;你生成的代码缺少空值检查，</span><br>PaymentService.getOrder() 可能返回 <span class="hljs-literal">null</span>。<br>请加上 <span class="hljs-literal">null</span> 检查和对应的异常处理。<span class="hljs-string">&quot;</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="六、面试题"><a href="#六、面试题" class="headerlink" title="六、面试题"></a>六、面试题</h2><h4 id="1-编写代码-Prompt-的核心结构是什么？"><a href="#1-编写代码-Prompt-的核心结构是什么？" class="headerlink" title="1. 编写代码 Prompt 的核心结构是什么？"></a>1. 编写代码 Prompt 的核心结构是什么？</h4><p>背景（Context）+ 目标（Goal）+ 约束（Constraints）+ 输出格式（Format）。四个要素缺一不可。</p>
+<h4 id="2-分步生成法为什么比一次性生成好？"><a href="#2-分步生成法为什么比一次性生成好？" class="headerlink" title="2. 分步生成法为什么比一次性生成好？"></a>2. 分步生成法为什么比一次性生成好？</h4><p>每步上下文聚焦，中间结果可人工验证，单步出错不影响全局。适合涉及多个业务逻辑分支或跨文件修改的场景。</p>
+<h4 id="3-让-AI-理解现有代码的-4-种策略？"><a href="#3-让-AI-理解现有代码的-4-种策略？" class="headerlink" title="3. 让 AI 理解现有代码的 4 种策略？"></a>3. 让 AI 理解现有代码的 4 种策略？</h4><p>先总结再生成、提供代码地图、类比已有实现、角色设定 + 风格锚定。根据任务复杂度选择不同策略。</p>
+<h4 id="4-AI-生成代码最常见的-3-个问题？"><a href="#4-AI-生成代码最常见的-3-个问题？" class="headerlink" title="4. AI 生成代码最常见的 3 个问题？"></a>4. AI 生成代码最常见的 3 个问题？</h4><p>虚构 API（用了不存在的功能）、缺少错误处理（只有正常路径）、代码风格不一致（混用规范）。对策：要求标注依赖来源、明确边界条件、提供风格示例。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/">开发工具</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/AI/">AI</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%BC%96%E7%A8%8B/">编程</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Prompt/">Prompt</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%8A%80%E5%B7%A7/">技巧</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%A8%A1%E6%9D%BF/">模板</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CTCP-IP%E8%AF%A6%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">计算机网络：TCP/IP 协议详解</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CHTTP-HTTPS%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">计算机网络：HTTP/HTTPS 协议详解</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

@@ -1,0 +1,556 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>AI Agent 框架与协作：LangGraph、AutoGen、CrewAI 与 A2A - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/agent-framework-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="AI Agent 框架与协作：LangGraph、AutoGen、CrewAI 与 A2A">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 23:05" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      30
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">AI Agent 框架与协作：LangGraph、AutoGen、CrewAI 与 A2A</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：15 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、Agent-开发框架概览"><a href="#一、Agent-开发框架概览" class="headerlink" title="一、Agent 开发框架概览"></a>一、Agent 开发框架概览</h2><h3 id="为什么需要-Agent-框架"><a href="#为什么需要-Agent-框架" class="headerlink" title="为什么需要 Agent 框架"></a>为什么需要 Agent 框架</h3><p>单 Agent 能完成简单任务，但真实业务场景往往需要：</p>
+<figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs sqf">单 <span class="hljs-built_in">Agent</span> 的局限：<br>├── 单个模型能力有限（上下文窗口、工具数量）<br>├── 复杂任务需要分工协作<br>├── 缺乏持久化状态管理<br>├── 没有内置的容错和重试机制<br>└── 难以编排多步骤流程<br><br><span class="hljs-built_in">Agent</span> 框架解决的问题：<br>├── 任务编排（多步骤、有条件跳转）<br>├── 状态管理（跨步骤的中间状态）<br>├── 工具管理（注册、调用、组合）<br>├── 多 <span class="hljs-built_in">Agent</span> 协作（通信、分工、仲裁）<br>└── 可观测性（日志、监控、调试）<br></code></pre></td></tr></table></figure>
+
+<h3 id="主流框架分类"><a href="#主流框架分类" class="headerlink" title="主流框架分类"></a>主流框架分类</h3><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs 1c">框架            类型        语言       适合场景<br>────────────────────────────────────────────────────<br>LangGraph       流程编排    Python     复杂流程、状态管理<br>AutoGen         多 Agent    Python     分工协作、对话式<br>CrewAI          多 Agent    Python     角色扮演、任务委派<br>Semantic Kernel  轻量SDK    C<span class="hljs-meta">#/Python  微软生态集成</span><br>Spring AI       轻量SDK    Java       企业级Java应用<br>Dify            低代码      可视化      快速原型、非开发者<br>Coze            低代码      可视化      字节生态、Bot 搭建<br><br>选型建议：<br>├── Python 技术栈 → LangGraph（最灵活、生态最丰富）<br>├── Java 技术栈 → Spring AI（与企业架构集成最好）<br>├── 需要快速迭代 → Dify / Coze（低代码、开箱即用）<br>├── 多 Agent 复杂协作 → AutoGen / CrewAI<br>└── 微软生态 → Semantic Kernel<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、LangGraph（状态驱动的-Agent-框架）"><a href="#二、LangGraph（状态驱动的-Agent-框架）" class="headerlink" title="二、LangGraph（状态驱动的 Agent 框架）"></a>二、LangGraph（状态驱动的 Agent 框架）</h2><h3 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h3><p>LangGraph 是 LangChain 团队推出的 Agent 框架，核心思想是<strong>将 Agent 工作流建模为有向图</strong>。</p>
+<figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs crmsh">LangGraph 的核心抽象：<br>┌──────────────────────────────────────────────────────────┐<br>│  State（状态）：                                          │<br>│  ├── 整个工作流的共享数据结构                            │<br>│  ├── 包含消息历史、中间结果、配置信息                    │<br>│  └── 每个节点可以读取和更新                              │<br>│                                                          │<br>│  <span class="hljs-keyword">Node</span><span class="hljs-title">（节点）：                                           │</span><br><span class="hljs-title">│  ├── 图中的一个处理步骤                                  │</span><br><span class="hljs-title">│  ├── 可以是 LLM</span> 调用、工具执行、条件判断                 │<br>│  ├── 输入 = State 的一部分                               │<br>│  └── 输出 = 更新 State                                   │<br>│                                                          │<br>│  Edge（边）：                                             │<br>│  ├── 定义节点的执行顺序                                  │<br>│  ├── 无条件边：上一个执行完自动执行下一个               │<br>│  └── 条件边：根据 State 决定下一个节点                   │<br>│                                                          │<br>│  Graph（图）：                                            │<br>│  ├── 节点 + 边的集合                                     │<br>│  ├── 有起点和终点                                        │<br>│  └── 支持循环（循环边 = Agent 的思考-行动循环）         │<br>└──────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="ReAct-在-LangGraph-中的实现"><a href="#ReAct-在-LangGraph-中的实现" class="headerlink" title="ReAct 在 LangGraph 中的实现"></a>ReAct 在 LangGraph 中的实现</h3><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">LangGraph 实现的 ReAct 模式：<br>┌──────────────────────────────────────────────────────────┐<br>│                    ┌─────────┐                            │<br>│                    │   <span class="hljs-keyword">Start</span>  │                            │<br>│                    └────┬────┘                            │<br>│                         │                                 │<br>│                    ┌────▼────┐                            │<br>│                    │  LLM    │  ← 思考：下一步做什么      │<br>│                    └────┬────┘                            │<br>│                         │                                 │<br>│                    ┌────▼────┐                            │<br>│               ┌────│ 条件判断 │─── 需要工具 ──┐            │<br>│               │    └─────────┘               │            │<br>│               │ 直接回答                     │            │<br>│               │                         ┌───▼────┐       │<br>│               │                         │  Tool  │       │<br>│               │                         └───┬────┘       │<br>│               │                             │             │<br>│               └──── 继续循环 ────────────────┘             │<br>│                         │                                 │<br>│                    ┌────▼────┐                            │<br>│                    │   <span class="hljs-keyword">End</span>   │                            │<br>│                    └─────────┘                            │<br>│                                                          │<br>│  循环边让 Agent 持续思考-行动，直到不需要工具为止        │<br>└──────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="关键特性"><a href="#关键特性" class="headerlink" title="关键特性"></a>关键特性</h3><figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs gauss">持久化状态：<br>├── 工作流状态自动保存<br>├── 支持断点恢复（故障恢复、人工审核）<br>├── 支持时间旅行（回退到之前的状态）<br>└── 状态可序列化，支持分布式执行<br><br>人工介入：<br>├── 在某些节点暂停，等待人工确认<br>├── 适合：审批流程、高风险操作<br>├── 暂停后可以手动修改 State<br>└── 修改后继续执行<br><br>流式输出：<br>├── 每个节点的输出都可以实时推送<br>├── LLM <span class="hljs-built_in">Token</span> 级别的流式输出<br>├── 工具调用结果可以实时展示<br>└── 适合构建类似 ChatGPT 的交互体验<br><br>LangGraph 适用场景：<br>├── 复杂多步骤流程（客服、订单处理）<br>├── 需要状态持久化的长时任务<br>├── 需要人工审批的业务流程<br>└── 对可观测性要求高的生产环境<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、AutoGen（多-Agent-对话框架）"><a href="#三、AutoGen（多-Agent-对话框架）" class="headerlink" title="三、AutoGen（多 Agent 对话框架）"></a>三、AutoGen（多 Agent 对话框架）</h2><h3 id="核心概念-1"><a href="#核心概念-1" class="headerlink" title="核心概念"></a>核心概念</h3><p>AutoGen 是微软推出的多 Agent 框架，核心思想是<strong>让多个 Agent 通过对话协作完成任务</strong>。</p>
+<figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs sqf">AutoGen 的核心抽象：<br>┌──────────────────────────────────────────────────────────┐<br>│  <span class="hljs-built_in">Agent</span>（智能体）：                                         │<br>│  ├── 具有特定角色和能力的 AI 实体                        │<br>│  ├── 每个 <span class="hljs-built_in">Agent</span> 有自己的 System Prompt                   │<br>│  ├── 可以绑定工具和知识库                                │<br>│  └── 通过消息与其他 <span class="hljs-built_in">Agent</span> 通信                           │<br>│                                                          │<br>│  Conversation（对话）：                                    │<br>│  ├── <span class="hljs-built_in">Agent</span> 之间的消息交换                                │<br>│  ├── 每条消息指定发送者和接收者                          │<br>│  ├── 对话包含上下文历史的维护                            │<br>│  └── 对话终止条件（任务完成、最大轮次、人为中断）        │<br>│                                                          │<br>│  <span class="hljs-built_in">GroupChat</span>（群聊）：                                       │<br>│  ├── 多个 <span class="hljs-built_in">Agent</span> 在同一对话空间中                          │<br>│  ├── 需要一个 Manager 管理发言权                          │<br>│  ├── Manager 决定下一个发言的 <span class="hljs-built_in">Agent</span>                       │<br>│  └── 支持轮转、指定、投票等管理策略                      │<br>└──────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="典型的多-Agent-模式"><a href="#典型的多-Agent-模式" class="headerlink" title="典型的多 Agent 模式"></a>典型的多 Agent 模式</h3><figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><code class="hljs sqf">模式一：Supervisor-Worker（主管-工人）<br>┌──────────────────────────────────────────────────────────┐<br>│  Supervisor <span class="hljs-built_in">Agent</span>                                         │<br>│  ├── 接收用户任务                                        │<br>│  ├── 拆解为子任务                                        │<br>│  ├── 分配给 Worker                                       │<br>│  └── 汇总结果                                            │<br>│      │                                                    │<br>│      ├── Worker A：代码生成                               │<br>│      ├── Worker B：代码审查                               │<br>│      ├── Worker C：测试编写                               │<br>│      └── Worker D：文档编写                               │<br>│                                                          │<br>│  适合：有明确分工的场景                                    │<br>│  特点：中心化控制，结构清晰                                │<br>└──────────────────────────────────────────────────────────┘<br><br>模式二：Debate（辩论模式）<br>┌──────────────────────────────────────────────────────────┐<br>│  问题 → <span class="hljs-built_in">Agent</span> A（正方）VS <span class="hljs-built_in">Agent</span> B（反方）                │<br>│  ├── A 提出论点                                          │<br>│  ├── B 反驳论点                                          │<br>│  ├── A 再反驳...                                         │<br>│  └── 经过多轮辩论，得到更全面的结论                       │<br>│                                                          │<br>│  适合：需要多角度分析的场景                                │<br>│  特点：通过对抗提升答案质量                                │<br>└──────────────────────────────────────────────────────────┘<br><br>模式三：Pipeline（流水线模式）<br>┌──────────────────────────────────────────────────────────┐<br>│  输入 → <span class="hljs-built_in">Agent</span> A → <span class="hljs-built_in">Agent</span> B → <span class="hljs-built_in">Agent</span> C → <span class="hljs-built_in">Agent</span> D → 输出    │<br>│  ├── <span class="hljs-built_in">Agent</span> A：提取信息                                   │<br>│  ├── <span class="hljs-built_in">Agent</span> B：分析归类                                   │<br>│  ├── <span class="hljs-built_in">Agent</span> C：生成方案                                   │<br>│  └── <span class="hljs-built_in">Agent</span> D：格式化成最终报告                            │<br>│                                                          │<br>│  适合：固定流程的任务                                      │<br>│  特点：阶段性明确，每个 <span class="hljs-built_in">Agent</span> 专注一件事                   │<br>└──────────────────────────────────────────────────────────┘<br><br>模式四：Swarm（群体协作）<br>┌──────────────────────────────────────────────────────────┐<br>│  多个相同角色的 <span class="hljs-built_in">Agent</span> 并行工作                             │<br>│  ├── 同一个任务分发给多个 <span class="hljs-built_in">Agent</span>                           │<br>│  ├── 每个 <span class="hljs-built_in">Agent</span> 独立执行                                 │<br>│  ├── 投票或加权汇总结果                                  │<br>│  └── 通过多数决提升可靠性                                │<br>│                                                          │<br>│  适合：需要高可靠性的场景（多个 <span class="hljs-built_in">Agent</span> 互相验证）           │<br>│  特点：冗余执行，容错性强                                  │<br>└──────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="AutoGen-适用场景"><a href="#AutoGen-适用场景" class="headerlink" title="AutoGen 适用场景"></a>AutoGen 适用场景</h3><figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs sqf">├── 需要多个角色分工（产品经理 + 开发 + 测试）<br>├── 需要多角度辩论（决策分析、风险评估）<br>├── 模拟真实团队协作场景<br>├── 教育和研究（模拟不同观点的对话）<br>└── 注意：多 <span class="hljs-built_in">Agent</span> 的系统复杂度和成本都更高<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、CrewAI（角色扮演-Agent-框架）"><a href="#四、CrewAI（角色扮演-Agent-框架）" class="headerlink" title="四、CrewAI（角色扮演 Agent 框架）"></a>四、CrewAI（角色扮演 Agent 框架）</h2><h3 id="核心概念-2"><a href="#核心概念-2" class="headerlink" title="核心概念"></a>核心概念</h3><p>CrewAI 的核心思想是<strong>将 Agent 定义为不同角色，组成一个”团队”来完成任务</strong>。</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs gradle">CrewAI 的核心抽象：<br>┌──────────────────────────────────────────────────────────┐<br>│  Agent（角色）：                                          │<br>│  ├── role：角色名称（<span class="hljs-string">&quot;高级工程师&quot;</span>）                      │<br>│  ├── goal：该角色的目标（<span class="hljs-string">&quot;编写高质量的代码&quot;</span>）            │<br>│  ├── backstory：角色背景（<span class="hljs-string">&quot;有 10 年经验的 Python 专家&quot;</span>） │<br>│  └── 角色定义越详细，行为越一致                           │<br>│                                                          │<br>│  <span class="hljs-keyword">Task</span>（任务）：                                           │<br>│  ├── <span class="hljs-keyword">description</span>：任务描述                               │<br>│  ├── expected_output：期望输出格式                       │<br>│  ├── assigned_to：分配给哪个 Agent                       │<br>│  └── 支持任务依赖（B 任务依赖 A 任务的结果）             │<br>│                                                          │<br>│  Crew（团队）：                                           │<br>│  ├── 一组 Agent + 一组 <span class="hljs-keyword">Task</span>                              │<br>│  ├── process：执行流程（顺序<span class="hljs-regexp">/分层/</span>协商）                 │<br>│  ├── 自动分配 <span class="hljs-keyword">Task</span> 给合适的 Agent                        │<br>│  └── 管理 Agent 之间的协作和通信                         │<br>└──────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="CrewAI-vs-AutoGen"><a href="#CrewAI-vs-AutoGen" class="headerlink" title="CrewAI vs AutoGen"></a>CrewAI vs AutoGen</h3><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">CrewAI</span>                                    AutoGen<br>├── 角色定义更自然                         ├── 通过对话协作<br>├── 预设角色 + 任务委派                    ├── Agent 自由对话<br>├── 更像<span class="hljs-string">&quot;管理层分配工作&quot;</span>                    ├── 更像<span class="hljs-string">&quot;开放讨论&quot;</span><br>├── 执行路径可预测                         ├── 执行路径动态<br>├── 适合明确分工的场景                     ├── 适合开放讨论场景<br>└── 控制性强                               └── 灵活性高<br><br>选型建议：<br>├── 任务流程明确 → CrewAI<br>├── 需要自由探索 → AutoGen<br>├── 兼顾两者 → LangGraph（最底层、最灵活）<br>└── 生产环境 → LangGraph（稳定性最佳）<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、低代码-Agent-平台"><a href="#五、低代码-Agent-平台" class="headerlink" title="五、低代码 Agent 平台"></a>五、低代码 Agent 平台</h2><h3 id="Dify"><a href="#Dify" class="headerlink" title="Dify"></a>Dify</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm"><span class="hljs-keyword">Dify：</span><br><span class="hljs-keyword"></span>├── 开源低代码 AI 应用开发平台<br>├── 可视化编排 Agent 工作流<br>├── 内置 RAG 管道（文档上传 → 解析 → 分块 → 索引）<br>├── 支持多种 <span class="hljs-keyword">LLM </span>后端（OpenAI、Claude、开源模型）<br>├── 提供 API 供外部系统调用<br>├── 适合：快速验证 AI 应用原型<br>├── 适合：非开发人员搭建 AI 助手<br>└── 局限：复杂逻辑受限于可视化节点<br><br><span class="hljs-keyword">Dify </span>的典型用途：<br>├── 客服机器人（RAG + 知识库）<br>├── 内容生成工作流（生成 → 审核 → 发布）<br>├── 数据分析助手（自然语言 → SQL → 图表）<br>└── 内部知识库问答<br></code></pre></td></tr></table></figure>
+
+<h3 id="Coze"><a href="#Coze" class="headerlink" title="Coze"></a>Coze</h3><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs mathematica"><span class="hljs-variable">Coze</span>（扣子）：<br>├── 字节跳动推出的 <span class="hljs-variable">AI</span> <span class="hljs-variable">Bot</span> 开发平台<br>├── 插件生态丰富（头条搜索、飞书、抖音）<br>├── 内置知识库、工作流、对话管理<br>├── 支持发布到飞书、微信、网页等渠道<br>├── 适合：快速搭建面向 <span class="hljs-built_in">C</span> 端的 <span class="hljs-variable">Bot</span><br>├── 适合：社交<span class="hljs-operator">/</span>内容平台集成<br>└── 局限：平台绑定，可迁移性差<br><br><span class="hljs-variable">Coze</span> 的典型用途：<br>├── 微信公众号 <span class="hljs-variable">AI</span> 助手<br>├── 抖音评论区智能回复<br>├── 小红书内容生成 <span class="hljs-variable">Bot</span><br>├── 社群运营助手<br>└── 个人助理 <span class="hljs-variable">Bot</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="六、A2A（Agent-to-Agent-协议）"><a href="#六、A2A（Agent-to-Agent-协议）" class="headerlink" title="六、A2A（Agent-to-Agent 协议）"></a>六、A2A（Agent-to-Agent 协议）</h2><h3 id="是什么"><a href="#是什么" class="headerlink" title="是什么"></a>是什么</h3><p>A2A（Agent-to-Agent）是 Google 在 2025 年提出的开放协议，用于<strong>不同 Agent 框架之间的互操作</strong>。</p>
+<figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs sqf">A2A 解决的核心问题：<br>┌──────────────────────────────────────────────────────────┐<br>│  当前的 <span class="hljs-built_in">Agent</span> 孤岛：                                       │<br>│  ├── LangGraph <span class="hljs-built_in">Agent</span> 不能直接调用 AutoGen <span class="hljs-built_in">Agent</span>          │<br>│  ├── CrewAI <span class="hljs-built_in">Agent</span> 不能和 Dify Bot 协作                   │<br>│  ├── 每个框架有自己的通信协议                            │<br>│  └── 跨框架 <span class="hljs-built_in">Agent</span> 协作需要定制适配器                     │<br>│                                                          │<br>│  A2A 的目标：                                              │<br>│  ├── 标准化的 <span class="hljs-built_in">Agent</span> 通信协议                              │<br>│  ├── 框架无关（任何框架都可以实现 A2A）                  │<br>│  ├── 跨组织协作（你的 <span class="hljs-built_in">Agent</span> 可以和我的 <span class="hljs-built_in">Agent</span> 对话）      │<br>│  └── 类似 HTTP 对于 Web 的意义                           │<br>└──────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="核心概念-3"><a href="#核心概念-3" class="headerlink" title="核心概念"></a>核心概念</h3><figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs sqf">A2A 的关键抽象：<br>├── <span class="hljs-built_in">Agent</span> Card：<span class="hljs-built_in">Agent</span> 的能力声明<br>│   ├── 这个 <span class="hljs-built_in">Agent</span> 能做什么<br>│   ├── 需要什么输入<br>│   ├── 返回什么输出<br>│   └── 类似 REST API 的 OpenAPI 规范<br>│<br>├── Message：<span class="hljs-built_in">Agent</span> 之间的消息<br>│   ├── 标准化的消息格式<br>│   ├── 支持文本、结构化数据、文件引用<br>│   └── 支持流式响应<br>│<br>├── Task：跨 <span class="hljs-built_in">Agent</span> 的任务<br>│   ├── <span class="hljs-built_in">Agent</span> A 向 <span class="hljs-built_in">Agent</span> B 发起任务<br>│   ├── <span class="hljs-built_in">Agent</span> B 接收并执行<br>│   ├── 支持进度汇报<br>│   └── 支持任务的取消和暂停<br>│<br>└── <span class="hljs-built_in">Agent</span> Registry：<span class="hljs-built_in">Agent</span> 注册中心<br>    ├── 查找可用的 <span class="hljs-built_in">Agent</span><br>    ├── 按能力搜索 <span class="hljs-built_in">Agent</span><br>    └── 类似微服务的服务发现<br><br>A2A 和 MCP 的关系：<br>├── MCP：<span class="hljs-built_in">Agent</span> 调用工具（AI → Tool）<br>├── A2A：<span class="hljs-built_in">Agent</span> 与 <span class="hljs-built_in">Agent</span> 通信（<span class="hljs-built_in">Agent</span> → <span class="hljs-built_in">Agent</span>）<br>├── MCP = 纵向集成（<span class="hljs-built_in">Agent</span> 获取数据/操作）<br>├── A2A = 横向扩展（<span class="hljs-built_in">Agent</span> 之间协作）<br>└── 两者互补，可以同时使用<br></code></pre></td></tr></table></figure>
+
+<h3 id="A2A-适用场景"><a href="#A2A-适用场景" class="headerlink" title="A2A 适用场景"></a>A2A 适用场景</h3><figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs sqf">跨部门 <span class="hljs-built_in">Agent</span> 协作：<br>├── 销售部 <span class="hljs-built_in">Agent</span> → 财务部 <span class="hljs-built_in">Agent</span>（查询客户信用）<br>├── 客服 <span class="hljs-built_in">Agent</span> → 物流 <span class="hljs-built_in">Agent</span>（查询订单状态）<br>├── 运维 <span class="hljs-built_in">Agent</span> → 安全 <span class="hljs-built_in">Agent</span>（确认变更风险）<br>└── 每个部门的 <span class="hljs-built_in">Agent</span> 独立开发，通过 A2A 通信<br><br>跨组织 <span class="hljs-built_in">Agent</span> 协作：<br>├── 供应商 <span class="hljs-built_in">Agent</span> → 采购方 <span class="hljs-built_in">Agent</span>（自动询价和下单）<br>├── 医疗 <span class="hljs-built_in">Agent</span> → 药房 <span class="hljs-built_in">Agent</span>（开方和取药流程）<br>├── 物流 <span class="hljs-built_in">Agent</span> → 仓储 <span class="hljs-built_in">Agent</span>（自动调度入库）<br>└── 不同公司之间的 <span class="hljs-built_in">Agent</span> 自动协作<br><br>生态现状：<br>├── Google 主导，<span class="hljs-number">2025</span> 年提出<br>├── 仍处于早期阶段<br>├── 部分框架开始实验性支持<br>└── 长期看可能成为 <span class="hljs-built_in">Agent</span> 互操作的行业标准<br></code></pre></td></tr></table></figure>
+
+<h2 id="七、面试题"><a href="#七、面试题" class="headerlink" title="七、面试题"></a>七、面试题</h2><h4 id="1-LangGraph-的核心概念？"><a href="#1-LangGraph-的核心概念？" class="headerlink" title="1. LangGraph 的核心概念？"></a>1. LangGraph 的核心概念？</h4><p>State（共享状态）、Node（处理步骤）、Edge（执行顺序）、Graph（节点+边的集合）。通过有向图建模 Agent 工作流，支持循环边实现 ReAct 模式。</p>
+<h4 id="2-AutoGen-的多-Agent-协作模式？"><a href="#2-AutoGen-的多-Agent-协作模式？" class="headerlink" title="2. AutoGen 的多 Agent 协作模式？"></a>2. AutoGen 的多 Agent 协作模式？</h4><p>Supervisor-Worker（中心化分工）、Debate（辩论提升质量）、Pipeline（流水线处理）、Swarm（冗余容错）。通过 Agent 间的对话协作。</p>
+<h4 id="3-CrewAI-的特点？"><a href="#3-CrewAI-的特点？" class="headerlink" title="3. CrewAI 的特点？"></a>3. CrewAI 的特点？</h4><p>将 Agent 定义为角色（Role + Goal + Backstory），组成”团队”按流程执行任务。比 AutoGen 控制性更强，适合明确分工的场景。</p>
+<h4 id="4-A2A-协议解决什么问题？"><a href="#4-A2A-协议解决什么问题？" class="headerlink" title="4. A2A 协议解决什么问题？"></a>4. A2A 协议解决什么问题？</h4><p>不同 Agent 框架之间的互操作。让 LangGraph、AutoGen、CrewAI 等不同框架的 Agent 可以互相通信和协作。MCP 是 AI→Tool，A2A 是 Agent→Agent。</p>
+<h4 id="5-如何选择-Agent-框架？"><a href="#5-如何选择-Agent-框架？" class="headerlink" title="5. 如何选择 Agent 框架？"></a>5. 如何选择 Agent 框架？</h4><p>LangGraph 适合复杂流程和生产环境，AutoGen 适合多 Agent 对话协作，CrewAI 适合角色分工明确的任务。快速原型选 Dify/Coze，Java 生态选 Spring AI。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/AI/">AI</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Agent/">Agent</a>
+                    
+                      <a class="hover-with-bg" href="/tags/LangGraph/">LangGraph</a>
+                    
+                      <a class="hover-with-bg" href="/tags/AutoGen/">AutoGen</a>
+                    
+                      <a class="hover-with-bg" href="/tags/CrewAI/">CrewAI</a>
+                    
+                      <a class="hover-with-bg" href="/tags/A2A/">A2A</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%A4%9AAgent%E5%8D%8F%E4%BD%9C/">多Agent协作</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/AI%E5%AE%89%E5%85%A8%E9%98%B2%E6%8A%A4PromptInjection%E4%B8%8EGuardrails/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">AI 安全防护：Prompt Injection、Guardrails、幻觉检测与评估</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/RAG%E5%A2%9E%E5%BC%BA%E6%8A%80%E6%9C%AFGraphRAG%E4%B8%8ESelf-RAG/">
+                        <span class="hidden-mobile">RAG 增强技术：GraphRAG、Self-RAG、Corrective RAG 与 HyDE</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

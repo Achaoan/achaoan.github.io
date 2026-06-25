@@ -1,0 +1,610 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>Service Mesh 与 Istio 入门：架构、核心功能与实战 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/istio-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Service Mesh 与 Istio 入门：架构、核心功能与实战">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-26 03:20" pubdate>
+        2026年6月26日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      20
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Service Mesh 与 Istio 入门：架构、核心功能与实战</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：43 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、Service-Mesh-概述"><a href="#一、Service-Mesh-概述" class="headerlink" title="一、Service Mesh 概述"></a>一、Service Mesh 概述</h2><h3 id="是什么？"><a href="#是什么？" class="headerlink" title="是什么？"></a>是什么？</h3><p>Service Mesh（服务网格）是<strong>基础设施层</strong>，处理服务间通信的云原生微服务架构模式。</p>
+<figure class="highlight erlang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs erlang">核心理念：将服务通信从业务代码中剥离，下沉到基础设施层<br>├── 传统微服务：每个服务要处理 服务发现、负载均衡、熔断、重试...<br>├── Service Mesh：以上能力由 Sidecar 代理自动完成<br>└── 业务代码只关注业务逻辑<br></code></pre></td></tr></table></figure>
+
+<h3 id="演进历程"><a href="#演进历程" class="headerlink" title="演进历程"></a>演进历程</h3><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">第一代：微服务框架<br>├── <span class="hljs-variable">Spring</span> <span class="hljs-variable">Cloud</span>、<span class="hljs-variable">Dubbo</span><br>├── <span class="hljs-variable">SDK</span> 方式集成（和业务代码耦合）<br>└── 升级困难、多语言支持差<br><br>第二代：<span class="hljs-variable">Service</span> <span class="hljs-built_in">Mesh</span>（<span class="hljs-variable">Sidecar</span> 模式）<br>├── <span class="hljs-variable">Istio</span>、<span class="hljs-variable">Linkerd</span><br>├── 透明的网络代理（业务无感知）<br>└── 多语言友好、独立升级<br></code></pre></td></tr></table></figure>
+
+<h3 id="核心价值"><a href="#核心价值" class="headerlink" title="核心价值"></a>核心价值</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs">对开发者的好处：<br>├── 开发只需关注业务代码<br>├── 通信能力（熔断、重试、超时）由网格层接管<br>├── 流量管理（灰度发布、流量镜像）无需改代码<br>├── 安全通信（mTLS）自动加密<br>└── 可观测性（链路追踪、监控、日志）开箱即用<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、Sidecar-模式"><a href="#二、Sidecar-模式" class="headerlink" title="二、Sidecar 模式"></a>二、Sidecar 模式</h2><h3 id="什么是-Sidecar？"><a href="#什么是-Sidecar？" class="headerlink" title="什么是 Sidecar？"></a>什么是 Sidecar？</h3><figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs less">应用程序容器旁边部署一个代理容器，共享同一个 <span class="hljs-selector-tag">Pod</span>。<br>所有进出流量经过 <span class="hljs-selector-tag">Sidecar</span> 代理。<br><br>┌──────────────────── <span class="hljs-selector-tag">Pod</span> ──────────────────┐<br>│                                           │<br>│  ┌──────────────┐      ┌──────────────┐   │<br>│  │  <span class="hljs-selector-tag">Business</span>    │      │  <span class="hljs-selector-tag">Sidecar</span>     │   │<br>│  │  <span class="hljs-selector-tag">Container</span>   │ ←──→ │  <span class="hljs-selector-tag">Proxy</span>       │   │<br>│  │  (业务服务)   │      │  (Envoy)     │   │<br>│  └──────────────┘      └──────────────┘   │<br>│                                           │<br>└───────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs awk">Sidecar 做的所有事：<br>├── 服务发现：自动发现上游服务实例<br>├── 负载均衡：轮询<span class="hljs-regexp">/最小连接/</span>一致性哈希<br>├── 熔断：异常比例达到阈值时自动熔断<br>├── 重试：失败自动重试（幂等请求）<br>├── 超时：防止请求挂死<br>├── 限流：限制请求速率<br>├── mTLS：自动双向 TLS 加密<br>├── 链路追踪：Zipkin/Jaeger 集成<br>└── 指标收集：Prometheus 集成<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、Istio-架构"><a href="#三、Istio-架构" class="headerlink" title="三、Istio 架构"></a>三、Istio 架构</h2><h3 id="整体架构"><a href="#整体架构" class="headerlink" title="整体架构"></a>整体架构</h3><figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs armasm"><span class="hljs-symbol">Istio</span> = 数据平面（<span class="hljs-meta">Data</span> Plane） + 控制平面（Control Plane）<br><br>数据平面（Envoy Sidecar）：处理所有流量<br>├── 每个 Pod 一个 Envoy 代理<br>├── 拦截所有进出流量（iptables 规则）<br>└── 执行控制平面的策略<br><br>控制平面（Istiod）：<br>├── Pilot：服务发现 + 流量管理（路由规则下发）<br>├── Citadel：安全（证书签发 + mTLS）<br>└── Galley：配置管理（验证 + 分发）<br></code></pre></td></tr></table></figure>
+
+<h3 id="Istiod-功能"><a href="#Istiod-功能" class="headerlink" title="Istiod 功能"></a>Istiod 功能</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs">Pilot（流量管理）：<br>├── 从 K8s 获取 Service/Endpoint<br>├── 将路由规则转化为 Envoy 配置<br>├── 通过 xDS 协议下发给所有 Sidecar<br>└── 支持：虚拟服务、目标规则、网关<br><br>Citadel（安全）：<br>├── 自动生成和分发 TLS 证书<br>├── 实现服务间 mTLS 加密通信<br>├── 证书自动轮换<br>└── 基于 ServiceAccount 的身份认证<br><br>Galley（配置）：<br>├── 验证 Istio 配置的合法性<br>├── 将配置分发给 Pilot<br>└── 屏蔽底层平台差异<br></code></pre></td></tr></table></figure>
+
+<h3 id="流量劫持"><a href="#流量劫持" class="headerlink" title="流量劫持"></a>流量劫持</h3><figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs tap">Envoy 通过 iptables 规则透明拦截流量：<br>├── 入站流量：iptables 重定向到 Envoy 的<span class="hljs-number"> 15006 </span>端口<br>├── 出站流量：iptables 重定向到 Envoy 的<span class="hljs-number"> 15001 </span>端口<br>└── 应用容器无感知（代码不需要任何改动）<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、核心功能：流量管理"><a href="#四、核心功能：流量管理" class="headerlink" title="四、核心功能：流量管理"></a>四、核心功能：流量管理</h2><h3 id="虚拟服务（VirtualService）"><a href="#虚拟服务（VirtualService）" class="headerlink" title="虚拟服务（VirtualService）"></a>虚拟服务（VirtualService）</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># 灰度发布：10% 流量到 v2 版本</span><br><span class="hljs-attr">apiVersion:</span> <span class="hljs-string">networking.istio.io/v1beta1</span><br><span class="hljs-attr">kind:</span> <span class="hljs-string">VirtualService</span><br><span class="hljs-attr">metadata:</span><br>  <span class="hljs-attr">name:</span> <span class="hljs-string">user-service</span><br><span class="hljs-attr">spec:</span><br>  <span class="hljs-attr">hosts:</span><br>    <span class="hljs-bullet">-</span> <span class="hljs-string">user-service</span><br>  <span class="hljs-attr">http:</span><br>    <span class="hljs-bullet">-</span> <span class="hljs-attr">match:</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-attr">headers:</span><br>            <span class="hljs-attr">version:</span><br>              <span class="hljs-attr">exact:</span> <span class="hljs-string">v2</span><br>      <span class="hljs-attr">route:</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-attr">destination:</span><br>            <span class="hljs-attr">host:</span> <span class="hljs-string">user-service</span><br>            <span class="hljs-attr">subset:</span> <span class="hljs-string">v2</span><br>    <span class="hljs-bullet">-</span> <span class="hljs-attr">route:</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-attr">destination:</span><br>            <span class="hljs-attr">host:</span> <span class="hljs-string">user-service</span><br>            <span class="hljs-attr">subset:</span> <span class="hljs-string">v1</span><br>          <span class="hljs-attr">weight:</span> <span class="hljs-number">90</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-attr">destination:</span><br>            <span class="hljs-attr">host:</span> <span class="hljs-string">user-service</span><br>            <span class="hljs-attr">subset:</span> <span class="hljs-string">v2</span><br>          <span class="hljs-attr">weight:</span> <span class="hljs-number">10</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="目标规则（DestinationRule）"><a href="#目标规则（DestinationRule）" class="headerlink" title="目标规则（DestinationRule）"></a>目标规则（DestinationRule）</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">apiVersion:</span> <span class="hljs-string">networking.istio.io/v1beta1</span><br><span class="hljs-attr">kind:</span> <span class="hljs-string">DestinationRule</span><br><span class="hljs-attr">metadata:</span><br>  <span class="hljs-attr">name:</span> <span class="hljs-string">user-service</span><br><span class="hljs-attr">spec:</span><br>  <span class="hljs-attr">host:</span> <span class="hljs-string">user-service</span><br>  <span class="hljs-attr">subsets:</span><br>    <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">v1</span><br>      <span class="hljs-attr">labels:</span><br>        <span class="hljs-attr">version:</span> <span class="hljs-string">v1</span><br>    <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">v2</span><br>      <span class="hljs-attr">labels:</span><br>        <span class="hljs-attr">version:</span> <span class="hljs-string">v2</span><br>  <span class="hljs-attr">trafficPolicy:</span><br>    <span class="hljs-attr">loadBalancer:</span><br>      <span class="hljs-attr">simple:</span> <span class="hljs-string">ROUND_ROBIN</span><br>    <span class="hljs-attr">connectionPool:</span><br>      <span class="hljs-attr">tcp:</span><br>        <span class="hljs-attr">maxConnections:</span> <span class="hljs-number">100</span><br>      <span class="hljs-attr">http:</span><br>        <span class="hljs-attr">http2MaxRequests:</span> <span class="hljs-number">1000</span><br>    <span class="hljs-attr">outlierDetection:</span><br>      <span class="hljs-attr">consecutiveErrors:</span> <span class="hljs-number">5</span><br>      <span class="hljs-attr">interval:</span> <span class="hljs-string">30s</span><br>      <span class="hljs-attr">baseEjectionTime:</span> <span class="hljs-string">30s</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="网关（Gateway）"><a href="#网关（Gateway）" class="headerlink" title="网关（Gateway）"></a>网关（Gateway）</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># 入口网关：外部流量进入</span><br><span class="hljs-attr">apiVersion:</span> <span class="hljs-string">networking.istio.io/v1beta1</span><br><span class="hljs-attr">kind:</span> <span class="hljs-string">Gateway</span><br><span class="hljs-attr">metadata:</span><br>  <span class="hljs-attr">name:</span> <span class="hljs-string">ingress-gateway</span><br><span class="hljs-attr">spec:</span><br>  <span class="hljs-attr">selector:</span><br>    <span class="hljs-attr">istio:</span> <span class="hljs-string">ingressgateway</span><br>  <span class="hljs-attr">servers:</span><br>    <span class="hljs-bullet">-</span> <span class="hljs-attr">port:</span><br>        <span class="hljs-attr">number:</span> <span class="hljs-number">443</span><br>        <span class="hljs-attr">name:</span> <span class="hljs-string">https</span><br>        <span class="hljs-attr">protocol:</span> <span class="hljs-string">HTTPS</span><br>      <span class="hljs-attr">tls:</span><br>        <span class="hljs-attr">mode:</span> <span class="hljs-string">SIMPLE</span><br>        <span class="hljs-attr">credentialName:</span> <span class="hljs-string">ingress-cert</span><br>      <span class="hljs-attr">hosts:</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-string">api.example.com</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="超时与重试"><a href="#超时与重试" class="headerlink" title="超时与重试"></a>超时与重试</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">apiVersion:</span> <span class="hljs-string">networking.istio.io/v1beta1</span><br><span class="hljs-attr">kind:</span> <span class="hljs-string">VirtualService</span><br><span class="hljs-attr">metadata:</span><br>  <span class="hljs-attr">name:</span> <span class="hljs-string">order-service</span><br><span class="hljs-attr">spec:</span><br>  <span class="hljs-attr">hosts:</span><br>    <span class="hljs-bullet">-</span> <span class="hljs-string">order-service</span><br>  <span class="hljs-attr">http:</span><br>    <span class="hljs-bullet">-</span> <span class="hljs-attr">route:</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-attr">destination:</span><br>            <span class="hljs-attr">host:</span> <span class="hljs-string">order-service</span><br>      <span class="hljs-attr">timeout:</span> <span class="hljs-string">5s</span>  <span class="hljs-comment"># 请求超时</span><br>      <span class="hljs-attr">retries:</span><br>        <span class="hljs-attr">attempts:</span> <span class="hljs-number">3</span><br>        <span class="hljs-attr">perTryTimeout:</span> <span class="hljs-string">2s</span><br>        <span class="hljs-attr">retryOn:</span> <span class="hljs-string">connect-failure,refused-stream,unavailable</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="五、安全"><a href="#五、安全" class="headerlink" title="五、安全"></a>五、安全</h2><h3 id="mTLS（双向-TLS）"><a href="#mTLS（双向-TLS）" class="headerlink" title="mTLS（双向 TLS）"></a>mTLS（双向 TLS）</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># 全网格启用 mTLS</span><br><span class="hljs-attr">apiVersion:</span> <span class="hljs-string">security.istio.io/v1beta1</span><br><span class="hljs-attr">kind:</span> <span class="hljs-string">PeerAuthentication</span><br><span class="hljs-attr">metadata:</span><br>  <span class="hljs-attr">name:</span> <span class="hljs-string">default</span><br>  <span class="hljs-attr">namespace:</span> <span class="hljs-string">istio-system</span><br><span class="hljs-attr">spec:</span><br>  <span class="hljs-attr">mtls:</span><br>    <span class="hljs-attr">mode:</span> <span class="hljs-string">STRICT</span>  <span class="hljs-comment"># STRICT / PERMISSIVE / DISABLE</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs">自动 mTLS 的好处：<br>├── 零代码改动实现服务间加密<br>├── 证书自动轮换（无需运维）<br>├── 基于 ServiceAccount 的身份认证<br>└── 防止中间人攻击和流量窃听<br></code></pre></td></tr></table></figure>
+
+<h3 id="授权策略"><a href="#授权策略" class="headerlink" title="授权策略"></a>授权策略</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># 只允许特定服务访问</span><br><span class="hljs-attr">apiVersion:</span> <span class="hljs-string">security.istio.io/v1beta1</span><br><span class="hljs-attr">kind:</span> <span class="hljs-string">AuthorizationPolicy</span><br><span class="hljs-attr">metadata:</span><br>  <span class="hljs-attr">name:</span> <span class="hljs-string">user-service-auth</span><br>  <span class="hljs-attr">namespace:</span> <span class="hljs-string">default</span><br><span class="hljs-attr">spec:</span><br>  <span class="hljs-attr">selector:</span><br>    <span class="hljs-attr">matchLabels:</span><br>      <span class="hljs-attr">app:</span> <span class="hljs-string">user-service</span><br>  <span class="hljs-attr">rules:</span><br>    <span class="hljs-bullet">-</span> <span class="hljs-attr">from:</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-attr">source:</span><br>            <span class="hljs-attr">principals:</span><br>              <span class="hljs-bullet">-</span> <span class="hljs-string">&quot;cluster.local/ns/default/sa/order-service&quot;</span><br>      <span class="hljs-attr">to:</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-attr">operation:</span><br>            <span class="hljs-attr">methods:</span> [<span class="hljs-string">&quot;GET&quot;</span>]<br>            <span class="hljs-attr">paths:</span> [<span class="hljs-string">&quot;/api/users/*&quot;</span>]<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、可观测性"><a href="#六、可观测性" class="headerlink" title="六、可观测性"></a>六、可观测性</h2><h3 id="开箱即用的能力"><a href="#开箱即用的能力" class="headerlink" title="开箱即用的能力"></a>开箱即用的能力</h3><figure class="highlight fortran"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs fortran">Istio 自动收集的指标：<br>├── 请求量（Request <span class="hljs-built_in">Count</span>）<br>├── 延迟（Request Duration）<br>├── 请求大小（Request <span class="hljs-built_in">Size</span>）<br>├── 响应大小（Response <span class="hljs-built_in">Size</span>）<br>├── HTTP 状态码（HTTP <span class="hljs-keyword">Status</span>）<br>└── TCP 连接数<br><br>集成方式：<br>├── Prometheus：指标存储和查询<br>├── Grafana：可视化仪表盘<br>├── Jaeger/Zipkin：分布式链路追踪<br>└── Kiali：服务拓扑可视化<br></code></pre></td></tr></table></figure>
+
+<h3 id="Kiali-控制台"><a href="#Kiali-控制台" class="headerlink" title="Kiali 控制台"></a>Kiali 控制台</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs awk">Kiali 提供：<br>├── 服务拓扑图（可视化服务间调用关系）<br>├── 健康检查（服务<span class="hljs-regexp">/工作负载/</span>Pod 状态）<br>├── 指标展示（延迟、吞吐量、错误率）<br>├── 配置管理（查看和编辑 Istio 配置）<br>└── 链路追踪（穿透到 Jaeger）<br></code></pre></td></tr></table></figure>
+
+<h2 id="七、Istio-vs-Spring-Cloud"><a href="#七、Istio-vs-Spring-Cloud" class="headerlink" title="七、Istio vs Spring Cloud"></a>七、Istio vs Spring Cloud</h2><table>
+<thead>
+<tr>
+<th align="left">对比</th>
+<th align="center">Istio + K8s</th>
+<th align="center">Spring Cloud</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>侵入性</strong></td>
+<td align="center">无侵入（Sidecar）</td>
+<td align="center">SDK 方式，侵入性强</td>
+</tr>
+<tr>
+<td align="left"><strong>多语言</strong></td>
+<td align="center">✅ 任意语言</td>
+<td align="center">❌ 仅 Java</td>
+</tr>
+<tr>
+<td align="left"><strong>升级</strong></td>
+<td align="center">升级 Sidecar 即可</td>
+<td align="center">需要改代码重新发布</td>
+</tr>
+<tr>
+<td align="left"><strong>流量管理</strong></td>
+<td align="center">K8s CRD 声明式</td>
+<td align="center">代码配置</td>
+</tr>
+<tr>
+<td align="left"><strong>mTLS</strong></td>
+<td align="center">自动双向 TLS</td>
+<td align="center">需自行配置</td>
+</tr>
+<tr>
+<td align="left"><strong>可观测性</strong></td>
+<td align="center">开箱即用</td>
+<td align="center">需集成 Sleuth+Zipkin</td>
+</tr>
+<tr>
+<td align="left"><strong>学习成本</strong></td>
+<td align="center">高（Istio + K8s）</td>
+<td align="center">低</td>
+</tr>
+<tr>
+<td align="left"><strong>调试复杂度</strong></td>
+<td align="center">高（抽象层多）</td>
+<td align="center">低</td>
+</tr>
+<tr>
+<td align="left"><strong>推荐场景</strong></td>
+<td align="center">云原生、多语言、大团队</td>
+<td align="center">纯 Java、中小团队</td>
+</tr>
+</tbody></table>
+<h2 id="八、安装与部署"><a href="#八、安装与部署" class="headerlink" title="八、安装与部署"></a>八、安装与部署</h2><h3 id="快速安装"><a href="#快速安装" class="headerlink" title="快速安装"></a>快速安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 下载 istioctl</span><br>curl -L https://istio.io/downloadIstio | sh -<br><br><span class="hljs-comment"># 安装 Istio（默认配置）</span><br>istioctl install --<span class="hljs-built_in">set</span> profile=default<br><br><span class="hljs-comment"># 给命名空间开启自动注入 Sidecar</span><br>kubectl label namespace default istio-injection=enabled<br><br><span class="hljs-comment"># 部署应用（自动注入 Sidecar）</span><br>kubectl apply -f deployment.yaml<br><br><span class="hljs-comment"># 查看 Sidecar 状态</span><br>kubectl get pods -n default<br><span class="hljs-comment"># NAME                            READY   STATUS</span><br><span class="hljs-comment"># user-service-7d4f9c8d6b-2xk4f   2/2     Running   ← 2/2 = 业务容器 + Sidecar</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="卸载"><a href="#卸载" class="headerlink" title="卸载"></a>卸载</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">istioctl uninstall --purge<br>kubectl delete namespace istio-system<br></code></pre></td></tr></table></figure>
+
+<h2 id="九、面试题"><a href="#九、面试题" class="headerlink" title="九、面试题"></a>九、面试题</h2><h4 id="1-Service-Mesh-是什么？解决了什么问题？"><a href="#1-Service-Mesh-是什么？解决了什么问题？" class="headerlink" title="1. Service Mesh 是什么？解决了什么问题？"></a>1. Service Mesh 是什么？解决了什么问题？</h4><p>将服务通信能力（服务发现、负载均衡、熔断、限流）从业务代码中剥离到基础设施层，通过 Sidecar 代理实现。解决微服务框架的 SDK 耦合、升级困难、多语言支持差等问题。</p>
+<h4 id="2-Istio-的架构组件？"><a href="#2-Istio-的架构组件？" class="headerlink" title="2. Istio 的架构组件？"></a>2. Istio 的架构组件？</h4><p>数据平面（Envoy Sidecar）处理流量，控制平面（Istiod）包含 Pilot（流量管理）、Citadel（安全）、Galley（配置管理）。</p>
+<h4 id="3-Sidecar-的工作原理？"><a href="#3-Sidecar-的工作原理？" class="headerlink" title="3. Sidecar 的工作原理？"></a>3. Sidecar 的工作原理？</h4><p>每个 Pod 中与业务容器并列运行 Envoy 代理，通过 iptables 劫持所有进出流量，实现对通信的透明管控。</p>
+<h4 id="4-Istio-如何实现灰度发布？"><a href="#4-Istio-如何实现灰度发布？" class="headerlink" title="4. Istio 如何实现灰度发布？"></a>4. Istio 如何实现灰度发布？</h4><p>通过 VirtualService 定义路由规则，按权重或请求头将流量分配到不同版本子集（subset）。比例可精确到 1%。</p>
+<h4 id="5-Istio-和-Spring-Cloud-怎么选？"><a href="#5-Istio-和-Spring-Cloud-怎么选？" class="headerlink" title="5. Istio 和 Spring Cloud 怎么选？"></a>5. Istio 和 Spring Cloud 怎么选？</h4><p>Istio 无侵入、多语言友好，适合云原生和异构系统。Spring Cloud 学习成本低、调试容易，适合纯 Java 中小团队。两者可以共存使用。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/">开发工具</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/K8s/">K8s</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Service-Mesh/">Service Mesh</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Istio/">Istio</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/">云原生</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/26/OAuth2%E4%B8%8ESSO%E5%8D%95%E7%82%B9%E7%99%BB%E5%BD%95%E8%AF%A6%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">OAuth2 与 SSO 单点登录：授权码流程、JWT、Spring Security 集成</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/26/%E5%A4%A7%E5%8E%82%E9%9D%A2%E7%BB%8F%E6%B1%87%E6%80%BB%E4%B8%8E%E7%AD%94%E9%A2%98%E6%80%9D%E8%B7%AF/">
+                        <span class="hidden-mobile">Java 大厂面经汇总：BAT/字节/美团 面试真题与答题思路</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

@@ -1,0 +1,628 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>算法模板与面试技巧：排序、二分、双指针、DFS、BFS、DP - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/algorithm-templates-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="算法模板与面试技巧：排序、二分、双指针、DFS、BFS、DP">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-26 00:40" pubdate>
+        2026年6月26日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      26
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">算法模板与面试技巧：排序、二分、双指针、DFS、BFS、DP</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：4 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、排序算法"><a href="#一、排序算法" class="headerlink" title="一、排序算法"></a>一、排序算法</h2><h3 id="快速排序"><a href="#快速排序" class="headerlink" title="快速排序"></a>快速排序</h3><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">时间复杂度：平均 <span class="hljs-constructor">O(<span class="hljs-params">n</span> <span class="hljs-params">log</span> <span class="hljs-params">n</span>)</span>，最坏 <span class="hljs-constructor">O(<span class="hljs-params">n</span>²)</span><br>空间复杂度：<span class="hljs-constructor">O(<span class="hljs-params">log</span> <span class="hljs-params">n</span>)</span>（递归栈）<br>稳定性：不稳定<br><br>核心思路：<br>选基准（pivot）→ 分区（左边小于基准，右边大于基准）→ 递归<br><br>优化：<br>├── 三数取中法选基准（避免最坏情况）<br>├── 小数组切换到插入排序（&lt;<span class="hljs-number">10</span> 个元素）<br>├── 三路快排（处理大量重复元素）<br>└── 多线程并行排序<br><br>适用场景：<br>├── 通用排序（实际排序算法中最快）<br>├── 对不稳定排序不敏感的场景<br>└── 大部分工业排序库的默认选择<br></code></pre></td></tr></table></figure>
+
+<h3 id="归并排序"><a href="#归并排序" class="headerlink" title="归并排序"></a>归并排序</h3><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">时间复杂度：<span class="hljs-constructor">O(<span class="hljs-params">n</span> <span class="hljs-params">log</span> <span class="hljs-params">n</span>)</span>（最坏也是 <span class="hljs-constructor">O(<span class="hljs-params">n</span> <span class="hljs-params">log</span> <span class="hljs-params">n</span>)</span>）<br>空间复杂度：<span class="hljs-constructor">O(<span class="hljs-params">n</span>)</span>（需要辅助数组）<br>稳定性：稳定<br><br>核心思路：<br>分治：将数组分成两半，分别排序，再合并<br><br>应用场景：<br>├── 外部排序（大数据放磁盘）<br>├── 链表排序（不需要随机访问）<br>├── 需要稳定排序的场景<br>├── 计算逆序对<br>└── TimSort（Java 和 Python 的默认排序）<br><br>为什么 v.s. 快排？<br>├── 快排平均更快（缓存友好、原地操作）<br>├── 归并更稳定（最坏也是 <span class="hljs-constructor">O(<span class="hljs-params">n</span> <span class="hljs-params">log</span> <span class="hljs-params">n</span>)</span>）<br>└── 实际选择：<span class="hljs-number">8</span>大基本类型用快排，对象用归并（Timsort）<br></code></pre></td></tr></table></figure>
+
+<h3 id="排序对比"><a href="#排序对比" class="headerlink" title="排序对比"></a>排序对比</h3><table>
+<thead>
+<tr>
+<th>算法</th>
+<th align="center">平均</th>
+<th align="center">最坏</th>
+<th align="center">空间</th>
+<th align="center">稳定</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>冒泡</strong></td>
+<td align="center">O(n²)</td>
+<td align="center">O(n²)</td>
+<td align="center">O(1)</td>
+<td align="center">✅</td>
+<td>教学用，实际不用</td>
+</tr>
+<tr>
+<td><strong>选择</strong></td>
+<td align="center">O(n²)</td>
+<td align="center">O(n²)</td>
+<td align="center">O(1)</td>
+<td align="center">❌</td>
+<td>不稳定但简单</td>
+</tr>
+<tr>
+<td><strong>插入</strong></td>
+<td align="center">O(n²)</td>
+<td align="center">O(n²)</td>
+<td align="center">O(1)</td>
+<td align="center">✅</td>
+<td>小数组排序最快</td>
+</tr>
+<tr>
+<td><strong>希尔</strong></td>
+<td align="center">O(n log n)</td>
+<td align="center">O(n²)</td>
+<td align="center">O(1)</td>
+<td align="center">❌</td>
+<td>插入的改进，不常用</td>
+</tr>
+<tr>
+<td><strong>快速</strong></td>
+<td align="center">O(n log n)</td>
+<td align="center">O(n²)</td>
+<td align="center">O(log n)</td>
+<td align="center">❌</td>
+<td>综合最快</td>
+</tr>
+<tr>
+<td><strong>归并</strong></td>
+<td align="center">O(n log n)</td>
+<td align="center">O(n log n)</td>
+<td align="center">O(n)</td>
+<td align="center">✅</td>
+<td>稳定，适合外部排序</td>
+</tr>
+<tr>
+<td><strong>堆</strong></td>
+<td align="center">O(n log n)</td>
+<td align="center">O(n log n)</td>
+<td align="center">O(1)</td>
+<td align="center">❌</td>
+<td>适合 Top K</td>
+</tr>
+<tr>
+<td><strong>计数</strong></td>
+<td align="center">O(n+k)</td>
+<td align="center">O(n+k)</td>
+<td align="center">O(k)</td>
+<td align="center">✅</td>
+<td>只适合整数范围小</td>
+</tr>
+<tr>
+<td><strong>桶</strong></td>
+<td align="center">O(n+k)</td>
+<td align="center">O(n²)</td>
+<td align="center">O(n)</td>
+<td align="center">✅</td>
+<td>数据均匀分布</td>
+</tr>
+<tr>
+<td><strong>基数</strong></td>
+<td align="center">O(d*n)</td>
+<td align="center">O(d*n)</td>
+<td align="center">O(n)</td>
+<td align="center">✅</td>
+<td>固定长度整数/字符串</td>
+</tr>
+</tbody></table>
+<h2 id="二、二分查找"><a href="#二、二分查找" class="headerlink" title="二、二分查找"></a>二、二分查找</h2><figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs excel">基本条件：有序数组（严格单调）<br>时间复杂度：O(<span class="hljs-built_in">log</span> <span class="hljs-built_in">n</span>)<br>空间复杂度：O(<span class="hljs-number">1</span>)<br><br>三个关键点：<br>├── 循环条件：<span class="hljs-built_in">left</span> &lt;= <span class="hljs-built_in">right</span> 还是 <span class="hljs-built_in">left</span> &lt; <span class="hljs-built_in">right</span><br>├── 边界更新：<span class="hljs-built_in">mid</span> 还是 <span class="hljs-built_in">mid</span> ± <span class="hljs-number">1</span><br>└── 返回值：是否需处理没找到的情况<br><br>标准二分（找精确值）：<br>├── while (<span class="hljs-built_in">left</span> &lt;= <span class="hljs-built_in">right</span>)<br>├── <span class="hljs-built_in">left</span> = <span class="hljs-built_in">mid</span> + <span class="hljs-number">1</span> / <span class="hljs-built_in">right</span> = <span class="hljs-built_in">mid</span> - <span class="hljs-number">1</span><br>└── 最后返回 -<span class="hljs-number">1</span><br><br>找左边界（第一个 &gt;= target）：<br>├── while (<span class="hljs-built_in">left</span> &lt; <span class="hljs-built_in">right</span>)<br>├── <span class="hljs-built_in">right</span> = <span class="hljs-built_in">mid</span> / <span class="hljs-built_in">left</span> = <span class="hljs-built_in">mid</span> + <span class="hljs-number">1</span><br>└── 返回 <span class="hljs-built_in">left</span><br><br>找右边界（最后一个 &lt;= target）：<br>├── while (<span class="hljs-built_in">left</span> &lt; <span class="hljs-built_in">right</span>)<br>├── <span class="hljs-built_in">left</span> = <span class="hljs-built_in">mid</span> + <span class="hljs-number">1</span> / <span class="hljs-built_in">right</span> = <span class="hljs-built_in">mid</span><br>└── 返回 <span class="hljs-built_in">left</span> - <span class="hljs-number">1</span><br><br>适用场景：<br>├── 有序数组查找<br>├── 旋转排序数组<br>├── 搜索区间<br>├── 数值计算（平方根、方程求根）<br>└── 峰值查找<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、双指针"><a href="#三、双指针" class="headerlink" title="三、双指针"></a>三、双指针</h2><h3 id="左右指针"><a href="#左右指针" class="headerlink" title="左右指针"></a>左右指针</h3><figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs coq">两个指针从两端向中间移动<br>适用：有序数组的查找、反转<br><br>模版：<br>int <span class="hljs-built_in">left</span> = <span class="hljs-number">0</span>, <span class="hljs-built_in">right</span> = arr.length - <span class="hljs-number">1</span>;<br>while (<span class="hljs-built_in">left</span> &lt; <span class="hljs-built_in">right</span>) &#123;<br>    int <span class="hljs-built_in">sum</span> = arr[<span class="hljs-built_in">left</span>] + arr[<span class="hljs-built_in">right</span>];<br>    <span class="hljs-keyword">if</span> (<span class="hljs-built_in">sum</span> == target) <span class="hljs-keyword">return</span> new int[]&#123;<span class="hljs-built_in">left</span>, <span class="hljs-built_in">right</span>&#125;;<br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-built_in">sum</span> &lt; target) <span class="hljs-built_in">left</span>++;<br>    <span class="hljs-keyword">else</span> <span class="hljs-built_in">right</span>--;<br>&#125;<br><br>题目：<br>├── 两数之和 II（有序数组）<br>├── 反转数组<br>├── 接雨水（左右指针记录最大高度）<br>└── 回文串判断<br></code></pre></td></tr></table></figure>
+
+<h3 id="快慢指针"><a href="#快慢指针" class="headerlink" title="快慢指针"></a>快慢指针</h3><figure class="highlight axapta"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs axapta">两个指针同向移动，速度不同<br>适用：链表、循环检测<br><br>模版（环检测）：<br>ListNode slow = head, fast = head;<br><span class="hljs-keyword">while</span> (fast != <span class="hljs-literal">null</span> &amp;&amp; fast.<span class="hljs-keyword">next</span> != <span class="hljs-literal">null</span>) &#123;<br>    slow = slow.<span class="hljs-keyword">next</span>;<br>    fast = fast.<span class="hljs-keyword">next</span>.<span class="hljs-keyword">next</span>;<br>    <span class="hljs-keyword">if</span> (slow == fast) <span class="hljs-keyword">break</span>; <span class="hljs-comment">// 有环</span><br>&#125;<br><br>题目：<br>├── 环形链表检测<br>├── 找链表中点<br>├── 找倒数第 K 个节点<br>└── 寻找重复数（数组视为链表）<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、滑动窗口"><a href="#四、滑动窗口" class="headerlink" title="四、滑动窗口"></a>四、滑动窗口</h2><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">适用：子串/子数组问题（连续区间）<br>时间复杂度：<span class="hljs-constructor">O(<span class="hljs-params">n</span>)</span>（每个元素进出窗口一次）<br><br>模版：<br><span class="hljs-built_in">int</span> sliding<span class="hljs-constructor">Window(String <span class="hljs-params">s</span>)</span> &#123;<br>    Map&lt;Character, Integer&gt; window = <span class="hljs-keyword">new</span> HashMap&lt;&gt;<span class="hljs-literal">()</span>;<br>    <span class="hljs-built_in">int</span> left = <span class="hljs-number">0</span>, right = <span class="hljs-number">0</span>;<br>    <span class="hljs-built_in">int</span> result = <span class="hljs-number">0</span>;<br>    <br>    <span class="hljs-keyword">while</span> (right &lt; s.length<span class="hljs-literal">()</span>) &#123;<br>        <span class="hljs-comment">// 扩大窗口</span><br>        <span class="hljs-built_in">char</span> c = s.<span class="hljs-built_in">char</span><span class="hljs-constructor">At(<span class="hljs-params">right</span>)</span>;<br>        window.merge(c, <span class="hljs-number">1</span>, Integer::sum);<br>        right++;<br>        <br>        <span class="hljs-comment">// 需要收缩窗口</span><br>        <span class="hljs-keyword">while</span> (need<span class="hljs-constructor">Shrink(<span class="hljs-params">window</span>)</span>) &#123;<br>            <span class="hljs-built_in">char</span> d = s.<span class="hljs-built_in">char</span><span class="hljs-constructor">At(<span class="hljs-params">left</span>)</span>;<br>            window.merge(d, -<span class="hljs-number">1</span>, Integer::sum);<br>            left++;<br>        &#125;<br>        <br>        <span class="hljs-comment">// 更新结果</span><br>        result = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Math</span>.</span></span>max(result, right - left);<br>    &#125;<br>    return result;<br>&#125;<br><br>题目：<br>├── 无重复字符的最长子串<br>├── 最小覆盖子串<br>├── 字符串排列<br>├── 长度最小的子数组<br>└── 滑动窗口最大值（单调队列）<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、DFS（深度优先搜索）"><a href="#五、DFS（深度优先搜索）" class="headerlink" title="五、DFS（深度优先搜索）"></a>五、DFS（深度优先搜索）</h2><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><code class="hljs csharp">适用：路径搜索、组合问题、图的遍历<br>空间复杂度：O(h)（递归深度 = 栈高度）<br><br>树 DFS 模版：<br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">dfs</span>(<span class="hljs-params">TreeNode root, List&lt;Integer&gt; result</span>)</span> &#123;<br>    <span class="hljs-keyword">if</span> (root == <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span>;<br>    <span class="hljs-comment">// 前序：root → left → right</span><br>    result.<span class="hljs-keyword">add</span>(root.val);<br>    dfs(root.left, result);<br>    dfs(root.right, result);<br>&#125;<br><br>图 / 岛屿 DFS 模版：<br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">dfs</span>(<span class="hljs-params"><span class="hljs-built_in">int</span>[][] grid, <span class="hljs-built_in">int</span> i, <span class="hljs-built_in">int</span> j</span>)</span> &#123;<br>    <span class="hljs-keyword">if</span> (超出边界 || 不是未访问的陆地) <span class="hljs-keyword">return</span>;<br>    <br>    标记已访问;<br>    dfs(grid, i+<span class="hljs-number">1</span>, j); <span class="hljs-comment">// 下</span><br>    dfs(grid, i<span class="hljs-number">-1</span>, j); <span class="hljs-comment">// 上</span><br>    dfs(grid, i, j+<span class="hljs-number">1</span>); <span class="hljs-comment">// 右</span><br>    dfs(grid, i, j<span class="hljs-number">-1</span>); <span class="hljs-comment">// 左</span><br>&#125;<br><br>回溯模版（DFS 的一种）：<br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">backtrack</span>(<span class="hljs-params">路径, 选择列表</span>)</span> &#123;<br>    <span class="hljs-keyword">if</span> (满足结束条件) &#123;<br>        result.<span class="hljs-keyword">add</span>(路径); <span class="hljs-keyword">return</span>;<br>    &#125;<br>    <span class="hljs-keyword">for</span> (选择 : 选择列表) &#123;<br>        做选择;<br>        backtrack(路径, 选择列表);<br>        撤销选择;<br>    &#125;<br>&#125;<br><br>题目：<br>├── 二叉树遍历（前/中/后序）<br>├── 岛屿数量 / 被围绕的区域<br>├── 全排列 / 组合 / 子集<br>├── 路径总和<br>├── 最近公共祖先（LCA）<br>├── N 皇后<br>├── 括号生成<br>└── 拓扑排序<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、BFS（广度优先搜索）"><a href="#六、BFS（广度优先搜索）" class="headerlink" title="六、BFS（广度优先搜索）"></a>六、BFS（广度优先搜索）</h2><figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs arduino">适用：最短路径、层序遍历<br>时间复杂度：<span class="hljs-built_in">O</span>(V+E)<br>空间复杂度：<span class="hljs-built_in">O</span>(V)（队列大小）<br><br>模版：<br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">bfs</span><span class="hljs-params">(Node start, Node target)</span> </span>&#123;<br>    Queue&lt;Node&gt; queue = <span class="hljs-keyword">new</span> ArrayDeque&lt;&gt;();<br>    Set&lt;Node&gt; visited = <span class="hljs-keyword">new</span> HashSet&lt;&gt;();<br>    queue.<span class="hljs-built_in">offer</span>(start);<br>    visited.<span class="hljs-built_in">add</span>(start);<br>    <span class="hljs-keyword">int</span> steps = <span class="hljs-number">0</span>;<br>    <br>    <span class="hljs-keyword">while</span> (!queue.<span class="hljs-built_in">isEmpty</span>()) &#123;<br>        <span class="hljs-keyword">int</span> size = queue.<span class="hljs-built_in">size</span>();<br>        <span class="hljs-comment">// 当前层的所有节点</span><br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; size; i++) &#123;<br>            Node cur = queue.<span class="hljs-built_in">poll</span>();<br>            <span class="hljs-keyword">if</span> (cur == target) <span class="hljs-keyword">return</span> steps;<br>            <span class="hljs-keyword">for</span> (Node next : cur.neighbors) &#123;<br>                <span class="hljs-keyword">if</span> (!visited.<span class="hljs-built_in">contains</span>(next)) &#123;<br>                    queue.<span class="hljs-built_in">offer</span>(next);<br>                    visited.<span class="hljs-built_in">add</span>(next);<br>                &#125;<br>            &#125;<br>        &#125;<br>        steps++; <span class="hljs-comment">// 进入下一层</span><br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>&#125;<br><br>DFS vs BFS：<br>├── DFS：适合路径是否存在、组合问题<br>├── BFS：适合最短路径、层序遍历<br>├── DFS 空间 <span class="hljs-built_in">O</span>(h)，BFS 空间 <span class="hljs-built_in">O</span>(b^d)<br>└── 图很大但目标浅 → BFS；图很深 → DFS<br><br>题目：<br>├── 二叉树的层序遍历<br>├── 打开转盘锁<br>├── 单词接龙<br>├── 迷宫最短路径<br>└── 完全平方数（BFS 找最少个数）<br></code></pre></td></tr></table></figure>
+
+<h2 id="七、动态规划（DP）"><a href="#七、动态规划（DP）" class="headerlink" title="七、动态规划（DP）"></a>七、动态规划（DP）</h2><figure class="highlight inform7"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs inform7">核心思想：<br>├── 重叠子问题：大问题可以分解成子问题<br>├── 最优子结构：子问题的最优解能推导出大问题的最优解<br>└── 状态转移方程：子问题之间的关系<br><br>DP 三步法：<br>① 状态定义：dp<span class="hljs-comment">[i]</span> 或 dp<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span> 表示什么<br>② 状态转移方程：dp<span class="hljs-comment">[i]</span> = f(dp<span class="hljs-comment">[i-1]</span>, dp<span class="hljs-comment">[i-2]</span>, ...)<br>③ 边界条件：dp<span class="hljs-comment">[0]</span>、dp<span class="hljs-comment">[1]</span> 初始化<br><br>一维 DP 模版：<br>int<span class="hljs-comment">[]</span> dp = new int<span class="hljs-comment">[n]</span>;<br>dp<span class="hljs-comment">[0]</span> = base;<br>for (int i = 1; i &lt; n; i++) &#123;<br>    dp<span class="hljs-comment">[i]</span> = 根据 dp<span class="hljs-comment">[0..i-1]</span> 计算;<br>&#125;<br>return dp<span class="hljs-comment">[n-1]</span>;<br><br>二维 DP 模版：<br>int<span class="hljs-comment">[]</span><span class="hljs-comment">[]</span> dp = new int<span class="hljs-comment">[m]</span><span class="hljs-comment">[n]</span>;<br>// 初始化边界<br>for (int i = 1; i &lt; m; i++) &#123;<br>    for (int j = 1; j &lt; n; j++) &#123;<br>        dp<span class="hljs-comment">[i]</span><span class="hljs-comment">[j]</span> = 根据 dp<span class="hljs-comment">[i-1]</span><span class="hljs-comment">[j]</span>, dp<span class="hljs-comment">[i]</span><span class="hljs-comment">[j-1]</span>, dp<span class="hljs-comment">[i-1]</span><span class="hljs-comment">[j-1]</span> 计算;<br>    &#125;<br>&#125;<br>return dp<span class="hljs-comment">[m-1]</span><span class="hljs-comment">[n-1]</span>;<br><br>空间优化：<br>├── 一维：用几个变量代替数组<br>├── 二维：滚转数组（只保留上一行）<br>└── 0-1 背包：逆序更新<br><br>题目：<br>├── 爬楼梯 / 斐波那契<br>├── 打家劫舍<br>├── 最长递增子序列（LIS）<br>├── 最长公共子序列（LCS）<br>├── 编辑距离<br>├── 0-1 背包<br>├── 完全平方数<br>└── 最大子数组和<br></code></pre></td></tr></table></figure>
+
+<h2 id="八、面试题"><a href="#八、面试题" class="headerlink" title="八、面试题"></a>八、面试题</h2><h4 id="1-排序算法中快排和归并的区别？"><a href="#1-排序算法中快排和归并的区别？" class="headerlink" title="1. 排序算法中快排和归并的区别？"></a>1. 排序算法中快排和归并的区别？</h4><p>快排平均 O(n log n)、原地排序、不稳定，缓存友好，是默认选择。归并最坏也是 O(n log n)、需要 O(n) 空间、稳定，适合链表排序和外部排序。</p>
+<h4 id="2-二分查找的注意点？"><a href="#2-二分查找的注意点？" class="headerlink" title="2. 二分查找的注意点？"></a>2. 二分查找的注意点？</h4><p>循环条件（&lt;= 还是 &lt;）、边界更新（mid 还是 mid±1）、返回值处理。三个模版：标准二分、左边界、右边界。</p>
+<h4 id="3-DFS-和-BFS-的区别和选择？"><a href="#3-DFS-和-BFS-的区别和选择？" class="headerlink" title="3. DFS 和 BFS 的区别和选择？"></a>3. DFS 和 BFS 的区别和选择？</h4><p>DFS 用栈（递归），适合路径存在性、组合、回溯。BFS 用队列，适合最短路径、层序遍历。空间上，树深 &gt; 树宽用 BFS，树宽 &gt; 树深用 DFS。</p>
+<h4 id="4-动态规划的核心是什么？"><a href="#4-动态规划的核心是什么？" class="headerlink" title="4. 动态规划的核心是什么？"></a>4. 动态规划的核心是什么？</h4><p>重叠子问题 + 最优子结构 + 状态转移方程。关键是定义好状态和转移关系，从边界条件逐步递推。空间可以优化（滚转数组、变量替代）。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%AE%97%E6%B3%95/">算法</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%8E%92%E5%BA%8F/">排序</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E4%BA%8C%E5%88%86%E6%9F%A5%E6%89%BE/">二分查找</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/">动态规划</a>
+                    
+                      <a class="hover-with-bg" href="/tags/LeetCode/">LeetCode</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/26/Linux%E6%96%87%E6%9C%AC%E5%A4%84%E7%90%86%E4%B8%89%E5%89%91%E5%AE%A2grep-sed-awk/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Linux 文本处理三剑客：grep、sed、awk 实战</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/26/%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E9%9D%A2%E8%AF%95%E6%8C%87%E5%8D%97/">
+                        <span class="hidden-mobile">常用数据结构面试指南：数组、链表、栈、队列、哈希表</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

@@ -180,27 +180,48 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/07/14/java%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/" target="_self">
-          <img src="/img/javapo.jpg" srcset="/img/loading.gif" lazyload alt="java面向对象">
+        <a href="/2026/06/25/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/" target="_self">
+          <img src="/img/sharding-cover.png" srcset="/img/loading.gif" lazyload alt="分库分表详解：垂直拆分、水平拆分、ShardingSphere">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2021/07/14/java%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/" target="_self">
-          java面向对象
+        <a href="/2026/06/25/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/" target="_self">
+          分库分表详解：垂直拆分、水平拆分、ShardingSphere
         </a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2021/07/14/java%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/" target="_self">
+        <a href="/2026/06/25/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/" target="_self">
           
           
             
           
-          一、面向对象的三大特性1. 封装（Encapsulation）把数据和操作数据的方法绑定起来，对数据的访问只能通过已定义的接口。通过访问权限修饰符控制访问级别。
-1234567891011121314151617181920212223public class Student &#123;    private String name;  // 私有属性，外部不能直接访问    private i
+          一、为什么需要分库分表？单库单表的瓶颈
+
+
+瓶颈类型
+说明
+
+
+
+数据量过大
+单表数据量达到千万/亿级，索引变深，B+ 树层级增加，IO 次数增多
+
+
+QPS 过高
+单库连接数有限，CPU/内存/IO 成为瓶颈
+
+
+写入压力
+单库写入无法水平扩展，主从复制延迟
+
+
+分库分表解决的问题12分库：解决连接数、IO 压力 → 水平扩展数据库实例分表：解决单表数据量过大 → 减少索引层级、提升查询性能
+
+
         </a>
       </p>
 
@@ -208,8 +229,579 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2021-07-14 14:03" pubdate>
-              2021-07-14
+            <time datetime="2026-06-25 14:30" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+            
+              <a href="/tags/MySQL/">MySQL</a>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/">分库分表</a>
+            
+              <a href="/tags/ShardingSphere/">ShardingSphere</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/SQL%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98/" target="_self">
+          <img src="/img/sql-optimize-cover.png" srcset="/img/loading.gif" lazyload alt="SQL优化实战：Explain执行计划、索引优化、慢查询">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/SQL%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98/" target="_self">
+          SQL优化实战：Explain执行计划、索引优化、慢查询
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/SQL%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98/" target="_self">
+          
+          
+            
+          
+          一、SQL 执行计划（EXPLAIN）使用 EXPLAIN 关键字可以模拟优化器执行 SQL 查询，从而知道 MySQL 是如何处理你的 SQL 语句的。
+EXPLAIN 输出列
+
+
+列名
+说明
+
+
+
+id
+查询编号，id 越大越先执行
+
+
+select_type
+查询类型（SIMPLE、PRIMARY、SUBQUERY、DERIVED、UNION）
+
+
+table
+正在访问的表
+
+
+partit
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 14:00" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+            
+              <a href="/tags/MySQL/">MySQL</a>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/SQL/">SQL</a>
+            
+              <a href="/tags/%E4%BC%98%E5%8C%96/">优化</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/SpringMVC%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3/" target="_self">
+          <img src="/img/mvc-cover.png" srcset="/img/loading.gif" lazyload alt="Spring MVC请求流程详解：DispatcherServlet、HandlerMapping、HandlerAdapter">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/SpringMVC%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3/" target="_self">
+          Spring MVC请求流程详解：DispatcherServlet、HandlerMapping、HandlerAdapter
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/SpringMVC%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3/" target="_self">
+          
+          
+            
+          
+          一、Spring MVC 核心组件
+
+
+组件
+说明
+
+
+
+DispatcherServlet
+前端控制器，请求入口，统一分发
+
+
+HandlerMapping
+处理器映射器，根据 URL 找到对应的 Handler
+
+
+HandlerAdapter
+处理器适配器，按规则调用 Handler
+
+
+Handler / Controller
+业务控制器，处理具体请求
+
+
+ViewResolver
+视图解
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 13:00" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Spring/">Spring</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%BA%90%E7%A0%81/">源码</a>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/Spring/">Spring</a>
+            
+              <a href="/tags/SpringBoot/">SpringBoot</a>
+            
+              <a href="/tags/MVC/">MVC</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/Spring%E4%BA%8B%E5%8A%A1%E8%AF%A6%E8%A7%A3/" target="_self">
+          <img src="/img/spring-tx-cover.png" srcset="/img/loading.gif" lazyload alt="Spring事务详解：@Transactional原理、传播行为、隔离级别">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/Spring%E4%BA%8B%E5%8A%A1%E8%AF%A6%E8%A7%A3/" target="_self">
+          Spring事务详解：@Transactional原理、传播行为、隔离级别
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/Spring%E4%BA%8B%E5%8A%A1%E8%AF%A6%E8%A7%A3/" target="_self">
+          
+          
+            
+          
+          一、Spring 事务核心概念Spring 事务管理分为两种：
+
+编程式事务：通过 TransactionTemplate 手动控制
+声明式事务：通过 @Transactional 注解（推荐，最常用）
+
+声明式事务底层基于 AOP，本质是在目标方法前后进行拦截，在方法执行前开启事务，执行后根据结果提交或回滚。
+二、@Transactional 原理实现机制
+通过 @EnableTransacti
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 12:30" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Spring/">Spring</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/Spring/">Spring</a>
+            
+              <a href="/tags/%E4%BA%8B%E5%8A%A1/">事务</a>
+            
+              <a href="/tags/Transactional/">Transactional</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/JVM%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" target="_self">
+          <img src="/img/classloader-cover.png" srcset="/img/loading.gif" lazyload alt="JVM类加载机制详解：加载、连接、初始化、双亲委派">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/JVM%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" target="_self">
+          JVM类加载机制详解：加载、连接、初始化、双亲委派
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/JVM%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/" target="_self">
+          
+          
+            
+          
+          一、类加载全过程一个类从被加载到 JVM 内存开始，到卸载出内存为止，整个生命周期包括七个阶段：
+
+加载 → 验证 → 准备 → 解析 → 初始化 → 使用 → 卸载
+
+其中验证、准备、解析统称为连接。
+二、加载（Loading）做什么？
+通过类的全限定名获取定义此类的二进制字节流
+将字节流所代表的静态存储结构转化为方法区的运行时数据结构
+在内存中生成代表这个类的 java.lang.Class 
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 12:00" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/JVM/">JVM</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">Java</a>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/JVM/">JVM</a>
+            
+              <a href="/tags/%E7%B1%BB%E5%8A%A0%E8%BD%BD/">类加载</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/synchronized%E9%94%81%E5%8D%87%E7%BA%A7%E5%8E%9F%E7%90%86/" target="_self">
+          <img src="/img/lock-upgrade-cover.png" srcset="/img/loading.gif" lazyload alt="synchronized锁升级原理：偏向锁、轻量级锁、重量级锁">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/synchronized%E9%94%81%E5%8D%87%E7%BA%A7%E5%8E%9F%E7%90%86/" target="_self">
+          synchronized锁升级原理：偏向锁、轻量级锁、重量级锁
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/synchronized%E9%94%81%E5%8D%87%E7%BA%A7%E5%8E%9F%E7%90%86/" target="_self">
+          
+          
+            
+          
+          一、概述JDK 6 之前，synchronized 只有重量级锁，依赖 Mutex Lock，线程阻塞/唤醒需要在用户态与内核态之间切换，性能开销大。
+JDK 6 引入锁升级机制，根据竞争激烈程度动态选择锁策略：
+
+无锁 → 偏向锁 → 轻量级锁 → 重量级锁
+
+升级是单向不可逆的。
+二、Mark Word（对象头）每个 Java 对象的对象头（Mark Word）中存储着锁状态信息：
+
+
+
+锁状
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 11:30" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">Java</a>
+            
+              <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/%E9%94%81/">锁</a>
+            
+              <a href="/tags/synchronized/">synchronized</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/JUC%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB%E8%AF%A6%E8%A7%A3/" target="_self">
+          <img src="/img/juc-cover.png" srcset="/img/loading.gif" lazyload alt="JUC并发工具类详解：CountDownLatch、CyclicBarrier、Semaphore、CompletableFuture">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/JUC%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB%E8%AF%A6%E8%A7%A3/" target="_self">
+          JUC并发工具类详解：CountDownLatch、CyclicBarrier、Semaphore、CompletableFuture
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/JUC%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB%E8%AF%A6%E8%A7%A3/" target="_self">
+          
+          
+            
+          
+          一、CountDownLatch（倒计数器）允许一个或多个线程等待其他线程完成操作后再继续执行。
+
+
+
+方法
+说明
+
+
+
+countDown()
+计数器减 1，调用线程不会阻塞
+
+
+await()
+等待计数器变为 0，阻塞当前线程
+
+
+await( timeout, unit)
+带超时的等待
+
+
+特点
+计数器不可重置（一次性）
+适合主线程等待子线程的单向同步
+
+示例：6 个同学离开教室，班长锁门1
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 11:00" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">Java</a>
+            
+              <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
+            
+              <a href="/tags/JUC/">JUC</a>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/%E5%B9%B6%E5%8F%91/">并发</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/JavaIO%E8%AF%A6%E8%A7%A3BIO%E5%92%8CNIO%E5%92%8CAIO/" target="_self">
+          <img src="/img/java-io-cover.png" srcset="/img/loading.gif" lazyload alt="Java IO详解：BIO、NIO、AIO、零拷贝">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/JavaIO%E8%AF%A6%E8%A7%A3BIO%E5%92%8CNIO%E5%92%8CAIO/" target="_self">
+          Java IO详解：BIO、NIO、AIO、零拷贝
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/JavaIO%E8%AF%A6%E8%A7%A3BIO%E5%92%8CNIO%E5%92%8CAIO/" target="_self">
+          
+          
+            
+          
+          一、BIO / NIO / AIO 核心对比
+
+
+维度
+BIO
+NIO
+AIO
+
+
+
+全称
+Blocking I/O（同步阻塞）
+Non-blocking I/O（同步非阻塞）
+Asynchronous I/O（异步非阻塞）
+
+
+线程模型
+一个连接一个线程
+一个请求一个线程（多路复用）
+回调驱动
+
+
+阻塞阶段
+等待数据+拷贝均阻塞
+等待数据非阻塞，拷贝阻塞
+两阶段均非阻塞
+
+
+吞吐量
+低
+高
+极高
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 10:30" pubdate>
+              2026-06-25
             </time>
           </div>
         
@@ -225,9 +817,15 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
+              <a href="/tags/Java/">Java</a>
+            
               <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
             
-              <a href="/tags/java/">java</a>
+              <a href="/tags/IO/">IO</a>
+            
+              <a href="/tags/NIO/">NIO</a>
+            
+              <a href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">网络编程</a>
             
           </div>
         
@@ -239,27 +837,26 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/07/14/hello-world/" target="_self">
-          <img src="/img/bizhi.jpg" srcset="/img/loading.gif" lazyload alt="Hello World">
+        <a href="/2026/06/25/String%E6%B7%B1%E5%85%A5%E8%AF%A6%E8%A7%A3/" target="_self">
+          <img src="/img/string-cover.png" srcset="/img/loading.gif" lazyload alt="String深入详解：常量池、不可变性、拼接原理与intern">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2021/07/14/hello-world/" target="_self">
-          Hello World
+        <a href="/2026/06/25/String%E6%B7%B1%E5%85%A5%E8%AF%A6%E8%A7%A3/" target="_self">
+          String深入详解：常量池、不可变性、拼接原理与intern
         </a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2021/07/14/hello-world/" target="_self">
+        <a href="/2026/06/25/String%E6%B7%B1%E5%85%A5%E8%AF%A6%E8%A7%A3/" target="_self">
           
           
             
           
-          Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.
-Quick
+          一、String 的不可变性1234String s = &quot;abcd&quot;;String s1 = s.replace(&quot;a&quot;, &quot;b&quot;);System.out.println(s);   // 输出 &quot;abcd&quot;（原对象未变）System.out.println(s1);  // 输出 &quot;bbcd&quot;（
         </a>
       </p>
 
@@ -267,8 +864,8 @@ Quick
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2021-07-14 13:27" pubdate>
-              2021-07-14
+            <time datetime="2026-06-25 10:00" pubdate>
+              2026-06-25
             </time>
           </div>
         
@@ -276,7 +873,7 @@ Quick
           <div class="post-meta mr-3">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/%E9%9A%8F%E7%AC%94/">随笔</a>
+              <a href="/categories/Java%E5%9F%BA%E7%A1%80/">Java基础</a>
             
           </div>
         
@@ -284,7 +881,87 @@ Quick
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/hello/">hello</a>
+              <a href="/tags/Java/">Java</a>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/String/">String</a>
+            
+              <a href="/tags/%E5%B8%B8%E9%87%8F%E6%B1%A0/">常量池</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2025/08/04/%E5%BC%80%E5%8F%91%E4%BA%BA%E5%91%98%E6%8E%A5%E7%A7%81%E6%B4%BB%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B%E8%AE%BE%E8%AE%A1/" target="_self">
+          <img src="/img/freelance-cover.png" srcset="/img/loading.gif" lazyload alt="开发人员接私活完整流程设计">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2025/08/04/%E5%BC%80%E5%8F%91%E4%BA%BA%E5%91%98%E6%8E%A5%E7%A7%81%E6%B4%BB%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B%E8%AE%BE%E8%AE%A1/" target="_self">
+          开发人员接私活完整流程设计
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2025/08/04/%E5%BC%80%E5%8F%91%E4%BA%BA%E5%91%98%E6%8E%A5%E7%A7%81%E6%B4%BB%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B%E8%AE%BE%E8%AE%A1/" target="_self">
+          
+          
+            
+          
+          开发人员接私活完整流程设计1. 前期准备阶段个人能力梳理
+技能盘点：明确自己的技术栈（前端、后端、移动端等）
+项目经验整理：准备过往项目案例和作品集
+定价策略制定：根据市场行情和自身经验确定收费标准
+时间管理规划：评估可投入私活的时间和精力
+
+资质准备
+个人品牌建设：完善GitHub、技术博客、LinkedIn等
+合同模板准备：准备标准服务合同模板
+发票和税务准备：了解相关税务政策，准备开票资质
+
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2025-08-04 13:00" pubdate>
+              2025-08-04
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB/">经验分享</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%A7%81%E6%B4%BB/">私活</a>
+            
+              <a href="/tags/%E5%85%BC%E8%81%8C/">兼职</a>
+            
+              <a href="/tags/%E8%81%8C%E4%B8%9A%E5%8F%91%E5%B1%95/">职业发展</a>
+            
+              <a href="/tags/%E9%A1%B9%E7%9B%AE%E7%AE%A1%E7%90%86/">项目管理</a>
+            
+              <a href="/tags/%E8%87%AA%E7%94%B1%E8%81%8C%E4%B8%9A/">自由职业</a>
             
           </div>
         
@@ -296,7 +973,7 @@ Quick
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <a class="extend prev" rel="prev" href="/page/8/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/#board">7</a><a class="page-number" href="/page/8/#board">8</a><span class="page-number current">9</span>
+      <a class="extend prev" rel="prev" href="/page/8/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/#board">7</a><a class="page-number" href="/page/8/#board">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/#board">10</a><a class="page-number" href="/page/11/#board">11</a><a class="page-number" href="/page/12/#board">12</a><a class="extend next" rel="next" href="/page/10/#board"><i class="iconfont icon-arrowright"></i></a>
     </span>
   </nav>
 

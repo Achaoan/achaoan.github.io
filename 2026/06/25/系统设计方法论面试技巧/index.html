@@ -1,0 +1,523 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>系统设计方法论：答题框架、估算技巧与面试技巧 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/system-design-methodology-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="系统设计方法论：答题框架、估算技巧与面试技巧">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 23:50" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.1k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      12
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">系统设计方法论：答题框架、估算技巧与面试技巧</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：8 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、答题框架（四步法）"><a href="#一、答题框架（四步法）" class="headerlink" title="一、答题框架（四步法）"></a>一、答题框架（四步法）</h2><p>系统设计面试考察的是<strong>结构化思维能力</strong>，不是面面俱到的细节。使用四步法框架展示你的思考过程。</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><code class="hljs gradle"><span class="hljs-keyword">Step</span> <span class="hljs-number">1</span>：明确需求<br>├── 功能需求：核心功能是什么？<br>│   ├── 用户能做什么？<br>│   ├── 系统需要提供什么能力？<br>│   └── MVP 包含哪些功能？<br>│<br>├── 非功能需求：QPS？延迟？可用性？一致性？<br>│   ├── QPS 估算（读/写比例）<br>│   ├── 延迟要求（毫秒/秒级）<br>│   ├── 可用性目标（<span class="hljs-number">99.9</span>%/<span class="hljs-number">99.99</span>%）<br>│   └── 一致性要求（最终/强一致）<br>│<br>├── 估算规模：DAU？数据量？带宽？<br>│   ├── 日活用户数<br>│   ├── 每日数据增量<br>│   └── 存储总大小<br>│<br>└── 边界确定：哪些做？哪些不做？<br>    ├── 明确本期范围<br>    └── 排除非核心功能<br><br><span class="hljs-keyword">Step</span> <span class="hljs-number">2</span>：概要设计<br>├── 整体架构图（客户端 → 网关 → 服务 → 存储）<br>├── 核心模块划分<br>├── 数据存储选型（SQL<span class="hljs-regexp">/NoSQL/</span>缓存）<br>└── API 定义（RESTful<span class="hljs-regexp">/gRPC/</span>WebSocket）<br><br><span class="hljs-keyword">Step</span> <span class="hljs-number">3</span>：深入设计<br>├── 核心流程详细设计<br>│   ├── 关键路径的时序图<br>│   └── 数据流走向<br>├── 关键数据结构<br>│   ├── 表结构设计<br>│   └── 缓存 Key 设计<br>├── 瓶颈分析<br>│   ├── 哪里可能成为瓶颈？<br>│   └── 如何优化？<br>└── 折中方案（Trade-off）<br>    ├── 为什么选这个方案？<br>    └── 不选其他方案的原因？<br><br><span class="hljs-keyword">Step</span> <span class="hljs-number">4</span>：扩展优化<br>├── 高可用（冗余、故障转移、熔断）<br>├── 高性能（缓存、CDN、异步、批量）<br>├── 可扩展（分片、分区、无状态设计）<br>└── 监控告警（指标、日志、链路追踪）<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、估算技巧"><a href="#二、估算技巧" class="headerlink" title="二、估算技巧"></a>二、估算技巧</h2><figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs tap">常用数字：<br>├──<span class="hljs-number"> 1 </span>万 DAU ≈<span class="hljs-number"> 100 </span>QPS（峰值 1:10）<br>├──<span class="hljs-number"> 100 </span>万 DAU ≈<span class="hljs-number"> 1000 </span>QPS<br>├──<span class="hljs-number"> 1 </span>亿 DAU ≈<span class="hljs-number"> 10000 </span>QPS<br><br>常见估算公式：<br>├── QPS = DAU × 人均请求数 /<span class="hljs-number"> 86400 </span>× 峰值系数<br>├── 存储 = 单条大小 × 总量 × 副本数<br>├── 带宽 = QPS × 响应大小 × 8（bit 转换）<br><br>存储估算参考：<br>├──<span class="hljs-number"> 1 </span>条文本消息 ≈ 1KB<br>├──<span class="hljs-number"> 1 </span>张压缩图片 ≈ 200KB<br>├──<span class="hljs-number"> 1 </span>条日志记录 ≈ 500B<br>├──<span class="hljs-number"> 1 </span>条用户记录 ≈ 500B<br>└──<span class="hljs-number"> 1 </span>条订单记录 ≈ 2KB<br><br>带宽估算：<br>├──<span class="hljs-number"> 1000 </span>QPS × 50KB 响应 ≈<span class="hljs-number"> 400 </span>Mbps<br>└── 合理的带宽设计能节省大量成本<br><br>放大系数：<br>├── 峰值流量 = 平均 QPS × 3~10（视业务而定）<br>├── 秒杀场景峰值可能达到 100x<br>├── 存储按 5~10 年规划<br>└── 预留 30~50% 冗余<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、回答技巧"><a href="#三、回答技巧" class="headerlink" title="三、回答技巧"></a>三、回答技巧</h2><h3 id="面试评分点"><a href="#面试评分点" class="headerlink" title="面试评分点"></a>面试评分点</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">系统设计面试 = <span class="hljs-number">60</span>% 思路 + <span class="hljs-number">40</span>% 深度<br><br>加分行为：<br>├── ✅ 先确认需求，不急着给方案<br>├── ✅ 说出 Trade-off：为什么选这个，不选那个<br>├── ✅ 发现并解决瓶颈点<br>├── ✅ 考虑异常情况（超时、重试、降级）<br>├── ✅ 有数据支撑（QPS、存储、带宽估算）<br>└── ✅ 结构清晰：总-分-总结构<br><br>扣分行为：<br>├── ❌ 直接开始画架构图<br>├── ❌ 只给结论不给理由<br>├── ❌ 忽略非功能需求<br>├── ❌ 一个方案走到底，没有备选<br>├── ❌ 不考虑失败场景<br>└── ❌ 答非所问，绕圈子<br><br>核心原则：<span class="hljs-keyword">Show </span>your thinking, not <span class="hljs-keyword">just </span>solutions<br></code></pre></td></tr></table></figure>
+
+<h3 id="常见折中（Trade-off）"><a href="#常见折中（Trade-off）" class="headerlink" title="常见折中（Trade-off）"></a>常见折中（Trade-off）</h3><figure class="highlight q"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs q">可用性 <span class="hljs-built_in">vs</span> 一致性（CAP）：<br>├── 推送/Feed 流场景：AP（最终一致性）<br>├── 支付/库存场景：CP（强一致性）<br>└── 大多数业务：AP + 最终一致性即可<br><br>延迟 <span class="hljs-built_in">vs</span> 吞吐：<br>├── 实时场景：低延迟（WebSocket、长轮询）<br>├── 批量场景：高吞吐（MQ 削峰填谷）<br>└── 两者兼顾：引入缓存层<br><br>读取 <span class="hljs-built_in">vs</span> 写入优化：<br>├── 读多写少：缓存（排行榜、内容展示）<br>├── 写多读少：MQ 削峰（日志收集、埋点）<br>└── 读写均衡：读写分离（主从复制）<br><br>强一致 <span class="hljs-built_in">vs</span> 最终一致：<br>├── 强一致：代价高（分布式事务、锁）<br>├── 最终一致：代价低（异步对账、补偿）<br>└── 选型依据：业务容忍多长时间的不一致<br><br>水平扩展 <span class="hljs-built_in">vs</span> 垂直扩展：<br>├── 水平扩展：加机器，理论无限，架构复杂<br>├── 垂直扩展：升级机器，有上限，架构简单<br>└── 建议：先垂直后水平<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、面试题"><a href="#四、面试题" class="headerlink" title="四、面试题"></a>四、面试题</h2><h4 id="1-系统设计四步法？"><a href="#1-系统设计四步法？" class="headerlink" title="1. 系统设计四步法？"></a>1. 系统设计四步法？</h4><p>明确需求（功能+非功能）→ 概要设计（架构+模块）→ 深入设计（流程+数据结构+Trade-off）→ 扩展优化（高可用+高性能+监控）。核心是展示思考过程。</p>
+<h4 id="2-如何估算系统规模？"><a href="#2-如何估算系统规模？" class="headerlink" title="2. 如何估算系统规模？"></a>2. 如何估算系统规模？</h4><p>DAU → QPS（峰值倍数），单条大小 × 总量 = 存储需求，QPS × 响应大小 = 带宽需求。峰值按平均 3-10 倍估算，预留 30-50% 冗余。</p>
+<h4 id="3-常见-Trade-off-有哪些？"><a href="#3-常见-Trade-off-有哪些？" class="headerlink" title="3. 常见 Trade-off 有哪些？"></a>3. 常见 Trade-off 有哪些？</h4><p>CAP（一致性 vs 可用性）、延迟 vs 吞吐、读优化 vs 写优化、强一致 vs 最终一致、水平扩展 vs 垂直扩展。关键是根据业务场景选择。</p>
+<h4 id="4-系统设计面试的加分行为？"><a href="#4-系统设计面试的加分行为？" class="headerlink" title="4. 系统设计面试的加分行为？"></a>4. 系统设计面试的加分行为？</h4><p>先确认需求、说出 Trade-off、发现瓶颈、考虑异常、数据支撑、结构清晰。核心是展示结构化思维，不是给出”标准答案”。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%96%B9%E6%B3%95%E8%AE%BA/">方法论</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%9E%B6%E6%9E%84/">架构</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/Feed%E6%B5%81%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E6%9C%8B%E5%8F%8B%E5%9C%88%E6%8E%A8%E6%8B%89%E6%A8%A1%E5%BC%8F/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Feed 流系统设计：朋友圈与推拉结合模式</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CTCP-IP%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">计算机网络：TCP/IP 协议详解</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

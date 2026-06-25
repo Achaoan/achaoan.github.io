@@ -180,26 +180,27 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2026/06/25/SpringBoot%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_self">
-          <img src="/img/auto-config-cover.png" srcset="/img/loading.gif" lazyload alt="Spring Boot自动配置原理：@EnableAutoConfiguration源码解析">
+        <a href="/2026/06/26/%E6%8A%95%E7%A5%A8%E9%97%AE%E5%8D%B7%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
+          <img src="/img/survey-system-cover.png" srcset="/img/loading.gif" lazyload alt="投票问卷系统设计：Redis 计数与异步落库">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2026/06/25/SpringBoot%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_self">
-          Spring Boot自动配置原理：@EnableAutoConfiguration源码解析
+        <a href="/2026/06/26/%E6%8A%95%E7%A5%A8%E9%97%AE%E5%8D%B7%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
+          投票问卷系统设计：Redis 计数与异步落库
         </a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2026/06/25/SpringBoot%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_self">
+        <a href="/2026/06/26/%E6%8A%95%E7%A5%A8%E9%97%AE%E5%8D%B7%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
           
           
             
           
-          一、@SpringBootApplication 核心注解123456@SpringBootApplicationpublic class Application &#123;    public static void main(String[] args) &#123;        SpringApplication.run(Application.class, args);    &#12
+          一、投票/问卷系统的核心功能投票和问卷系统允许创建者发布问题，用户选择答案。核心挑战在高并发写入和实时计数。
+1234567891011121314投票系统的核心功能：├── 创建投票/问卷（单选、多选、填空）├── 用户投票（高并发写入）├── 实时结果展示（统计图表）├── 投票截止时间控制├── 防刷票（同一用户只能投一次）└── 问卷结果导出与排行榜的区别：├── 排行榜：强调排序和 To
         </a>
       </p>
 
@@ -207,8 +208,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-25 23:30" pubdate>
-              2026-06-25
+            <time datetime="2026-06-26 00:10" pubdate>
+              2026-06-26
             </time>
           </div>
         
@@ -223,332 +224,16 @@
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E6%BA%90%E7%A0%81/">源码</a>
-            
-              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
-            
-              <a href="/tags/Spring/">Spring</a>
-            
-              <a href="/tags/SpringBoot/">SpringBoot</a>
-            
-              <a href="/tags/%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE/">自动配置</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2026/06/25/Spring%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98%E8%AF%A6%E8%A7%A3/" target="_self">
-          <img src="/img/spring-core-cover.png" srcset="/img/loading.gif" lazyload alt="Spring循环依赖：三级缓存原理与源码分析">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2026/06/25/Spring%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98%E8%AF%A6%E8%A7%A3/" target="_self">
-          Spring循环依赖：三级缓存原理与源码分析
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2026/06/25/Spring%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98%E8%AF%A6%E8%A7%A3/" target="_self">
-          
-          
-            
-          
-          一、什么是循环依赖？定义123456789101112// 情景 A 依赖 B，B 依赖 A@Componentpublic class A &#123;    @Autowired    private B b;  // A 依赖 B&#125;@Componentpublic class B &#123;    @Autowired    private A a;  // B 依赖 A&#12
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-25 23:30" pubdate>
-              2026-06-25
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Spring/">Spring</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E6%BA%90%E7%A0%81/">源码</a>
-            
-              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
-            
-              <a href="/tags/Spring/">Spring</a>
-            
-              <a href="/tags/%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96/">循环依赖</a>
-            
-              <a href="/tags/%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98/">三级缓存</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2026/06/25/ZooKeeper%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/" target="_self">
-          <img src="/img/zookeeper-cover.png" srcset="/img/loading.gif" lazyload alt="Zookeeper原理：Zab协议、选举机制、应用场景">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2026/06/25/ZooKeeper%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/" target="_self">
-          Zookeeper原理：Zab协议、选举机制、应用场景
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2026/06/25/ZooKeeper%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/" target="_self">
-          
-          
-            
-          
-          一、ZooKeeper 概述是什么？分布式协调服务，提供配置管理、命名服务、分布式锁、集群管理。
-123456ZooKeeper 保证：├── 顺序一致性（更新按顺序执行）├── 原子性（更新要么全成功要么全失败）├── 单一系统镜像（客户端看到的是一样的）├── 可靠性（更新后持久化）└── 及时性（最终一致性）
-
-数据模型1234567891011121314151617ZooKeeper 的
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-25 23:30" pubdate>
-              2026-06-25
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Spring/">Spring</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
-            
-              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
-            
-              <a href="/tags/Zookeeper/">Zookeeper</a>
-            
-              <a href="/tags/%E9%80%89%E4%B8%BE/">选举</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E8%AF%A6%E8%A7%A3/" target="_self">
-          <img src="/img/distributed-id-cover.png" srcset="/img/loading.gif" lazyload alt="分布式ID生成：雪花算法原理与优化方案">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E8%AF%A6%E8%A7%A3/" target="_self">
-          分布式ID生成：雪花算法原理与优化方案
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E8%AF%A6%E8%A7%A3/" target="_self">
-          
-          
-            
-          
-          一、分布式 ID 的要求
-
-
-要求
-说明
-
-
-
-全局唯一
-不能重复
-
-
-趋势递增
-B+ 树索引性能好
-
-
-高可用
-不能有单点故障
-
-
-高吞吐
-每秒生成数万个 ID
-
-
-短
-减小索引空间
-
-
-方案对比
-
-
-方案
-趋势递增
-性能
-依赖
-缺点
-
-
-
-UUID
-❌
-高
-无
-太长（36 位），无序
-
-
-DB 自增
-✅
-低
-DB
-单点瓶颈
-
-
-Redis incr
-✅
-高
-Redis
-依赖 Redis，可能丢
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-25 23:30" pubdate>
-              2026-06-25
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Spring/">Spring</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
-            
-              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
-            
-              <a href="/tags/ID/">ID</a>
-            
-              <a href="/tags/%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95/">雪花算法</a>
             
               <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a>
             
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E8%AF%A6%E8%A7%A3Seata%E4%B8%8ETCC/" target="_self">
-          <img src="/img/distributed-tx-cover.png" srcset="/img/loading.gif" lazyload alt="分布式事务详解：Seata AT/TCC、可靠消息最终一致性">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E8%AF%A6%E8%A7%A3Seata%E4%B8%8ETCC/" target="_self">
-          分布式事务详解：Seata AT/TCC、可靠消息最终一致性
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E8%AF%A6%E8%A7%A3Seata%E4%B8%8ETCC/" target="_self">
-          
-          
+              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">高并发</a>
             
-          
-          一、什么是分布式事务？为什么需要分布式事务？12345微服务架构中，一个业务操作可能跨多个服务、多个数据库：下单业务：├── 订单服务 → 创建订单（order_db）├── 库存服务 → 扣减库存（stock_db）└── 账户服务 → 扣减余额（account_db）
-
-CAP 定理12345678一致性（Consistency）、可用性（Availability）、分区容错性（Partiti
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-25 23:30" pubdate>
-              2026-06-25
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
+              <a href="/tags/%E6%8A%95%E7%A5%A8/">投票</a>
             
-              <a href="/categories/Spring/">Spring</a>
+              <a href="/tags/%E9%97%AE%E5%8D%B7/">问卷</a>
             
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
-            
-              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
-            
-              <a href="/tags/%E4%BA%8B%E5%8A%A1/">事务</a>
-            
-              <a href="/tags/Seata/">Seata</a>
-            
-              <a href="/tags/TCC/">TCC</a>
+              <a href="/tags/%E5%BC%82%E6%AD%A5/">异步</a>
             
           </div>
         
@@ -560,28 +245,29 @@ CAP 定理12345678一致性（Consistency）、可用性（Availability）、分
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E7%8E%B0%E8%AF%A6%E8%A7%A3/" target="_self">
-          <img src="/img/distributed-lock-cover.png" srcset="/img/loading.gif" lazyload alt="分布式锁实现：Redis RedLock vs ZooKeeper 选型对比">
+        <a href="/2026/06/26/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E4%B8%8E%E4%BD%8D%E5%9B%BE%E8%AF%A6%E8%A7%A3/" target="_self">
+          <img src="/img/bloom-filter-cover.png" srcset="/img/loading.gif" lazyload alt="布隆过滤器与位图：原理、实现与应用">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E7%8E%B0%E8%AF%A6%E8%A7%A3/" target="_self">
-          分布式锁实现：Redis RedLock vs ZooKeeper 选型对比
+        <a href="/2026/06/26/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E4%B8%8E%E4%BD%8D%E5%9B%BE%E8%AF%A6%E8%A7%A3/" target="_self">
+          布隆过滤器与位图：原理、实现与应用
         </a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E7%8E%B0%E8%AF%A6%E8%A7%A3/" target="_self">
+        <a href="/2026/06/26/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E4%B8%8E%E4%BD%8D%E5%9B%BE%E8%AF%A6%E8%A7%A3/" target="_self">
           
           
             
           
-          一、为什么需要分布式锁？单机锁 vs 分布式锁12345678单机锁（synchronized / ReentrantLock）：只在一个 JVM 内生效分布式锁：跨多个 JVM / 多个服务需要分布式锁的场景：├── 防止重复下单（同一用户同时提交两次）├── 定时任务分布式调度（只让一个节点执行）├── 库存扣减（多个服务实例同时操作）└── 分布式数据迁移
+          一、布隆过滤器是什么？布隆过滤器（Bloom Filter）是一种空间效率极高的概率性数据结构，用于判断一个元素是否在集合中。
+12345特点：├── 说「不存在」→ 一定不存在├── 说「存在」→ 可能存在（有误判率）├── 无法删除元素（除非用 Counting Bloom Filter）└── 空间效率极高（比 HashSet 省 90%+ 空间）
 
-二、Redis 分布式锁基础版：
+原理123456789101112131
         </a>
       </p>
 
@@ -589,8 +275,8 @@ CAP 定理12345678一致性（Consistency）、可用性（Availability）、分
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-25 23:30" pubdate>
-              2026-06-25
+            <time datetime="2026-06-26 00:05" pubdate>
+              2026-06-26
             </time>
           </div>
         
@@ -598,7 +284,7 @@ CAP 定理12345678一致性（Consistency）、可用性（Availability）、分
           <div class="post-meta mr-3">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Spring/">Spring</a>
+              <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a>
             
           </div>
         
@@ -608,13 +294,13 @@ CAP 定理12345678一致性（Consistency）、可用性（Availability）、分
             
               <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
             
-              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
-            
-              <a href="/tags/%E9%94%81/">锁</a>
+              <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a>
             
               <a href="/tags/Redis/">Redis</a>
             
-              <a href="/tags/ZooKeeper/">ZooKeeper</a>
+              <a href="/tags/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/">布隆过滤器</a>
+            
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">数据结构</a>
             
           </div>
         
@@ -626,28 +312,27 @@ CAP 定理12345678一致性（Consistency）、可用性（Availability）、分
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2026/06/25/%E7%9F%AD%E9%93%BE%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
-          <img src="/img/short-url-cover.png" srcset="/img/loading.gif" lazyload alt="短链系统设计：发号器+重定向+高性能架构">
+        <a href="/2026/06/26/%E6%8E%92%E8%A1%8C%E6%A6%9C%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1RedisZSET/" target="_self">
+          <img src="/img/ranking-system-cover.png" srcset="/img/loading.gif" lazyload alt="排行榜系统设计：Redis ZSET 与实时排名">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2026/06/25/%E7%9F%AD%E9%93%BE%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
-          短链系统设计：发号器+重定向+高性能架构
+        <a href="/2026/06/26/%E6%8E%92%E8%A1%8C%E6%A6%9C%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1RedisZSET/" target="_self">
+          排行榜系统设计：Redis ZSET 与实时排名
         </a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2026/06/25/%E7%9F%AD%E9%93%BE%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
+        <a href="/2026/06/26/%E6%8E%92%E8%A1%8C%E6%A6%9C%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1RedisZSET/" target="_self">
           
           
             
           
-          一、短链系统核心功能用途123将长 URL 转换为短 URL：长：https://example.com/articles/2026/06/25/java-interview-guide?source=wechat短：https://short.url/Ab3xYz
-
-核心流程1234567用户访问短链 http://short.url/Ab3xYz            │           
+          一、排行榜的核心场景排行榜是互联网应用中非常常见的功能，核心是对某个指标进行排序并展示 Top N。
+1234567891011121314常见排行榜场景：├── 游戏排行榜（分数最高 → 最低）├── 内容热度榜（点赞数、播放量、分享数）├── 电商销量榜（商品销量排行）├── 竞赛排名（选手得分排名）├── 积分/信用分排行└── 实时竞拍/竞价排名核心需求：├── 实时更新（排名秒级刷新）├
         </a>
       </p>
 
@@ -655,7 +340,333 @@ CAP 定理12345678一致性（Consistency）、可用性（Availability）、分
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-25 23:30" pubdate>
+            <time datetime="2026-06-26 00:05" pubdate>
+              2026-06-26
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Spring/">Spring</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a>
+            
+              <a href="/tags/Redis/">Redis</a>
+            
+              <a href="/tags/%E6%8E%92%E8%A1%8C%E6%A6%9C/">排行榜</a>
+            
+              <a href="/tags/ZSET/">ZSET</a>
+            
+              <a href="/tags/%E5%AE%9E%E6%97%B6%E6%8E%92%E5%90%8D/">实时排名</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/26/IM%E5%8D%B3%E6%97%B6%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
+          <img src="/img/im-system-cover.png" srcset="/img/loading.gif" lazyload alt="即时消息（IM）系统设计：WebSocket 集群与消息可靠性">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/26/IM%E5%8D%B3%E6%97%B6%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
+          即时消息（IM）系统设计：WebSocket 集群与消息可靠性
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/26/IM%E5%8D%B3%E6%97%B6%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
+          
+          
+            
+          
+          一、IM 系统的核心功能IM（Instant Messaging）系统支持用户之间实时收发消息，核心挑战在长连接管理、消息可靠性、集群通信。
+1234567891011121314IM 系统的核心功能：├── 一对一聊天（私聊）├── 群组聊天（群聊）├── 消息状态（已发送、已送达、已读）├── 在线/离线状态├── 消息历史同步└── 多媒体消息（图片、文件、语音）核心挑战：├── 海量长连接
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-26 00:00" pubdate>
+              2026-06-26
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Spring/">Spring</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a>
+            
+              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">高并发</a>
+            
+              <a href="/tags/IM/">IM</a>
+            
+              <a href="/tags/WebSocket/">WebSocket</a>
+            
+              <a href="/tags/%E6%B6%88%E6%81%AF/">消息</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/26/Java8-21%E6%96%B0%E7%89%B9%E6%80%A7%E8%AF%A6%E8%A7%A3/" target="_self">
+          <img src="/img/java-new-features-cover.png" srcset="/img/loading.gif" lazyload alt="Java 8-21 新特性详解：Lambda到虚拟线程">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/26/Java8-21%E6%96%B0%E7%89%B9%E6%80%A7%E8%AF%A6%E8%A7%A3/" target="_self">
+          Java 8-21 新特性详解：Lambda到虚拟线程
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/26/Java8-21%E6%96%B0%E7%89%B9%E6%80%A7%E8%AF%A6%E8%A7%A3/" target="_self">
+          
+          
+            
+          
+          一、Java 8（2014）Lambda 表达式12345678910111213141516171819// 传统匿名类Runnable r = new Runnable() &#123;    @Override    public void run() &#123;        System.out.println(&quot;Hello&quot;);    &#125;&#125;;/
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-26 00:00" pubdate>
+              2026-06-26
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Java%E5%9F%BA%E7%A1%80/">Java基础</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">Java</a>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/%E6%96%B0%E7%89%B9%E6%80%A7/">新特性</a>
+            
+              <a href="/tags/%E8%99%9A%E6%8B%9F%E7%BA%BF%E7%A8%8B/">虚拟线程</a>
+            
+              <a href="/tags/Lambda/">Lambda</a>
+            
+              <a href="/tags/Stream/">Stream</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/AI%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E4%B8%8E%E8%B0%83%E8%AF%95%E5%9B%9B%E7%BB%B4%E5%AE%A1%E6%9F%A5%E6%B3%95/" target="_self">
+          <img src="/img/code-review-cover.png" srcset="/img/loading.gif" lazyload alt="AI 代码审查与调试：四维审查、AI 调试法与测试生成">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/AI%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E4%B8%8E%E8%B0%83%E8%AF%95%E5%9B%9B%E7%BB%B4%E5%AE%A1%E6%9F%A5%E6%B3%95/" target="_self">
+          AI 代码审查与调试：四维审查、AI 调试法与测试生成
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/AI%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E4%B8%8E%E8%B0%83%E8%AF%95%E5%9B%9B%E7%BB%B4%E5%AE%A1%E6%9F%A5%E6%B3%95/" target="_self">
+          
+          
+            
+          
+          一、AI 代码审查四维审查清单用 AI 审查代码时，不能只看”有没有 Bug”，要从四个维度系统性地检查。
+1234567891011121314151617181920212223242526272829301. 正确性（Correctness）   ├── 逻辑是否完整？有没有遗漏分支？   ├── 边界条件是否处理？（null、空集合、负值、超长字符）   ├── 类型是否安全？有没有类型转
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 23:55" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/">开发工具</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/AI/">AI</a>
+            
+              <a href="/tags/%E7%BC%96%E7%A8%8B/">编程</a>
+            
+              <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5/">代码审查</a>
+            
+              <a href="/tags/%E8%B0%83%E8%AF%95/">调试</a>
+            
+              <a href="/tags/%E6%B5%8B%E8%AF%95/">测试</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/Feed%E6%B5%81%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E6%9C%8B%E5%8F%8B%E5%9C%88%E6%8E%A8%E6%8B%89%E6%A8%A1%E5%BC%8F/" target="_self">
+          <img src="/img/feed-system-cover.png" srcset="/img/loading.gif" lazyload alt="Feed 流系统设计：朋友圈与推拉结合模式">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/Feed%E6%B5%81%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E6%9C%8B%E5%8F%8B%E5%9C%88%E6%8E%A8%E6%8B%89%E6%A8%A1%E5%BC%8F/" target="_self">
+          Feed 流系统设计：朋友圈与推拉结合模式
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/Feed%E6%B5%81%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E6%9C%8B%E5%8F%8B%E5%9C%88%E6%8E%A8%E6%8B%89%E6%A8%A1%E5%BC%8F/" target="_self">
+          
+          
+            
+          
+          一、什么是 Feed 流Feed 流是用户持续更新的内容列表，核心场景包括微信朋友圈、微博时间线、抖音推荐页。
+123456789101112Feed 流的核心功能：├── 发布内容（帖子、图片、视频）├── 查看时间线（好友/关注者的内容聚合）├── 互动（评论、点赞、转发）└── 实时更新（新内容出现在顶部）Feed 流的核心挑战：├── 数据量大（日活 10 亿，人均每天发 2 条）├── 
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 23:55" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Spring/">Spring</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a>
+            
+              <a href="/tags/Feed%E6%B5%81/">Feed流</a>
+            
+              <a href="/tags/%E6%9C%8B%E5%8F%8B%E5%9C%88/">朋友圈</a>
+            
+              <a href="/tags/%E6%8E%A8%E6%8B%89%E6%A8%A1%E5%BC%8F/">推拉模式</a>
+            
+              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">高并发</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%B3%95%E8%AE%BA%E9%9D%A2%E8%AF%95%E6%8A%80%E5%B7%A7/" target="_self">
+          <img src="/img/system-design-methodology-cover.png" srcset="/img/loading.gif" lazyload alt="系统设计方法论：答题框架、估算技巧与面试技巧">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%B3%95%E8%AE%BA%E9%9D%A2%E8%AF%95%E6%8A%80%E5%B7%A7/" target="_self">
+          系统设计方法论：答题框架、估算技巧与面试技巧
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%B3%95%E8%AE%BA%E9%9D%A2%E8%AF%95%E6%8A%80%E5%B7%A7/" target="_self">
+          
+          
+            
+          
+          一、答题框架（四步法）系统设计面试考察的是结构化思维能力，不是面面俱到的细节。使用四步法框架展示你的思考过程。
+12345678910111213141516171819202122232425262728293031323334353637383940414243444546Step 1：明确需求├── 功能需求：核心功能是什么？│   ├── 用户能做什么？│   ├── 系统需要提供什么能力
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 23:50" pubdate>
               2026-06-25
             </time>
           </div>
@@ -676,75 +687,9 @@ CAP 定理12345678一致性（Consistency）、可用性（Availability）、分
             
               <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a>
             
-              <a href="/tags/%E7%9F%AD%E9%93%BE/">短链</a>
+              <a href="/tags/%E6%96%B9%E6%B3%95%E8%AE%BA/">方法论</a>
             
-              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">高并发</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2026/06/25/%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
-          <img src="/img/seckill-cover.png" srcset="/img/loading.gif" lazyload alt="秒杀系统设计：缓存+MQ+限流+降级方案">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2026/06/25/%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
-          秒杀系统设计：缓存+MQ+限流+降级方案
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2026/06/25/%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
-          
-          
-            
-          
-          一、秒杀系统的挑战核心难点123451. 高并发读：瞬间大量用户涌入，页面访问量激增2. 高并发写：秒杀开始瞬间大量下单请求3. 库存扣减：防止超卖（扣减库存必须原子）4. 限购：同一用户只能买 N 件5. 防作弊：防止脚本刷单
-
-性能指标123QPS：高峰期可能达到数十万/秒库存：通常很少（几十到几千件）读/写比：读请求远大于写请求
-
-二、整体架构123456789101112131415161
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-25 23:30" pubdate>
-              2026-06-25
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Spring/">Spring</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
-            
-              <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a>
-            
-              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">高并发</a>
-            
-              <a href="/tags/%E7%A7%92%E6%9D%80/">秒杀</a>
+              <a href="/tags/%E6%9E%B6%E6%9E%84/">架构</a>
             
           </div>
         
@@ -756,38 +701,48 @@ CAP 定理12345678一致性（Consistency）、可用性（Availability）、分
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2026/06/25/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%9C%A8Spring%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" target="_self">
-          <img src="/img/design-pattern-cover.png" srcset="/img/loading.gif" lazyload alt="设计模式在Spring中的应用：工厂、单例、代理、策略、模板">
+        <a href="/2026/06/25/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CTCP-IP%E8%AF%A6%E8%A7%A3/" target="_self">
+          <img src="/img/tcp-cover.png" srcset="/img/loading.gif" lazyload alt="计算机网络：TCP/IP 协议详解">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2026/06/25/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%9C%A8Spring%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" target="_self">
-          设计模式在Spring中的应用：工厂、单例、代理、策略、模板
+        <a href="/2026/06/25/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CTCP-IP%E8%AF%A6%E8%A7%A3/" target="_self">
+          计算机网络：TCP/IP 协议详解
         </a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2026/06/25/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%9C%A8Spring%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" target="_self">
+        <a href="/2026/06/25/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CTCP-IP%E8%AF%A6%E8%A7%A3/" target="_self">
           
           
             
           
-          一、设计模式分类三大类 23 种1234创建型（5）：工厂方法、抽象工厂、单例、建造者、原型结构型（7）：适配器、装饰器、代理、外观、桥接、组合、享元行为型（11）：策略、模板方法、观察者、责任链、迭代器、命令、            状态、访问者、中介者、解释器、备忘录
+          一、TCP/IP 协议栈四层模型1234567应用层（HTTP、FTP、SMTP、DNS）    ↓传输层（TCP、UDP）    ↓网络层（IP、ICMP、ARP）    ↓网络接口层（以太网、Wi-Fi）
 
-Spring 中常用的：
-
-
-
-模式
-Spring 应用
+核心协议
 
 
+层
+协议
+作用
 
-工厂
-BeanFactory、ApplicationCont
+
+
+应用层
+HTTP、HTTPS、FTP、SMTP、DNS
+应用数据
+
+
+传输层
+TCP（可靠）、UDP（不可靠）
+端口到端口
+
+
+网络层
+IP（寻址路由）
         </a>
       </p>
 
@@ -795,7 +750,7 @@ BeanFactory、ApplicationCont
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-25 23:30" pubdate>
+            <time datetime="2026-06-25 23:50" pubdate>
               2026-06-25
             </time>
           </div>
@@ -804,7 +759,7 @@ BeanFactory、ApplicationCont
           <div class="post-meta mr-3">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Spring/">Spring</a>
+              <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a>
             
           </div>
         
@@ -812,13 +767,13 @@ BeanFactory、ApplicationCont
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/%E6%BA%90%E7%A0%81/">源码</a>
-            
               <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
             
-              <a href="/tags/Spring/">Spring</a>
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a>
             
-              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a>
+              <a href="/tags/TCP-IP/">TCP/IP</a>
+            
+              <a href="/tags/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/">网络协议</a>
             
           </div>
         
@@ -830,52 +785,26 @@ BeanFactory、ApplicationCont
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2026/06/25/%E9%99%90%E6%B5%81%E7%AE%97%E6%B3%95%E4%B8%8E%E5%AE%9E%E7%8E%B0/" target="_self">
-          <img src="/img/ratelimit-cover.png" srcset="/img/loading.gif" lazyload alt="限流算法与实现：计数器、滑动窗口、令牌桶、漏桶">
+        <a href="/2026/06/25/AI%E7%BC%96%E7%A0%81Prompt%E6%8A%80%E5%B7%A7%E5%8E%9F%E5%88%99%E4%B8%8E%E6%A8%A1%E6%9D%BF/" target="_self">
+          <img src="/img/prompt-skills-cover.png" srcset="/img/loading.gif" lazyload alt="AI 编码 Prompt 技巧：原则、模板与常见问题修正">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2026/06/25/%E9%99%90%E6%B5%81%E7%AE%97%E6%B3%95%E4%B8%8E%E5%AE%9E%E7%8E%B0/" target="_self">
-          限流算法与实现：计数器、滑动窗口、令牌桶、漏桶
+        <a href="/2026/06/25/AI%E7%BC%96%E7%A0%81Prompt%E6%8A%80%E5%B7%A7%E5%8E%9F%E5%88%99%E4%B8%8E%E6%A8%A1%E6%9D%BF/" target="_self">
+          AI 编码 Prompt 技巧：原则、模板与常见问题修正
         </a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2026/06/25/%E9%99%90%E6%B5%81%E7%AE%97%E6%B3%95%E4%B8%8E%E5%AE%9E%E7%8E%B0/" target="_self">
+        <a href="/2026/06/25/AI%E7%BC%96%E7%A0%81Prompt%E6%8A%80%E5%B7%A7%E5%8E%9F%E5%88%99%E4%B8%8E%E6%A8%A1%E6%9D%BF/" target="_self">
           
           
             
           
-          一、为什么需要限流？目的12341. 防止系统过载（保护自己）2. 公平使用资源（避免某个用户占用全部资源）3. 应对突发流量（削峰）4. 成本控制（按量付费的 API）
-
-限流维度
-
-
-维度
-场景
-
-
-
-QPS
-接口每秒请求数
-
-
-并发数
-同时处理的请求数
-
-
-带宽
-网络流量
-
-
-CPU/内存
-资源使用率
-
-
-二、计数器算法固定窗口计数器12345678910111213141516171819
+          一、编写代码 Prompt 的核心原则为什么同样的需求，产出差距巨大12345678910111213不清晰的 Prompt：├── &quot;写一个用户管理系统&quot; → 太宽泛，AI 不知道从哪里开始├── &quot;帮我修复这个 bug&quot; → 没说现象和预期├── &quot;优化这段代码&quot; → 不知道优化目标└── &quot;写个排序算法&quot; → 没
         </a>
       </p>
 
@@ -883,7 +812,7 @@ CPU/内存
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-25 23:30" pubdate>
+            <time datetime="2026-06-25 23:45" pubdate>
               2026-06-25
             </time>
           </div>
@@ -892,7 +821,7 @@ CPU/内存
           <div class="post-meta mr-3">
             <i class="iconfont icon-category"></i>
             
-              <a href="/categories/Spring/">Spring</a>
+              <a href="/categories/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/">开发工具</a>
             
           </div>
         
@@ -900,13 +829,15 @@ CPU/内存
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+              <a href="/tags/AI/">AI</a>
             
-              <a href="/tags/%E9%99%90%E6%B5%81/">限流</a>
+              <a href="/tags/%E7%BC%96%E7%A8%8B/">编程</a>
             
-              <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a>
+              <a href="/tags/Prompt/">Prompt</a>
             
-              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">高并发</a>
+              <a href="/tags/%E6%8A%80%E5%B7%A7/">技巧</a>
+            
+              <a href="/tags/%E6%A8%A1%E6%9D%BF/">模板</a>
             
           </div>
         
@@ -918,7 +849,7 @@ CPU/内存
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <a class="extend prev" rel="prev" href="/page/2/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/#board">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/#board">4</a><a class="page-number" href="/page/5/#board">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/#board">9</a><a class="extend next" rel="next" href="/page/4/#board"><i class="iconfont icon-arrowright"></i></a>
+      <a class="extend prev" rel="prev" href="/page/2/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/#board">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/#board">4</a><a class="page-number" href="/page/5/#board">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/#board">12</a><a class="extend next" rel="next" href="/page/4/#board"><i class="iconfont icon-arrowright"></i></a>
     </span>
   </nav>
 

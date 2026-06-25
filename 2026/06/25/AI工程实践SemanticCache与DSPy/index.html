@@ -1,0 +1,542 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>AI 工程实践：Semantic Cache、Synthetic Data 与 DSPy - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/ai-engineering-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="AI 工程实践：Semantic Cache、Synthetic Data 与 DSPy">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 23:15" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      30
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">AI 工程实践：Semantic Cache、Synthetic Data 与 DSPy</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：12 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、Semantic-Cache（语义缓存）"><a href="#一、Semantic-Cache（语义缓存）" class="headerlink" title="一、Semantic Cache（语义缓存）"></a>一、Semantic Cache（语义缓存）</h2><h3 id="是什么"><a href="#是什么" class="headerlink" title="是什么"></a>是什么</h3><p>Semantic Cache 是一种基于语义相似度的缓存方案，不仅缓存完全相同的请求，还缓存<strong>意思相近</strong>的请求。</p>
+<figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">传统缓存 <span class="hljs-variable">vs</span> <span class="hljs-variable">Semantic</span> <span class="hljs-variable">Cache</span>：<br>┌──────────────────────────────────────────────────────────┐<br>│  传统缓存（<span class="hljs-built_in">Key</span><span class="hljs-operator">-</span><span class="hljs-built_in">Value</span> <span class="hljs-variable">Cache</span>）：                             │<br>│  ├── <span class="hljs-built_in">Key</span> <span class="hljs-operator">=</span> 请求的精确字符串                               │<br>│  ├── <span class="hljs-string">&quot;北京的天气怎么样&quot;</span> ≠ <span class="hljs-string">&quot;北京天气如何&quot;</span>                  │<br>│  ├── 命中率低（用户很少说一模一样的话）                  │<br>│  └── 适合：系统内部调用（参数确定）                      │<br>│                                                          │<br>│  <span class="hljs-variable">Semantic</span> <span class="hljs-variable">Cache</span>：                                          │<br>│  ├── <span class="hljs-built_in">Key</span> <span class="hljs-operator">=</span> 请求的 <span class="hljs-variable">Embedding</span> 向量                         │<br>│  ├── <span class="hljs-string">&quot;北京的天气怎么样&quot;</span> ≈ <span class="hljs-string">&quot;北京天气如何&quot;</span>                 │<br>│  ├── 相似度 <span class="hljs-operator">&gt;</span> 阈值 → 命中缓存                            │<br>│  ├── 命中率高（相同意思的不同表达也能命中）              │<br>│  └── 适合：面向用户的 <span class="hljs-variable">AI</span> 应用                            │<br>└──────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="工作流程"><a href="#工作流程" class="headerlink" title="工作流程"></a>工作流程</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">Semantic <span class="hljs-keyword">Cache </span>流程：<br>用户请求 → Embedding → 向量相似度匹配<br>  │<br>  ├→ 命中缓存（相似度 &gt; 阈值）<br>  │   ├── 直接返回缓存结果<br>  │   ├── 延迟降低 <span class="hljs-number">80</span><span class="hljs-number">-90</span>%<br>  │   └── 节省 <span class="hljs-keyword">LLM </span>调用成本<br>  │<br>  └→ 未命中缓存<br>      ├── 调用 <span class="hljs-keyword">LLM </span>生成回答<br>      ├── 将（问题 Embedding，回答）存入缓存<br>      └── 返回生成的回答<br><br>阈值的影响：<br>├── 阈值高（<span class="hljs-number">0</span>.<span class="hljs-number">95</span>）：精度高但命中率低<br>├── 阈值低（<span class="hljs-number">0</span>.<span class="hljs-number">80</span>）：命中率高但可能返回错误答案<br>├── 推荐初始值：<span class="hljs-number">0</span>.<span class="hljs-number">90</span><span class="hljs-number">-0</span>.<span class="hljs-number">93</span><br>└── 根据业务场景调整（客服可以低一些，医疗要高一些）<br><br>缓存淘汰策略：<br>├── LRU（最近最少使用）<br>├── TTL（时间过期，如 <span class="hljs-number">1</span> 小时）<br>├── 语义覆盖（新缓存覆盖语义相似的老缓存）<br>└── 混合策略（LRU + TTL）<br></code></pre></td></tr></table></figure>
+
+<h3 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h3><figure class="highlight erlang-repl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs erlang-repl">适合 Semantic Cache 的场景：<br>├── 高频重复问题（<span class="hljs-string">&quot;你们的退货政策是什么？&quot;</span>）→ 命中率极高<br>├── 常见问题变体（<span class="hljs-string">&quot;怎么退款&quot;</span>/<span class="hljs-string">&quot;如何退货&quot;</span>/<span class="hljs-string">&quot;退货流程&quot;</span>）→ 语义相同<br>├── 产品介绍（<span class="hljs-string">&quot;你们的定价&quot;</span>/<span class="hljs-string">&quot;价格是多少&quot;</span>/<span class="hljs-string">&quot;多少钱&quot;</span>）→ 高度重复<br>├── 知识库问答（员工问 HR 政策）→ 问题有限，重复率高<br>└── 教育问答（学生问常见概念）→ 问题范围固定<br><br>缓存命中率参考：<br>├── 客服场景：<span class="hljs-number">50</span>-<span class="hljs-number">70</span><span class="hljs-comment">%（用户问题高度重复）</span><br>├── 企业内部知识库：<span class="hljs-number">40</span>-<span class="hljs-number">60</span><span class="hljs-comment">%（员工问相似问题）</span><br>├── 开放域问答：<span class="hljs-number">10</span>-<span class="hljs-number">20</span><span class="hljs-comment">%（问题范围广）</span><br>└── 创意生成：&lt;<span class="hljs-number">5</span><span class="hljs-comment">%（每个请求都是独特的）</span><br><br>实施建议：<br>├── 先用日志分析，识别高频问题<br>├── 只对高频问题启用语义缓存<br>├── 搭配传统缓存使用（精确匹配 + 语义匹配）<br>├── 设置合理的 TTL（信息会过时）<br>└── 监控缓存命中率和准确率<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、Synthetic-Data（合成数据）"><a href="#二、Synthetic-Data（合成数据）" class="headerlink" title="二、Synthetic Data（合成数据）"></a>二、Synthetic Data（合成数据）</h2><h3 id="是什么-1"><a href="#是什么-1" class="headerlink" title="是什么"></a>是什么</h3><p>合成数据是用大模型生成的人工数据，用于训练、评估或增强其他模型。这不是”假数据”，而是由 AI 生成的、具有真实数据特征的替代数据。</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">为什么需要合成数据：<br>┌──────────────────────────────────────────────────────────┐<br>│  真实数据的痛点：                                          │<br>│  ├── 标注成本高（一条高质量标注数据几元到几十元）        │<br>│  ├── 隐私限制（医疗、金融数据不能随意使用）              │<br>│  ├── 长尾分布（罕见场景数据不足）                        │<br>│  ├── 数据不平衡（某些类别样本太少）                      │<br>│  └── 获取困难（部分领域数据被少数机构垄断）             │<br>│                                                          │<br>│  合成数据的优势：                                          │<br>│  ├── 成本低（<span class="hljs-keyword">LLM </span>生成一条数据几分钱）                    │<br>│  ├── 无隐私问题（不是真实用户数据）                      │<br>│  ├── 可控制分布（想要多少有多少，想要什么有什么）        │<br>│  ├── 覆盖长尾（生成罕见场景的训练数据）                  │<br>│  └── 质量可控（通过 Prompt 控制生成质量）                │<br>└──────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="生成方法"><a href="#生成方法" class="headerlink" title="生成方法"></a>生成方法</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">方法一：<span class="hljs-keyword">LLM </span>直接生成<br>├── 用 Prompt 让模型生成特定格式的数据<br>├── 例：<span class="hljs-string">&quot;生成 10 条客服对话，用户询问退货政策&quot;</span><br>├── 优点：简单快速<br>├── 缺点：数据多样性不足，模型偏见被放大<br>└── 适合：快速构建初始数据集<br><br>方法二：种子数据扩展<br>├── 从少量真实数据出发<br>├── <span class="hljs-keyword">LLM </span>生成变体（改写、换场景、换实体）<br>├── 例：<span class="hljs-number">1</span> 条 <span class="hljs-string">&quot;退货&quot;</span> 对话 → <span class="hljs-number">10</span> 条变体<br>├── 优点：保留真实数据的分布特征<br>├── 缺点：初始数据质量决定合成数据质量<br>└── 适合：需要保持数据分布的农场景<br><br>方法三：Evol-<span class="hljs-keyword">Instruct（进化指令）</span><br><span class="hljs-keyword"></span>├── 从基础指令出发，逐步复杂化<br>├── 浅层进化：增加约束、增加细节<br>├── 深层进化：增加推理步骤、跨领域组合<br>├── 例：<span class="hljs-string">&quot;写一首诗&quot;</span> → <span class="hljs-string">&quot;写一首关于秋天的五言律诗，押韵严格&quot;</span><br>├── 优点：生成高质量、多样化的指令数据<br>├── 缺点：成本较高（多次 <span class="hljs-keyword">LLM </span>调用）<br>└── 适合：训练指令跟随能力<br><br>方法四：Self-<span class="hljs-keyword">Instruct（自指令）</span><br><span class="hljs-keyword"></span>├── 模型自己生成指令数据<br>├── 种子指令 → 生成新指令 → 过滤质量 → 生成回答<br>├── 迭代优化，逐步扩大数据集<br>├── 代表：Alpaca 数据集（<span class="hljs-number">5</span>.<span class="hljs-number">2</span> 万条）<br>├── 优点：无需人工，可大规模扩展<br>└── 缺点：种子质量决定上限<br></code></pre></td></tr></table></figure>
+
+<h3 id="应用场景-1"><a href="#应用场景-1" class="headerlink" title="应用场景"></a>应用场景</h3><figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs excel">应用一：微调数据<br>├── 场景：领域模型微调<br>├── 用大模型（GPT-<span class="hljs-number">4</span>/Claude）生成领域问答对<br>├── 用小模型（Llama/Qwen）在合成数据上微调<br>├── 效果：小模型在特定任务上接近大模型水平<br>└── 代表：<span class="hljs-built_in">Phi</span>-<span class="hljs-number">3</span> 系列（主要用合成数据训练）<br><br>应用二：评估数据<br>├── 场景：模型评估时需要测试集<br>├── 真实测试集可能泄露（被模型记住）<br>├── 合成测试集保证<span class="hljs-string">&quot;模型没看过&quot;</span><br>├── 可按需生成不同类型的测试用例<br>└── 评估更客观<br><br>应用三：RAG 检索评测<br>├── 场景：评估 RAG 系统的检索质量<br>├── 生成：文档 → 问题对（保证问题可以从文档中回答）<br>├── 用这些问题测试检索准确率<br>└── 自动评估 RAG 系统<br><br>合成数据的风险：<br>├── Model Collapse：用合成数据训练 → 模型质量下降<br>│   （类似复印机反复复印，越来越模糊）<br>├── 放大偏见：原有偏见被合成数据放大<br>├── 缺乏多样性：合成数据不如真实数据多样<br>└── 解决方案：混合真实数据 + 合成数据，比例控制<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、DSPy（声明式-AI-编程框架）"><a href="#三、DSPy（声明式-AI-编程框架）" class="headerlink" title="三、DSPy（声明式 AI 编程框架）"></a>三、DSPy（声明式 AI 编程框架）</h2><h3 id="是什么-2"><a href="#是什么-2" class="headerlink" title="是什么"></a>是什么</h3><p>DSPy 是一种新的 AI 编程范式，<strong>用声明式编程替代 Prompt Engineering</strong>。核心思想是：用 Python 模块描述 AI 任务，由优化器自动找到最佳的 Prompt 配置。</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">传统 Prompt Engineering vs DSPy：<br>┌──────────────────────────────────────────────────────────┐<br>│  传统方式：                                                │<br>│  ├── 手写 Prompt                                          │<br>│  ├── 手动调参（Few-<span class="hljs-keyword">shot </span>示例、Temperature）               │<br>│  ├── 每次换模型都要重写 Prompt                            │<br>│  ├── Prompt 质量依赖个人经验                             │<br>│  └── 难以复现和共享                                       │<br>│                                                          │<br>│  DSPy：                                                   │<br>│  ├── 定义模块（<span class="hljs-string">&quot;这是一个问答系统&quot;</span>）                      │<br>│  ├── 定义签名（<span class="hljs-string">&quot;输入：问题，输出：答案&quot;</span>）                │<br>│  ├── 优化器自动搜索最佳 Prompt 配置                      │<br>│  ├── 换模型 → 重新优化，不需要重写代码                  │<br>│  └── 可复现、可共享、系统化                              │<br>└──────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs python">DSPy 的核心抽象：<br>┌──────────────────────────────────────────────────────────┐<br>│  Signature（签名）：                                       │<br>│  ├── 声明式的输入输出定义                                 │<br>│  ├── 例：<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">QA</span>(<span class="hljs-params">dspy.Signature</span>):</span>                       │<br>│  │    question = dspy.InputField()                       │<br>│  │    answer = dspy.OutputField()                        │<br>│  └── DSPy 根据签名自动生成 Prompt                         │<br>│                                                          │<br>│  Module（模块）：                                          │<br>│  ├── 可组合的 AI 处理单元                                 │<br>│  ├── 内置模块：dspy.Predict、dspy.ChainOfThought         │<br>│  ├── 自定义模块：组合多个子模块                           │<br>│  └── 例：<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyRAG</span>(<span class="hljs-params">dspy.Module</span>):</span>                       │<br>│           <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">forward</span>(<span class="hljs-params">self, question</span>):</span>                    │<br>│               context = self.retrieve(question)           │<br>│               <span class="hljs-keyword">return</span> self.generate(question, context)     │<br>│                                                          │<br>│  Optimizer（优化器 / Teleprompter）：                      │<br>│  ├── 自动优化 Prompt 和 Few-shot 示例                     │<br>│  ├── BootstrapFewShot：自动构建少样本示例                 │<br>│  ├── BayesianOptimizer：贝叶斯超参搜索                   │<br>│  ├── MIPRO：多指令提案优化                                │<br>│  └── 输入：任务 + 评估指标 → 输出：优化后的配置           │<br>└──────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="DSPy-工作流程"><a href="#DSPy-工作流程" class="headerlink" title="DSPy 工作流程"></a>DSPy 工作流程</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs python">DSPy 开发流程：<br>① 定义任务签名<br>   └── <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Summarize</span>(<span class="hljs-params">dspy.Signature</span>):</span><br>        text = dspy.InputField()<br>        summary = dspy.OutputField()<br><br>② 构建处理模块<br>   └── <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyPipeline</span>(<span class="hljs-params">dspy.Module</span>):</span><br>        <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span>(<span class="hljs-params">self</span>):</span><br>            self.summarize = dspy.ChainOfThought(Summarize)<br>        <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">forward</span>(<span class="hljs-params">self, text</span>):</span><br>            <span class="hljs-keyword">return</span> self.summarize(text=text)<br><br>③ 准备训练数据（少量示例）<br>   └── trainset = [<br>        dspy.Example(text=<span class="hljs-string">&quot;...&quot;</span>, summary=<span class="hljs-string">&quot;...&quot;</span>).with_inputs(<span class="hljs-string">&quot;text&quot;</span>),<br>        ...<br>    ]<br><br>④ 定义评估指标<br>   └── <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">metric</span>(<span class="hljs-params">gold, pred, trace=<span class="hljs-literal">None</span></span>):</span><br>        <span class="hljs-keyword">return</span> dspy.evaluate.answer_exact_match(gold, pred)<br><br>⑤ 运行优化器<br>   └── optimizer = dspy.BootstrapFewShot(metric=metric)<br>        optimized_pipeline = optimizer.<span class="hljs-built_in">compile</span>(<br>            MyPipeline(),<br>            trainset=trainset<br>        )<br><br>⑥ 使用优化后的 Pipeline<br>   └── result = optimized_pipeline(text=<span class="hljs-string">&quot;长文章...&quot;</span>)<br>        <span class="hljs-built_in">print</span>(result.summary)<br><br>优势：换模型时只需改配置，不需要改逻辑<br></code></pre></td></tr></table></figure>
+
+<h3 id="DSPy-的应用场景"><a href="#DSPy-的应用场景" class="headerlink" title="DSPy 的应用场景"></a>DSPy 的应用场景</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">DSPy 适合：<br>├── 需要反复调整 Prompt 的任务（省去手动调 Prompt 的时间）<br>├── 需要系统化评估的场景（内置评估框架）<br>├── 多模型迁移（一键切换优化）<br>├── 复杂 Pipeline（RAG、多步推理）<br>├── 研究实验（快速测试不同配置）<br>└── 团队协作（标准化 AI 开发流程）<br><br>DSPy 不适合：<br>├── 简单的一次性任务（手动写 Prompt 更快）<br>├── 完全确定性的流程（传统编程就够）<br>├── 探索性对话（Chat 模式不是 DSPy 的优势）<br>├── 需要大量真实训练数据的（DSPy 需要评估集）<br>└── 非英语任务（DSPy 的优化主要针对英语）<br><br>DSPy vs LangChain：<br>├── LangChain：工具集合，提供各种 <span class="hljs-keyword">LLM </span>应用的构建块<br>├── DSPy：编程范式，系统化优化 Prompt 和 Pipeline<br>├── LangChain：适合快速构建原型<br>├── DSPy：适合优化到生产级别的质量<br>└── 可以组合使用：LangChain 提供工具，DSPy 优化流程<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、工程实践总结"><a href="#四、工程实践总结" class="headerlink" title="四、工程实践总结"></a>四、工程实践总结</h2><figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs stata">AI 工程化核心维度：<br>├── 成本控制<br>│   ├── Semantic Cache（减少重复调用）<br>│   ├── 模型分级（简单任务用小模型）<br>│   └── <span class="hljs-keyword">Token</span> 优化（精简 Prompt 和输出）<br>│<br>├── 质量控制<br>│   ├── RAGAS 评估（量化 RAG 质量）<br>│   ├── 幻觉检测（减少错误输出）<br>│   └── Guardrails（拦截低质量输出）<br>│<br>├── 数据管理<br>│   ├── Synthetic Data（补充训练和测试数据）<br>│   ├── 数据标注流程（人工 + AI 辅助）<br>│   └── 数据版本管理（数据集版本化）<br>│<br>├── 开发效率<br>│   ├── DSPy（系统化 Prompt 开发）<br>│   ├── 评估自动化（<span class="hljs-keyword">CI</span>/<span class="hljs-keyword">CD</span> 集成 RAGAS）<br>│   └── 监控告警（生产环境质量监控）<br>│<br>└── 安全合规<br>    ├── Guardrails（内容安全）<br>    ├── PII 检测（隐私保护）<br>    └── 审计日志（可追溯）<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、面试题"><a href="#五、面试题" class="headerlink" title="五、面试题"></a>五、面试题</h2><h4 id="1-Semantic-Cache-的原理？"><a href="#1-Semantic-Cache-的原理？" class="headerlink" title="1. Semantic Cache 的原理？"></a>1. Semantic Cache 的原理？</h4><p>基于语义相似度缓存 LLM 回答。将请求转为 Embedding 向量，新请求与缓存向量计算相似度，超过阈值则直接返回缓存结果。命中率高，可降低 80% 延迟和成本。</p>
+<h4 id="2-合成数据的作用和风险？"><a href="#2-合成数据的作用和风险？" class="headerlink" title="2. 合成数据的作用和风险？"></a>2. 合成数据的作用和风险？</h4><p>解决标注成本高、隐私限制、数据不平衡问题。风险是 Model Collapse（用合成数据训练的模型质量逐代下降）和放大偏见。解决方案是真实数据 + 合成数据混合。</p>
+<h4 id="3-DSPy-和传统-Prompt-Engineering-的区别？"><a href="#3-DSPy-和传统-Prompt-Engineering-的区别？" class="headerlink" title="3. DSPy 和传统 Prompt Engineering 的区别？"></a>3. DSPy 和传统 Prompt Engineering 的区别？</h4><p>DSPy 用声明式编程替代手写 Prompt。定义签名和模块，由优化器自动搜索最佳 Prompt 配置。换模型时只需重新优化，不需要重写代码。</p>
+<h4 id="4-AI-工程化的核心要点？"><a href="#4-AI-工程化的核心要点？" class="headerlink" title="4. AI 工程化的核心要点？"></a>4. AI 工程化的核心要点？</h4><p>成本控制（语义缓存、模型分级）、质量控制（RAGAS 评估、幻觉检测）、数据管理（合成数据）、开发效率（DSPy 自动化）、安全合规（Guardrails）。</p>
+<h4 id="5-什么是-Model-Collapse？"><a href="#5-什么是-Model-Collapse？" class="headerlink" title="5. 什么是 Model Collapse？"></a>5. 什么是 Model Collapse？</h4><p>用合成数据训练的模型质量逐代下降的现象。类似复印机反复复印，越来越模糊。原因是合成数据丢失了真实数据的多样性。解决方案是混合真实数据和合成数据。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/AI/">AI</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%BC%93%E5%AD%98/">缓存</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%90%88%E6%88%90%E6%95%B0%E6%8D%AE/">合成数据</a>
+                    
+                      <a class="hover-with-bg" href="/tags/DSPy/">DSPy</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">工程实践</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E9%99%90%E6%B5%81%E7%AE%97%E6%B3%95%E4%B8%8E%E5%AE%9E%E7%8E%B0/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">限流算法与实现：计数器、滑动窗口、令牌桶、漏桶</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/AI%E5%AE%89%E5%85%A8%E9%98%B2%E6%8A%A4PromptInjection%E4%B8%8EGuardrails/">
+                        <span class="hidden-mobile">AI 安全防护：Prompt Injection、Guardrails、幻觉检测与评估</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

@@ -1,0 +1,529 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>MoE 混合专家模型：架构原理、Router 与负载均衡 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/moe-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="MoE 混合专家模型：架构原理、Router 与负载均衡">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 22:35" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.4k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      15
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">MoE 混合专家模型：架构原理、Router 与负载均衡</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：18 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、什么是-MoE"><a href="#一、什么是-MoE" class="headerlink" title="一、什么是 MoE"></a>一、什么是 MoE</h2><p>MoE（Mixture of Experts，混合专家模型）是一种模型架构设计，将一个大模型拆分为多个”专家”子网络，每次推理只激活其中一部分。</p>
+<figure class="highlight arcade"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs arcade">传统 Dense 模型 vs MoE：<br>┌──────────────────────────────────────────────────────────┐<br>│  传统模型（Dense）：                                      │<br>│  无论什么输入，所有参数都参与计算                         │<br>│  例：GPT<span class="hljs-number">-3</span> <span class="hljs-number">175</span>B，每次推理使用全部 <span class="hljs-number">175</span>B 参数              │<br>│                                                          │<br>│  MoE 模型：                                              │<br>│  输入 → Router（路由）→ 只激活 <span class="hljs-built_in">Top</span><span class="hljs-number">-2</span> 专家                │<br>│  例：Mixtral <span class="hljs-number">8</span>×<span class="hljs-number">7</span>B，总共 <span class="hljs-number">56</span>B 参数，每次只激活约 <span class="hljs-number">13</span>B       │<br>│                                                          │<br>│  优势：总参数多（容量大），每次只激活一部分（计算省）     │<br>│  参数量 = 容量指标，激活参数量 = 计算成本指标             │<br>└──────────────────────────────────────────────────────────┘<br><br>为什么需要 MoE：<br>├── 模型越大越聪明，但计算成本线性增长<br>├── Dense 模型必须激活所有参数，每句话都用<span class="hljs-string">&quot;全力&quot;</span><br>├── MoE 将大模型拆成多个<span class="hljs-string">&quot;专家&quot;</span>，不同输入激活不同专家<br>├── 总参数量大（记忆容量大），激活参数量少（计算省）<br>└── 在相同推理成本下，MoE 可以拥有更大的模型容量<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、核心组件"><a href="#二、核心组件" class="headerlink" title="二、核心组件"></a>二、核心组件</h2><h3 id="Expert（专家）"><a href="#Expert（专家）" class="headerlink" title="Expert（专家）"></a>Expert（专家）</h3><figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs excel">每个专家是一个独立的 FFN（前馈神经网络）：<br>├── Dense 模型：一个 FFN，所有输入都经过<br>├── MoE 模型：<span class="hljs-built_in">N</span> 个 FFN，每个输入只经过其中几个<br>│<br>├── 专家之间是独立的（不同参数、不同结构）<br>├── 不同专家倾向学习不同类型的数据模式<br>│   ├── 专家 <span class="hljs-number">1</span>：擅长语法和句式<br>│   ├── 专家 <span class="hljs-number">2</span>：擅长事实和知识<br>│   ├── 专家 <span class="hljs-number">3</span>：擅长数学和逻辑<br>│   └── 这是训练中自组织的结果，不是人工分配的<br>└── 专家数量：<span class="hljs-number">8</span> 到 <span class="hljs-number">64</span> 个不等（取决于模型规模）<br></code></pre></td></tr></table></figure>
+
+<h3 id="Router（路由-门控网络）"><a href="#Router（路由-门控网络）" class="headerlink" title="Router（路由 / 门控网络）"></a>Router（路由 / 门控网络）</h3><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs mathematica"><span class="hljs-variable">Router</span> 的作用：<br>├── 决定每个输入 <span class="hljs-variable">Token</span> 交给哪些专家处理<br>├── 是一个小的神经网络（参数量远小于专家）<br>├── 输入：<span class="hljs-variable">Token</span> 的向量表示<br>├── 输出：每个专家被选中的概率（<span class="hljs-variable">Softmax</span>）<br>└── <span class="hljs-built_in">Top</span><span class="hljs-operator">-</span><span class="hljs-number">2</span> <span class="hljs-variable">Routing</span>：只选概率最高的两个专家<br><br>路由过程：<br>输入 <span class="hljs-variable">Token</span> → <span class="hljs-variable">Embedding</span> → <span class="hljs-variable">Router</span>（<span class="hljs-variable">Softmax</span>）→ 概率分布<br>    │<br>    ├── 专家 <span class="hljs-variable">A</span>：<span class="hljs-number">0.65</span><br>    ├── 专家 <span class="hljs-variable">B</span>：<span class="hljs-number">0.20</span>  ← <span class="hljs-built_in">Top</span><span class="hljs-operator">-</span><span class="hljs-number">2</span> 选中<br>    ├── 专家 <span class="hljs-built_in">C</span>：<span class="hljs-number">0.10</span>  ← <span class="hljs-built_in">Top</span><span class="hljs-operator">-</span><span class="hljs-number">2</span> 选中<br>    ├── 专家 <span class="hljs-built_in">D</span>：<span class="hljs-number">0.03</span><br>    └── 专家 <span class="hljs-built_in">E</span>：<span class="hljs-number">0.02</span><br><br>加权融合：<br>├── 专家 <span class="hljs-variable">B</span> 的输出 × <span class="hljs-number">0.65</span><br>├── 专家 <span class="hljs-built_in">C</span> 的输出 × <span class="hljs-number">0.20</span><br>├── 两结果相加 → 最终输出<br>└── 权重越高，该专家对结果影响越大<br></code></pre></td></tr></table></figure>
+
+<h3 id="Load-Balancing（负载均衡）"><a href="#Load-Balancing（负载均衡）" class="headerlink" title="Load Balancing（负载均衡）"></a>Load Balancing（负载均衡）</h3><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs 1c">负载均衡是 MoE 训练中最关键的问题：<br><br>问题：Router 可能倾向于总选同一批专家<br>├── 热门专家被频繁选中 → 训练充分<br>├── 冷门专家很少被选中 → 训练不足（<span class="hljs-string">&quot;饿死&quot;</span>）<br>└── 模型的有效容量下降<br><br><br>解决方案：辅助损失函数（Auxiliary Loss）<br>├── 在训练时增加一个额外损失项<br>├── 惩罚不均匀的专家选择<br>├── 鼓励 Router 均匀分配输入到各专家<br>├── 乘以一个很小的系数（如 <span class="hljs-number">0.01</span>），不干扰主任务<br>└── 所有主流 MoE 模型都使用<br><br>负载均衡的挑战：<br>├── 系数太小 → 负载不均衡，专家饿死<br>├── 系数太大 → 专家失去专业性，退化成 Dense<br>└── 需要在<span class="hljs-string">&quot;专家专业化&quot;</span>和<span class="hljs-string">&quot;负载均衡&quot;</span>之间找平衡<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、MoE-的优劣势"><a href="#三、MoE-的优劣势" class="headerlink" title="三、MoE 的优劣势"></a>三、MoE 的优劣势</h2><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs awk">优势：<br>├── 相同推理成本下，模型容量更大（更聪明）<br>├── 训练效率更高（每步计算量≈Dense 的 <span class="hljs-number">1</span><span class="hljs-regexp">/3-1/</span><span class="hljs-number">2</span>）<br>├── 适合分布式部署（专家分布在不同的 GPU 上）<br>└── 可以扩展到极大规模（数千专家）<br><br>劣势：<br>├── 显存需求高（所有专家参数都要加载到内存）<br>├── 负载均衡问题（需要辅助损失 + 调参）<br>├── 推理时路由决策带来少量额外延迟<br>├── 小规模模型上效果不明显（<span class="hljs-number">7</span>B 以下不值得用 MoE）<br>└── 微调和量化比 Dense 模型更复杂<br><br>MoE 适合的场景：<br>├── 大模型（<span class="hljs-number">70</span>B+），需要高效推理<br>├── 分布式部署，GPU 集群<br>├── 需要高吞吐量的线上服务<br>└── 参数量受限但需要高质量的场景<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、代表模型"><a href="#四、代表模型" class="headerlink" title="四、代表模型"></a>四、代表模型</h2><figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs tap">Mixtral 8×7B（Mistral）：<br>├──<span class="hljs-number"> 8 </span>个专家，每次激活<span class="hljs-number"> 2 </span>个<br>├── 总参数 56B，激活参数约 13B<br>├── 性能超过 Llama<span class="hljs-number"> 2 </span>70B（Dense）<br>├── 推理速度是 70B Dense 的<span class="hljs-number"> 5 </span>倍<br>└── 开源 MoE 的标杆<br><br>GPT-4（OpenAI）：<br>├── 传闻为 8×220B MoE<br>├── 总参数约 1.7T，激活参数约 280B<br>├── 没有官方确认具体架构<br>└── MoE 让 GPT-4 在可控成本下达到顶级性能<br><br>DeepSeek V3：<br>├── MoE + 多头潜在注意力（MLA）<br>├── 总参数 671B，激活参数约 37B<br>├── 训练成本仅 $5.5M（远低于同类模型）<br>└── 验证了 MoE 的高效性<br><br>Qwen2.5-MoE（阿里）：<br>├── 中文优化，性能接近 Qwen 72B（Dense）<br>├── 激活参数仅 1/3<br>└── 适合中文场景<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、面试题"><a href="#五、面试题" class="headerlink" title="五、面试题"></a>五、面试题</h2><h4 id="1-MoE-的核心思路？"><a href="#1-MoE-的核心思路？" class="headerlink" title="1. MoE 的核心思路？"></a>1. MoE 的核心思路？</h4><p>将大模型拆成多个专家，每次推理只激活一部分。总参数量大（容量大），激活参数量少（计算省）。在相同推理成本下拥有更大的模型容量。</p>
+<h4 id="2-Router-是怎么工作的？"><a href="#2-Router-是怎么工作的？" class="headerlink" title="2. Router 是怎么工作的？"></a>2. Router 是怎么工作的？</h4><p>一个小神经网络，为每个专家计算概率（Softmax），选择 Top-2 专家处理当前 Token。两个专家的输出按概率加权融合。</p>
+<h4 id="3-MoE-的主要挑战？"><a href="#3-MoE-的主要挑战？" class="headerlink" title="3. MoE 的主要挑战？"></a>3. MoE 的主要挑战？</h4><p>负载均衡问题——Router 倾向总选同一批专家，导致部分专家”饿死”。通过辅助损失函数惩罚不均匀分配来缓解，但需要在专业性和均衡性间找平衡。</p>
+<h4 id="4-MoE-适合什么场景？"><a href="#4-MoE-适合什么场景？" class="headerlink" title="4. MoE 适合什么场景？"></a>4. MoE 适合什么场景？</h4><p>大模型（70B+）需要高效推理的场景。小模型（7B 以下）用 MoE 收益不大。分布式部署时可以把不同专家放在不同 GPU 上。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/AI/">AI</a>
+                    
+                      <a class="hover-with-bg" href="/tags/MoE/">MoE</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%B7%B7%E5%90%88%E4%B8%93%E5%AE%B6/">混合专家</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84/">模型架构</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Router/">Router</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E6%A8%A1%E5%9E%8B%E9%87%8F%E5%8C%96%E4%B8%8E%E8%92%B8%E9%A6%8F%E6%8A%80%E6%9C%AF%E8%AF%A6%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">模型量化与蒸馏：技术原理、格式对比与实践</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/CAS%E5%8E%9F%E7%90%86%E4%B8%8EABA%E9%97%AE%E9%A2%98%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">CAS原理与ABA问题解决方案</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

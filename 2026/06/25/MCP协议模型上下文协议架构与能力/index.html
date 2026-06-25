@@ -1,0 +1,535 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>MCP 模型上下文协议：架构、三种能力与 Skill 概念 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/mcp-protocol-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="MCP 模型上下文协议：架构、三种能力与 Skill 概念">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 22:25" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.5k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      17
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">MCP 模型上下文协议：架构、三种能力与 Skill 概念</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：19 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、什么是-MCP"><a href="#一、什么是-MCP" class="headerlink" title="一、什么是 MCP"></a>一、什么是 MCP</h2><p>MCP（Model Context Protocol）是 Anthropic 在 2024 年底提出的<strong>开放协议</strong>，用于标准化 AI 模型与外部工具/数据源的连接方式。可以理解为”AI 界的 USB-C”。</p>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs arduino">没有 MCP 之前的问题：<br>┌──────────────────────────────────────────────────────────┐<br>│  每个 AI 框架各自定义工具接口                            │<br>│  ├── OpenAI 有自己的 Plugin 协议                         │<br>│  ├── LangChain 有 Tool 抽象                              │<br>│  ├── Spring AI 有 @Tool 注解                             │<br>│  └── 每个数据源需要单独写适配器                          │<br>│                                                          │<br>│  问题：工具不可复用，每套系统重复造轮子                  │<br>│  开发了一个工具 → 只能在当前框架用                       │<br>│  切换 AI 平台 → 所有工具重写                             │<br>└──────────────────────────────────────────────────────────┘<br><br>MCP 的解决方案：<br>├── 统一的协议标准<br>├── 一次开发，任意 AI 平台可用<br>├── 工具像 USB 设备一样即插即用<br>└── 社区共享 MCP <span class="hljs-built_in">Server</span>，生态持续增长<br><br>MCP 不是：<br>├── 不是新的 AI 模型（它运行在现有模型之上）<br>├── 不是 AI 框架（LangChain 等可以集成 MCP）<br>├── 不是云服务（可以在本地运行）<br>└── MCP 是协议，定义了通信规范<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、三层架构"><a href="#二、三层架构" class="headerlink" title="二、三层架构"></a>二、三层架构</h2><p>MCP 采用客户端-服务器架构，分为三层：</p>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs arduino">MCP 架构：<br>┌──────────────────────────────────────────────────────────┐<br>│  Host（宿主）—— AI 应用                                 │<br>│  ├── Claude Code、IDE 插件、Chat 应用                   │<br>│  ├── 管理多个 <span class="hljs-built_in">Client</span> 连接                               │<br>│  ├── 为用户提供统一界面                                 │<br>│  └── 负责用户授权确认                                   │<br>│                                                          │<br>│  │ 每个 <span class="hljs-built_in">Server</span> 对应一个 <span class="hljs-built_in">Client</span> 连接                      │<br>│  ▼                                                      │<br>│  <span class="hljs-built_in">Client</span>（客户端）                                        │<br>│  ├── 与特定 <span class="hljs-built_in">Server</span> 建立一对一连接                       │<br>│  ├── 发送工具请求和资源请求                             │<br>│  └── 接收 <span class="hljs-built_in">Server</span> 的响应                                 │<br>│                                                          │<br>│  ▼                                                      │<br>│  <span class="hljs-built_in">Server</span>（服务器）                                        │<br>│  ├── 暴露具体的工具、资源、提示模板                     │<br>│  ├── 连接外部数据源或服务                               │<br>│  └── 每个 <span class="hljs-built_in">Server</span> 专注于一个领域                         │<br>└──────────────────────────────────────────────────────────┘<br><br>示例：Claude Code 中使用 MCP<br>├── Claude Code = Host<br>├── <span class="hljs-built_in">Server</span> A：文件系统操作 → 读/写/搜索文件<br>├── <span class="hljs-built_in">Server</span> B：数据库查询 → 执行 SQL 返回结果<br>├── <span class="hljs-built_in">Server</span> C：GitHub API → 创建 PR/Review 代码<br>├── <span class="hljs-built_in">Server</span> D：Slack 通知 → 发送消息<br>└── 每个 <span class="hljs-built_in">Server</span> 独立安装、独立更新<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、三种核心能力"><a href="#三、三种核心能力" class="headerlink" title="三、三种核心能力"></a>三、三种核心能力</h2><p>MCP Server 可以暴露三种类型的资源给 AI 模型：</p>
+<h3 id="1-Tools（工具）——-让-AI-执行操作"><a href="#1-Tools（工具）——-让-AI-执行操作" class="headerlink" title="1. Tools（工具）—— 让 AI 执行操作"></a>1. Tools（工具）—— 让 AI 执行操作</h3><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">Tools = 可调用的函数<br>├── 有输入参数、有返回值<br>├── 需要用户授权才能执行（安全控制）<br>├── 示例：<br>│   ├── create<span class="hljs-constructor">_ticket(<span class="hljs-params">title</span>, <span class="hljs-params">description</span>)</span> → 创建工单<br>│   ├── send<span class="hljs-constructor">_email(<span class="hljs-params">to</span>, <span class="hljs-params">subject</span>, <span class="hljs-params">body</span>)</span> → 发送邮件<br>│   └── search<span class="hljs-constructor">_code(<span class="hljs-params">query</span>)</span> → 搜索代码库<br>└── 对应 AI 的<span class="hljs-string">&quot;行动&quot;</span>能力<br><br>工具定义包含：<br>├── name：工具名称（唯一标识）<br>├── description：用途说明（模型用来决定何时调用）<br>├── inputSchema：参数 schema（JSON Schema格式）<br>└── 返回值：执行结果（JSON）<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-Resources（资源）——-让-AI-读取数据"><a href="#2-Resources（资源）——-让-AI-读取数据" class="headerlink" title="2. Resources（资源）—— 让 AI 读取数据"></a>2. Resources（资源）—— 让 AI 读取数据</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs awk">Resources = 可读取的数据源<br>├── 类似 REST API 的 GET 请求（只读）<br>├── 通过 URI 标识和访问<br>├── 示例：<br>│   ├── file:<span class="hljs-regexp">//</span><span class="hljs-regexp">/docs/</span>api-spec.md → 读取文件<br>│   ├── database:<span class="hljs-regexp">//</span>orders/recent → 查询数据库<br>│   └── api:<span class="hljs-regexp">//</span>weather/beijing → 调用外部 API<br>└── 对应 AI 的<span class="hljs-string">&quot;知识&quot;</span>能力<br><br>资源的特点：<br>├── 自动更新通知（Server 通知 Host 数据变化）<br>├── 支持分页和过滤<br>├── 可批量获取<br>└── 适合 RAG 场景的数据源<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-Prompts（提示模板）——-让-AI-按模板工作"><a href="#3-Prompts（提示模板）——-让-AI-按模板工作" class="headerlink" title="3. Prompts（提示模板）—— 让 AI 按模板工作"></a>3. Prompts（提示模板）—— 让 AI 按模板工作</h3><figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs abnf"><span class="hljs-attribute">Prompts</span> = 预定义的对话模板<br>├── 规范 AI 处理特定任务的流程<br>├── 包含指令、约束、格式要求<br>├── 示例：<br>│   ├── <span class="hljs-string">&quot;代码审查&quot;</span>模板 → 规范审查流程<br>│   ├── <span class="hljs-string">&quot;生成周报&quot;</span>模板 → 固定周报格式<br>│   └── <span class="hljs-string">&quot;Bug 报告&quot;</span>模板 → 统一 Bug 提交流程<br>└── 对应 Prompt Engineering 的<span class="hljs-string">&quot;规范&quot;</span>能力<br><br>提示模板的内容：<br>├── 固定指令（System Prompt 的一部分）<br>├── 动态参数（执行时填充）<br>├── 输出格式要求<br>└── 示例或参考<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、Skill（技能）"><a href="#四、Skill（技能）" class="headerlink" title="四、Skill（技能）"></a>四、Skill（技能）</h2><p>在 AI 平台中，Skill 是一组<strong>预定义的指令 + 工具配置</strong>，让 AI 具备完成特定类型任务的专业能力。</p>
+<figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs sqf"><span class="hljs-built_in">Skill</span> 是什么：<br>├── 一组 System Prompt + 工具配置 + 规则<br>├── 让 AI 从<span class="hljs-string">&quot;通用助手&quot;</span>变成<span class="hljs-string">&quot;领域专家&quot;</span><br>├── 激活后持续影响 AI 的行为<br>├── 可以共享、复用、组合<br>└── 一切皆可 <span class="hljs-built_in">Skill</span><br><br><span class="hljs-built_in">Skill</span> vs 普通 Prompt：<br>├── <span class="hljs-built_in">Skill</span> = 结构化指令 + 工具 + 规则（持久化）<br>├── 普通 Prompt = 一次性指令（仅当前对话有效）<br>├── <span class="hljs-built_in">Skill</span> 可包含多个文件和配置<br>├── <span class="hljs-built_in">Skill</span> 支持版本管理和共享<br>└── <span class="hljs-built_in">Skill</span> = 专业化的、可复用的 AI 能力包<br><br><span class="hljs-built_in">Skill</span> 和 MCP 的关系：<br>├── MCP 提供<span class="hljs-string">&quot;基础设施&quot;</span>（工具、资源、模板）<br>├── <span class="hljs-built_in">Skill</span> 是<span class="hljs-string">&quot;使用方式&quot;</span>（怎么组合这些能力）<br>├── MCP Server 安装后，<span class="hljs-built_in">Skill</span> 可以绑定这些工具<br>└── 两者互补：MCP 让工具可用，<span class="hljs-built_in">Skill</span> 让工具好用<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、MCP-vs-Plugin-Function-Calling"><a href="#五、MCP-vs-Plugin-Function-Calling" class="headerlink" title="五、MCP  vs Plugin / Function Calling"></a>五、MCP  vs Plugin / Function Calling</h2><figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs ada">MCP                           Plugin（OpenAI）<br>├── 开放协议                   ├── 平台绑定的私有协议<br>├── 任何 AI 平台可用            ├── 仅 OpenAI 可用<br>├── 社区驱动                   ├── OpenAI 控制<br>├── 语言无关                   ├── API 依赖<br>└── 本地优先                   └── 云端优先<br><br>MCP                           <span class="hljs-keyword">Function</span> <span class="hljs-title">Calling</span><br>├── 通信协议                   ├── 模型能力<br>├── 定义了&quot;怎么暴露工具&quot;       ├── 定义了&quot;模型可调函数&quot;<br>├── 语言无关                   ├── 框架相关 API<br>├── 包含资源/工具/模板         ├── 仅工具调用<br>└── 标准化生态                 └── 各框架各自实现<br><br>三者关系：<br>├── MCP 是协议（标准化通信）<br>├── Plugin 是平台实现（私有）<br>├── <span class="hljs-keyword">Function</span> <span class="hljs-title">Calling</span> 是能力（模型内置）<br>└── 可以共存：用 MCP 协议暴露工具，底层用 <span class="hljs-keyword">Function</span> <span class="hljs-title">Calling</span> 能力<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、面试题"><a href="#六、面试题" class="headerlink" title="六、面试题"></a>六、面试题</h2><h4 id="1-MCP-解决的核心问题是什么？"><a href="#1-MCP-解决的核心问题是什么？" class="headerlink" title="1. MCP 解决的核心问题是什么？"></a>1. MCP 解决的核心问题是什么？</h4><p>统一 AI 模型与外部工具/数据源的连接标准。之前每个框架各自定义工具接口，工具不可复用。MCP 让工具即插即用，一次开发任意平台可用。</p>
+<h4 id="2-MCP-的三层架构？"><a href="#2-MCP-的三层架构？" class="headerlink" title="2. MCP 的三层架构？"></a>2. MCP 的三层架构？</h4><p>Host（AI 应用如 Claude Code）→ Client（与 Server 一对一连接）→ Server（暴露工具/资源/模板）。每个 Server 专注一个领域。</p>
+<h4 id="3-MCP-Server-的三种能力？"><a href="#3-MCP-Server-的三种能力？" class="headerlink" title="3. MCP Server 的三种能力？"></a>3. MCP Server 的三种能力？</h4><p>Tools（可调用的函数，对应行动能力）、Resources（可读取的数据，对应知识能力）、Prompts（预定义的对话模板，对应规范能力）。</p>
+<h4 id="4-Skill-是什么？"><a href="#4-Skill-是什么？" class="headerlink" title="4. Skill 是什么？"></a>4. Skill 是什么？</h4><p>一组预定义的指令 + 工具配置，让 AI 成为领域专家。Skill 是专业化的能力包，可复用分享，激活后持续影响 AI 行为。</p>
+<h4 id="5-MCP-和-Function-Calling-的关系？"><a href="#5-MCP-和-Function-Calling-的关系？" class="headerlink" title="5. MCP 和 Function Calling 的关系？"></a>5. MCP 和 Function Calling 的关系？</h4><p>Function Calling 是能力（模型可以调用函数），MCP 是标准协议（规范了如何暴露和调用函数）。用 MCP 协议暴露工具，底层用 Function Calling 能力执行。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/AI/">AI</a>
+                    
+                      <a class="hover-with-bg" href="/tags/MCP/">MCP</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%A8%A1%E5%9E%8B%E4%B8%8A%E4%B8%8B%E6%96%87%E5%8D%8F%E8%AE%AE/">模型上下文协议</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Tool/">Tool</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Skill/">Skill</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E4%B8%BB%E6%B5%81%E5%A4%A7%E6%A8%A1%E5%9E%8B%E9%80%89%E5%9E%8B%E5%AF%B9%E6%AF%94%E4%B8%8E%E9%80%89%E6%8B%A9%E8%80%83%E9%87%8F/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">主流大模型选型：闭源与开源模型对比与选择考量</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/AI%20Agent%E6%99%BA%E8%83%BD%E4%BD%93ReAct%E4%B8%8E%E8%AE%B0%E5%BF%86%E7%B3%BB%E7%BB%9F/">
+                        <span class="hidden-mobile">AI Agent 智能体：ReAct 模式、记忆系统与规划策略</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

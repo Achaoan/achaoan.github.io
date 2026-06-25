@@ -1,0 +1,534 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>Feed 流系统设计：朋友圈与推拉结合模式 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/feed-system-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Feed 流系统设计：朋友圈与推拉结合模式">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 23:55" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.3k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      14
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Feed 流系统设计：朋友圈与推拉结合模式</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：8 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、什么是-Feed-流"><a href="#一、什么是-Feed-流" class="headerlink" title="一、什么是 Feed 流"></a>一、什么是 Feed 流</h2><p>Feed 流是用户持续更新的内容列表，核心场景包括微信朋友圈、微博时间线、抖音推荐页。</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs awk">Feed 流的核心功能：<br>├── 发布内容（帖子、图片、视频）<br>├── 查看时间线（好友/关注者的内容聚合）<br>├── 互动（评论、点赞、转发）<br>└── 实时更新（新内容出现在顶部）<br><br>Feed 流的核心挑战：<br>├── 数据量大（日活 <span class="hljs-number">10</span> 亿，人均每天发 <span class="hljs-number">2</span> 条）<br>├── 关系复杂（好友<span class="hljs-regexp">/关注/</span>粉丝关系链）<br>├── 实时性要求（发帖后好友尽快看到）<br>├── 读写比例悬殊（读 &gt;&gt; 写）<br>└── 大 V 问题（千万粉丝的用户发帖）<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、核心设计模式：推拉结合"><a href="#二、核心设计模式：推拉结合" class="headerlink" title="二、核心设计模式：推拉结合"></a>二、核心设计模式：推拉结合</h2><p>Feed 流有三种实现模式：推、拉、推拉结合。</p>
+<h3 id="推模式（Fanout-on-Write）"><a href="#推模式（Fanout-on-Write）" class="headerlink" title="推模式（Fanout-on-Write）"></a>推模式（Fanout-on-Write）</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs css">推模式流程：<br>用户 <span class="hljs-selector-tag">A</span> 发帖 → 遍历 <span class="hljs-selector-tag">A</span> 的所有好友<br>  └── 将帖子写入每个好友的收件箱（Timeline）<br><br>优点：<br>├── 读取快（直接从收件箱读取，不需要实时聚合）<br>├── 查询简单（ZREVRANGE 收件箱即可）<br>└── 适合：好友数量少的场景<br><br>缺点：<br>├── 写入放大（<span class="hljs-selector-tag">A</span> 有 <span class="hljs-number">1000</span> 好友 → 写 <span class="hljs-number">1000</span> 次）<br>├── 大 V 发帖 → 写入千万粉丝收件箱 → 延迟高<br>├── 僵尸粉/不活跃用户浪费存储<br>└── 新增好友看不到历史帖子<br></code></pre></td></tr></table></figure>
+
+<h3 id="拉模式（Fanout-on-Read）"><a href="#拉模式（Fanout-on-Read）" class="headerlink" title="拉模式（Fanout-on-Read）"></a>拉模式（Fanout-on-Read）</h3><figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs armasm">拉模式流程：<br>用户 <span class="hljs-keyword">B</span> 刷 Feed → 遍历 <span class="hljs-keyword">B</span> 的所有好友<br>  └── 从每个好友的发件箱读取最新内容 → 合并排序<br><br>优点：<br>├── 写入轻（只写自己的发件箱）<br>├── 适合大 V（不需要推给所有粉丝）<br>└── 新增好友自动看到历史内容<br><br>缺点：<br>├── 读取慢（<span class="hljs-keyword">B</span> 有 <span class="hljs-number">200</span> 好友 → 查 <span class="hljs-number">200</span> 次）<br>├── 数据库压力大（每次刷新都要大量查询）<br>├── 需要实时合并排序（计算量大）<br>└── 延迟高（好友多时明显）<br></code></pre></td></tr></table></figure>
+
+<h3 id="推拉结合模式（混合模式）"><a href="#推拉结合模式（混合模式）" class="headerlink" title="推拉结合模式（混合模式）"></a>推拉结合模式（混合模式）</h3><figure class="highlight bnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs bnf">推拉结合 = 普通用户推 + 大 V 拉<br><br>策略：<br>├── 普通用户（好友 <span class="hljs-attribute">&lt; 阈值）→ 推模式</span><br><span class="hljs-attribute">│   ├── 发帖时写入所有好友的收件箱</span><br><span class="hljs-attribute">│   └── 阈值：通常 500-1000 好友</span><br><span class="hljs-attribute">│</span><br><span class="hljs-attribute">├── 大 V（粉丝 &gt;</span> 阈值）→ 拉模式<br>│   ├── 发帖只写自己的发件箱<br>│   └── 粉丝刷 Feed 时主动拉取大 V 的内容<br>│<br>└── 冷热分离<br>    ├── 活跃用户：收件箱保留<br>    ├── 不活跃用户：收件箱清理<br>    └── 重新活跃时从发件箱拉取<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、存储结构"><a href="#三、存储结构" class="headerlink" title="三、存储结构"></a>三、存储结构</h2><figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs coq">发件箱（MySQL 或 TiDB）：<br>└── user_id | <span class="hljs-type">post_id</span> | <span class="hljs-type">content</span> | <span class="hljs-type">images</span> | <span class="hljs-type">create_time</span><br><br>收件箱（Redis ZSET）：<br>└── key: timeline:&#123;user_id&#125;<br>    value: post_id<br>    score: timestamp（毫秒级时间戳）<br><br>大 V 列表（Redis SET）：<br>└── key: big_v_users<br>    value: <span class="hljs-built_in">set</span> of user_ids<br><br>粉丝关注关系（图数据库或 MySQL）：<br>└── follower_id | <span class="hljs-type">followee_id</span> | <span class="hljs-type">create_time</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="四、关键流程"><a href="#四、关键流程" class="headerlink" title="四、关键流程"></a>四、关键流程</h2><h3 id="发帖流程"><a href="#发帖流程" class="headerlink" title="发帖流程"></a>发帖流程</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs css">用户 <span class="hljs-selector-tag">A</span> 发帖：<br>① 帖子写入发件箱（MySQL）<br>  └── post_id, user_id, <span class="hljs-attribute">content</span>, create_time<br><br>② 判断用户类型<br>  ├── 普通用户（好友数 ≤ <span class="hljs-number">1000</span>）→ 推模式<br>  │   ├── 查询 <span class="hljs-selector-tag">A</span> 的所有好友<br>  │   ├── 对每个好友的收件箱写入 post_id<br>  │   └── 异步批量写入（Pipeline）<br>  │<br>  └── 大 V（粉丝数 &gt; <span class="hljs-number">1000</span>）→ 拉模式<br>      └── 只写发件箱，不推送给粉丝<br><br>③ 返回发帖成功<br></code></pre></td></tr></table></figure>
+
+<h3 id="刷-Feed-流程"><a href="#刷-Feed-流程" class="headerlink" title="刷 Feed 流程"></a>刷 Feed 流程</h3><figure class="highlight lasso"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs lasso">用户 B 刷新 Feed：<br>① 从自己的收件箱读取<br>  ├── ZREVRANGE timeline:&#123;B&#125; <span class="hljs-number">0</span> <span class="hljs-number">99</span> (WITHSCORES)<br>  ├── 取最近 <span class="hljs-number">100</span> 条帖子 ID<br>  └── 按时间戳降序排列<br><br>② 拉取大 V 的最新内容<br>  ├── 查询 B 关注的大 V 列表<br>  ├── 从每个大 V 的发件箱读取最新 <span class="hljs-number">5</span> 条<br>  └── 与收件箱内容合并排序<br><br>③ 补充不满的情况<br>  ├── 如果总条数 &lt; <span class="hljs-number">100</span><br>  ├── 从普通好友的发件箱拉取补充<br>  └── 再次合并排序<br><br>④ 查询帖子详情<br>  ├── 批量查询（<span class="hljs-keyword">SELECT</span> <span class="hljs-params">...</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-keyword">IN</span> (<span class="hljs-params">...</span>)）<br>  ├── 先从缓存查，缓存 miss 再查 DB<br>  └── 返回完整 Feed 流<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、优化策略"><a href="#五、优化策略" class="headerlink" title="五、优化策略"></a>五、优化策略</h2><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs gams">冷热分离：<br>├── 活跃用户：收件箱保留最近 <span class="hljs-number">1000</span> 条<br>├── 不活跃用户：收件箱只保留最近 <span class="hljs-number">100</span> 条<br>├── <span class="hljs-number">7</span> 天未登录 → 清理收件箱<br>└── 重新登录 → 从关注的人发件箱拉取重建<br><br>缓存策略：<br>├── 帖子详情缓存（Redis String，TTL <span class="hljs-number">24</span>h）<br>├── 用户关系缓存（Redis <span class="hljs-keyword">Set</span>，TTL <span class="hljs-comment">1h</span>）<br>├── 收件箱缓存（Redis <span class="hljs-comment">ZSET</span>，持久化）<br>└── 大 V 列表缓存（<span class="hljs-comment">Redis Set</span>，定时更新）<br><br>异步处理：<br>├── 推模式异步化（MQ 缓冲）<br>├── 写入操作先返回，后台慢慢推<br>├── 失败重试（推送给某个好友失败）<br>└── 离线用户的收件箱可以不推（上线再拉）<br><br>大 V 特殊处理：<br>├── 大 V 发帖 → 不实时推<br>├── 粉丝拉取时合并大 V 的内容<br>├── 大 V 列表动态维护（粉丝数变化）<br>└── 新增大 V → 粉丝下次刷新时自动生效<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、面试题"><a href="#六、面试题" class="headerlink" title="六、面试题"></a>六、面试题</h2><h4 id="1-Feed-流的三种实现模式？"><a href="#1-Feed-流的三种实现模式？" class="headerlink" title="1. Feed 流的三种实现模式？"></a>1. Feed 流的三种实现模式？</h4><p>推模式（写入时推给所有好友，读快写慢）、拉模式（读取时拉取所有好友，读慢写快）、推拉结合（普通用户推，大 V 拉）。实际生产用推拉结合。</p>
+<h4 id="2-推拉结合怎么判断推还是拉？"><a href="#2-推拉结合怎么判断推还是拉？" class="headerlink" title="2. 推拉结合怎么判断推还是拉？"></a>2. 推拉结合怎么判断推还是拉？</h4><p>按粉丝/好友数量设阈值（如 1000）。小于阈值走推模式（写入好友收件箱），大于阈值走拉模式（粉丝主动拉取发件箱）。</p>
+<h4 id="3-收件箱用什么存储？"><a href="#3-收件箱用什么存储？" class="headerlink" title="3. 收件箱用什么存储？"></a>3. 收件箱用什么存储？</h4><p>Redis ZSET（Sorted Set），时间戳作为 score。ZREVRANGE 取最新 N 条，O(log N) 复杂度。Key 按用户分片，避免单 Key 过大。</p>
+<h4 id="4-大-V-发帖怎么处理？"><a href="#4-大-V-发帖怎么处理？" class="headerlink" title="4. 大 V 发帖怎么处理？"></a>4. 大 V 发帖怎么处理？</h4><p>大 V 走拉模式，只写自己的发件箱。粉丝刷 Feed 时，先读自己的收件箱，再拉取关注的大 V 的最新内容，合并排序后返回。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Feed%E6%B5%81/">Feed流</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%9C%8B%E5%8F%8B%E5%9C%88/">朋友圈</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%8E%A8%E6%8B%89%E6%A8%A1%E5%BC%8F/">推拉模式</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">高并发</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/AI%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E4%B8%8E%E8%B0%83%E8%AF%95%E5%9B%9B%E7%BB%B4%E5%AE%A1%E6%9F%A5%E6%B3%95/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">AI 代码审查与调试：四维审查、AI 调试法与测试生成</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%B3%95%E8%AE%BA%E9%9D%A2%E8%AF%95%E6%8A%80%E5%B7%A7/">
+                        <span class="hidden-mobile">系统设计方法论：答题框架、估算技巧与面试技巧</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

@@ -1,0 +1,533 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>内存管理：虚拟内存、分页与页面置换算法 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/memory-management-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="内存管理：虚拟内存、分页与页面置换算法">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-26 00:30" pubdate>
+        2026年6月26日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      18
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">内存管理：虚拟内存、分页与页面置换算法</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：5 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、虚拟内存"><a href="#一、虚拟内存" class="headerlink" title="一、虚拟内存"></a>一、虚拟内存</h2><h3 id="为什么需要虚拟内存"><a href="#为什么需要虚拟内存" class="headerlink" title="为什么需要虚拟内存"></a>为什么需要虚拟内存</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs css">虚拟内存的核心作用：<br>├── 地址空间隔离：每个进程有自己的虚拟地址空间<br>│   └── 进程 <span class="hljs-selector-tag">A</span> 不能访问进程 <span class="hljs-selector-tag">B</span> 的内存（安全）<br>├── 部分加载：程序不需要全部装入内存即可运行<br>│   └── 只加载当前需要的部分（节省内存）<br>├── 地址空间连续：物理内存可能碎片化<br>│   └── 虚拟地址对进程屏蔽物理内存的复杂性<br>└── 共享内存：共享库在物理内存只存一份<br>    └── 多个进程共享同一份 libc<span class="hljs-selector-class">.so</span>（节省内存）<br><br>虚拟地址空间大小：<br>├── <span class="hljs-number">32</span> 位：<span class="hljs-number">4</span>GB（<span class="hljs-number">2</span>^<span class="hljs-number">32</span>）<br>├── <span class="hljs-number">64</span> 位：理论上 <span class="hljs-number">16</span>EB（<span class="hljs-number">2</span>^<span class="hljs-number">64</span>），实际受硬件限制<br>└── 每个进程看到的是完整的虚拟地址空间<br></code></pre></td></tr></table></figure>
+
+<h3 id="虚拟地址到物理地址的映射"><a href="#虚拟地址到物理地址的映射" class="headerlink" title="虚拟地址到物理地址的映射"></a>虚拟地址到物理地址的映射</h3><figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-meta">CPU</span> 访问内存的完整路径：<br>虚拟地址 → MMU（内存管理单元）→ 页表 → 物理地址<br><br>MMU 的工作：<br>├── <span class="hljs-meta">CPU</span> 发出虚拟地址<br>├── MMU 从页表中查找对应的物理地址<br>├── 找到 → 直接访问物理内存<br>└── 找不到 → 触发缺页中断（Page Fault）<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、分页（Paging）"><a href="#二、分页（Paging）" class="headerlink" title="二、分页（Paging）"></a>二、分页（Paging）</h2><h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs awk">物理内存 → 划分成固定大小的帧（Frame，通常 <span class="hljs-number">4</span>KB）<br>进程虚拟内存 → 划分成相同大小的页（Page）<br>页表 → 维护 虚拟页号 → 物理帧号 的映射<br><br>分页特点：<br>├── 没有外部碎片（帧大小固定）<br>├── 有内部碎片（最后一页可能用不满）<br>└── 页大小通常是 <span class="hljs-number">4</span>KB（或 <span class="hljs-number">2</span>MB 大页）<br><br>页表项（PTE）包含：<br>├── 物理帧号（映射到哪块物理内存）<br>├── 有效位（Present Bit）：是否在内存中<br>├── 读写位（R/W）：读写权限<br>├── 用户<span class="hljs-regexp">/超级用户位（U/</span>S）：访问权限<br>├── 访问位（Accessed）：被访问过（LRU 使用）<br>├── 脏位（Dirty）：是否被修改过<br>└── 缓存禁用位（PCD）：是否禁止缓存<br></code></pre></td></tr></table></figure>
+
+<h3 id="多级页表"><a href="#多级页表" class="headerlink" title="多级页表"></a>多级页表</h3><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">为什么需要多级页表：<br>├── <span class="hljs-number">32</span> 位地址空间：<span class="hljs-number">2</span><span class="hljs-operator">^</span><span class="hljs-number">32</span> <span class="hljs-operator">/</span> <span class="hljs-number">4</span><span class="hljs-variable">KB</span> <span class="hljs-operator">=</span> <span class="hljs-number">2</span><span class="hljs-operator">^</span><span class="hljs-number">20</span> 个页表项 ≈ <span class="hljs-number">100</span> 万个<br>├── 一个页表项 <span class="hljs-number">4</span> 字节 → <span class="hljs-number">4</span><span class="hljs-variable">MB</span> 页表<br>├── 每个进程都有自己的页表 → <span class="hljs-number">100</span> 个进程 → <span class="hljs-number">400</span><span class="hljs-variable">MB</span><br>├── 实际上进程只用了很少的地址空间 → 大量页表项浪费<br>└── 多级页表：按需分配，只保存用到的部分<br><br><span class="hljs-variable">x86</span><span class="hljs-operator">-</span><span class="hljs-number">64</span> 四级页表结构：<br>虚拟地址 → <span class="hljs-variable">PML4</span> → <span class="hljs-variable">PDPT</span> → <span class="hljs-variable">PD</span> → <span class="hljs-variable">PT</span> → 物理页<br><br>├── <span class="hljs-variable">PML4</span>（<span class="hljs-variable">Page</span> <span class="hljs-built_in">Map</span> <span class="hljs-built_in">Level</span> <span class="hljs-number">4</span>）：顶层页表<br>├── <span class="hljs-variable">PDPT</span>（<span class="hljs-variable">Page</span> <span class="hljs-built_in">Directory</span> <span class="hljs-variable">Pointer</span> <span class="hljs-built_in">Table</span>）：页目录指针表<br>├── <span class="hljs-variable">PD</span>（<span class="hljs-variable">Page</span> <span class="hljs-built_in">Directory</span>）：页目录<br>├── <span class="hljs-variable">PT</span>（<span class="hljs-variable">Page</span> <span class="hljs-built_in">Table</span>）：页表<br>└── <span class="hljs-built_in">Offset</span>（<span class="hljs-number">12</span> 位）：<span class="hljs-number">4</span><span class="hljs-variable">KB</span> 页内偏移<br><br>五级页表（<span class="hljs-variable">x86</span><span class="hljs-operator">-</span><span class="hljs-number">64</span> 扩展）：<br>├── 新增 <span class="hljs-variable">PML5</span> 层<br>├── 支持更大的地址空间（<span class="hljs-number">57</span> 位虚拟地址）<br>└── 目前只有部分 <span class="hljs-variable">CPU</span> 支持<br></code></pre></td></tr></table></figure>
+
+<h3 id="TLB（转换后援缓冲器）"><a href="#TLB（转换后援缓冲器）" class="headerlink" title="TLB（转换后援缓冲器）"></a>TLB（转换后援缓冲器）</h3><figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs x86asm">TLB 是 <span class="hljs-meta">CPU</span> 内部的页表缓存，解决<span class="hljs-string">&quot;一次内存访问查两次内存&quot;</span>的问题。<br><br>没有 TLB：虚拟地址 → 查页表（内存访问）→ 访问数据（内存访问）<br>有 TLB：虚拟地址 → 查 TLB（<span class="hljs-meta">CPU</span> 内部，极快）<br>    ├── TLB 命中 → 直接获取物理地址<br>    └── TLB 未命中 → 查页表 → 加载到 TLB<br><br>TLB 的特点：<br>├── 容量小（几十到几百个条目）<br>├── 速度极快（<span class="hljs-meta">CPU</span> 内部，约 <span class="hljs-number">0.5</span>-<span class="hljs-number">1</span> 周期）<br>├── 缓存最近使用的页表映射<br>└── 进程切换时 TLB 需要刷新（全部失效）<br><br>大页（Huge Pages）：<br>├── 标准页 4KB，大页 2MB/1GB<br>├── 大页 → 更少的 TLB 条目覆盖更大的内存<br>├── 对内存密集型应用提升明显（数据库、JVM）<br>└── Linux 配置：通过 -XX:+UseLargePages 开启<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、页面置换算法"><a href="#三、页面置换算法" class="headerlink" title="三、页面置换算法"></a>三、页面置换算法</h2><h3 id="缺页中断流程"><a href="#缺页中断流程" class="headerlink" title="缺页中断流程"></a>缺页中断流程</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">CPU 访问虚拟地址<br>    │<br>    ├── 页表有有效映射 → 获取物理地址 → 访问内存<br>    │<br>    └── 缺页中断（Page Fault）<br>          │<br>          ├── 内存有空闲帧 → 从磁盘加载页面 → 更新页表<br>          │<br>          └── 内存已满 → 页面置换算法选出<span class="hljs-string">&quot;牺牲页&quot;</span><br>                ├── 脏页（<span class="hljs-keyword">Dirty）→ </span>写回磁盘<br>                └── 干净页 → 直接覆盖<br></code></pre></td></tr></table></figure>
+
+<h3 id="常见置换算法"><a href="#常见置换算法" class="headerlink" title="常见置换算法"></a>常见置换算法</h3><figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs tap">① FIFO（先进先出）<br>├── 淘汰最早进入内存的页<br>├── 实现简单（队列）<br>├── 问题：Belady 异常<br>│   └── 增加页框数，缺页率反而上升（违反直觉）<br>└── 不常用<br><br>② LRU（Least Recently Used）<br>├── 淘汰最久未使用的页<br>├── 理论最优近似（因为程序有局部性原理）<br>├── 完全实现成本高（需要记录访问时间）<br>└── 实际使用近似实现<br><br>③ 时钟算法（Clock）/ NRU<br>├── 近似 LRU，开销小<br>├── 所有页框形成循环链表<br>├── 指针扫描：访问位<span class="hljs-number"> 1 </span>→ 清 0；访问位<span class="hljs-number"> 0 </span>→ 淘汰<br>├── 改进：考虑脏位（先淘汰干净未访问 → 再淘汰脏未访问）<br>└── Linux 实际使用<br><br>④ LFU（Least Frequently Used）<br>├── 淘汰访问次数最少的页<br>├── 问题：早期高频的页难以被淘汰<br>└── 改进：定期衰减计数器<br><br>⑤ 最不常用（NRU - Not Recently Used）<br>├── 将页分为<span class="hljs-number"> 4 </span>类（按访问位 + 修改位）<br>├── 优先淘汰最低类的页<br>└── 简单有效<br><br>最优算法（理论标杆，不可实现）：<br>├── 淘汰未来最长时间不会被访问的页<br>├── 是其他算法的性能上限参考<br>└── 需要预知未来的访问序列（不可能）<br></code></pre></td></tr></table></figure>
+
+<h3 id="Linux-的页面置换实现"><a href="#Linux-的页面置换实现" class="headerlink" title="Linux 的页面置换实现"></a>Linux 的页面置换实现</h3><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs asciidoc">Linux 使用 LRU 链表近似算法：<br><br>active<span class="hljs-emphasis">_list（活跃链表）：</span><br><span class="hljs-emphasis">├── 频繁访问的页</span><br><span class="hljs-emphasis">├── 页在 active_list 中 → 不被淘汰</span><br><span class="hljs-emphasis">└── 长度：约 total_</span>pages * 2/3<br><br>inactive<span class="hljs-emphasis">_list（非活跃链表）：</span><br><span class="hljs-emphasis">├── 不常访问的页</span><br><span class="hljs-emphasis">├── 从 inactive_list 中选页淘汰</span><br><span class="hljs-emphasis">└── 长度：约 total_</span>pages * 1/3<br><br>页面在两个链表间移动：<br>├── 初始：新页放入 inactive<span class="hljs-emphasis">_list</span><br><span class="hljs-emphasis">├── 访问 → 移入 active_list</span><br><span class="hljs-emphasis">├── active_list 过长 → 移入 inactive_list</span><br><span class="hljs-emphasis">├── inactive_list 中再被访问 → 升级回 active_list</span><br><span class="hljs-emphasis">└── 没再被访问 → 最终从 inactive_</span>list 淘汰<br><br>kswapd 内核线程：<br>├── 内存不足时唤醒<br>├── 扫描 inactive_list<br>├── 找到可回收的页<br>└── 写入 swap 或直接释放<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、面试题"><a href="#四、面试题" class="headerlink" title="四、面试题"></a>四、面试题</h2><h4 id="1-虚拟内存的作用？"><a href="#1-虚拟内存的作用？" class="headerlink" title="1. 虚拟内存的作用？"></a>1. 虚拟内存的作用？</h4><p>隔离地址空间（进程间互不干扰）、部分加载（程序不需要全部装入内存）、连续地址空间（屏蔽物理内存碎片）、共享内存（共享库只存一份）。</p>
+<h4 id="2-多级页表解决的问题？"><a href="#2-多级页表解决的问题？" class="headerlink" title="2. 多级页表解决的问题？"></a>2. 多级页表解决的问题？</h4><p>节省内存。32 位单级页表要 4MB（每个进程），多级页表按需分配，只保存进程实际用到的地址范围的页表项。</p>
+<h4 id="3-缺页中断的流程？"><a href="#3-缺页中断的流程？" class="headerlink" title="3. 缺页中断的流程？"></a>3. 缺页中断的流程？</h4><p>CPU 访问虚拟地址 → 页表中无有效映射 → 触发缺页中断 → OS 处理：内存有空闲则从磁盘加载，已满则页面置换算法选出牺牲页（脏页写回磁盘）→ 加载新页 → 更新页表 → 重新执行指令。</p>
+<h4 id="4-LRU-和-Clock-算法的区别？"><a href="#4-LRU-和-Clock-算法的区别？" class="headerlink" title="4. LRU 和 Clock 算法的区别？"></a>4. LRU 和 Clock 算法的区别？</h4><p>LRU 淘汰最久未用的页，精度高但实现成本高。Clock（时钟算法）是 LRU 的近似实现，用循环链表 + 访问位扫描，开销小，Linux 实际使用。</p>
+<h4 id="5-TLB-是什么？"><a href="#5-TLB-是什么？" class="headerlink" title="5. TLB 是什么？"></a>5. TLB 是什么？</h4><p>页表的 CPU 缓存，加速虚拟地址到物理地址的转换。TLB 命中时不需要查内存中的页表，大大降低地址转换开销。进程切换需要刷新 TLB。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">内存管理</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/">虚拟内存</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%88%86%E9%A1%B5/">分页</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/26/SpringCloudAlibaba%E8%AF%A6%E8%A7%A3NacosGatewayFeign/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Spring Cloud Alibaba：Nacos、Gateway、OpenFeign 实战</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/26/%E6%AD%BB%E9%94%81%E5%8E%9F%E7%90%86%E4%B8%8E%E5%A4%84%E7%90%86%E7%AD%96%E7%95%A5/">
+                        <span class="hidden-mobile">死锁原理与处理策略：必要条件、预防、避免与检测</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
