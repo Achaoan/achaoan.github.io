@@ -1,0 +1,670 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>数据结构与算法面试指南 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/algorithm-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="数据结构与算法面试指南">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-26 00:15" pubdate>
+        2026年6月26日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.3k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      36
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">数据结构与算法面试指南</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：24 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、常见数据结构"><a href="#一、常见数据结构" class="headerlink" title="一、常见数据结构"></a>一、常见数据结构</h2><h3 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 特点：连续内存、随机访问 O(1)、插入删除 O(n)</span><br><span class="hljs-keyword">int</span>[] arr = <span class="hljs-keyword">new</span> <span class="hljs-keyword">int</span>[<span class="hljs-number">10</span>];<br><br><span class="hljs-comment">// 动态数组（ArrayList）：扩容 1.5 倍</span><br><span class="hljs-comment">// 插入满了时：new = old + (old &gt;&gt; 1)</span><br><span class="hljs-comment">// 拷贝到新数组</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="链表"><a href="#链表" class="headerlink" title="链表"></a>链表</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 特点：非连续内存、随机访问 O(n)、插入删除 O(1)</span><br><span class="hljs-comment">// 单向链表：Node &#123; val, next &#125;</span><br><span class="hljs-comment">// 双向链表：Node &#123; val, prev, next &#125;</span><br><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ListNode</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> val;<br>    ListNode next;<br>    ListNode(<span class="hljs-keyword">int</span> val) &#123; <span class="hljs-keyword">this</span>.val = val; &#125;<br>&#125;<br><br><span class="hljs-comment">// 常见技巧：</span><br><span class="hljs-comment">// ├── 快慢指针（找中点、检测环）</span><br><span class="hljs-comment">// ├── 虚拟头节点（dummy head）</span><br><span class="hljs-comment">// └── 反转链表（迭代/递归）</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 特点：先进后出（LIFO）</span><br><span class="hljs-comment">// Java：ArrayDeque（推荐，比 Stack 快）</span><br>Deque&lt;String&gt; stack = <span class="hljs-keyword">new</span> ArrayDeque&lt;&gt;();<br>stack.push(<span class="hljs-string">&quot;a&quot;</span>);       <span class="hljs-comment">// 入栈</span><br>String top = stack.pop();  <span class="hljs-comment">// 出栈</span><br>String peek = stack.peek(); <span class="hljs-comment">// 查看栈顶</span><br><br><span class="hljs-comment">// 常见应用：</span><br><span class="hljs-comment">// ├── 括号匹配</span><br><span class="hljs-comment">// ├── 表达式求值</span><br><span class="hljs-comment">// └── 单调栈（下一个更大元素）</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="队列"><a href="#队列" class="headerlink" title="队列"></a>队列</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 特点：先进先出（FIFO）</span><br><span class="hljs-comment">// Java：ArrayDeque（推荐）</span><br>Queue&lt;String&gt; queue = <span class="hljs-keyword">new</span> ArrayDeque&lt;&gt;();<br>queue.offer(<span class="hljs-string">&quot;a&quot;</span>);        <span class="hljs-comment">// 入队</span><br>String head = queue.poll();  <span class="hljs-comment">// 出队</span><br>String peek = queue.peek();  <span class="hljs-comment">// 查看队头</span><br><br><span class="hljs-comment">// 优先队列（堆）</span><br><span class="hljs-comment">// 默认最小堆</span><br>Queue&lt;Integer&gt; minHeap = <span class="hljs-keyword">new</span> PriorityQueue&lt;&gt;();<br>Queue&lt;Integer&gt; maxHeap = <span class="hljs-keyword">new</span> PriorityQueue&lt;&gt;((a, b) -&gt; b - a);<br><br><span class="hljs-comment">// 常见应用：</span><br><span class="hljs-comment">// ├── BFS</span><br><span class="hljs-comment">// ├── 滑动窗口最大值</span><br><span class="hljs-comment">// ├── Top K 问题（堆）</span><br><span class="hljs-comment">// └── Dijkstra 最短路径</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="二叉树"><a href="#二叉树" class="headerlink" title="二叉树"></a>二叉树</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TreeNode</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> val;<br>    TreeNode left;<br>    TreeNode right;<br>    TreeNode(<span class="hljs-keyword">int</span> val) &#123; <span class="hljs-keyword">this</span>.val = val; &#125;<br>&#125;<br><br><span class="hljs-comment">// 遍历方式</span><br><span class="hljs-comment">// 前序：根 → 左 → 右</span><br><span class="hljs-comment">// 中序：左 → 根 → 右（BST 得到有序序列）</span><br><span class="hljs-comment">// 后序：左 → 右 → 根</span><br><span class="hljs-comment">// 层序（BFS）：逐层遍历</span><br><br><span class="hljs-comment">// 递归 vs 迭代</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">inorder</span><span class="hljs-params">(TreeNode root)</span> </span>&#123;        <span class="hljs-comment">// 递归中序</span><br>    <span class="hljs-keyword">if</span> (root == <span class="hljs-keyword">null</span>) <span class="hljs-keyword">return</span>;<br>    inorder(root.left);<br>    System.out.println(root.val);<br>    inorder(root.right);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">inorderIterative</span><span class="hljs-params">(TreeNode root)</span> </span>&#123;  <span class="hljs-comment">// 迭代中序</span><br>    Deque&lt;TreeNode&gt; stack = <span class="hljs-keyword">new</span> ArrayDeque&lt;&gt;();<br>    TreeNode cur = root;<br>    <span class="hljs-keyword">while</span> (cur != <span class="hljs-keyword">null</span> || !stack.isEmpty()) &#123;<br>        <span class="hljs-keyword">while</span> (cur != <span class="hljs-keyword">null</span>) &#123;<br>            stack.push(cur);<br>            cur = cur.left;<br>        &#125;<br>        cur = stack.pop();<br>        System.out.println(cur.val);<br>        cur = cur.right;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="哈希表"><a href="#哈希表" class="headerlink" title="哈希表"></a>哈希表</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Java HashMap</span><br><span class="hljs-comment">// 数组 + 链表 + 红黑树</span><br><span class="hljs-comment">// 扩容：负载因子 0.75，容量翻倍</span><br><span class="hljs-comment">// 哈希冲突：链地址法</span><br><br><span class="hljs-comment">// HashSet（底层是 HashMap）</span><br>Set&lt;String&gt; set = <span class="hljs-keyword">new</span> HashSet&lt;&gt;();<br><br><span class="hljs-comment">// 常见应用：</span><br><span class="hljs-comment">// ├── 两数之和</span><br><span class="hljs-comment">// ├── 判重</span><br><span class="hljs-comment">// └── 缓存</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="二、排序算法"><a href="#二、排序算法" class="headerlink" title="二、排序算法"></a>二、排序算法</h2><h3 id="快速排序"><a href="#快速排序" class="headerlink" title="快速排序"></a>快速排序</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 时间复杂度：平均 O(n log n)，最坏 O(n²)</span><br><span class="hljs-comment">// 空间复杂度：O(log n)</span><br><span class="hljs-comment">// 不稳定</span><br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">quickSort</span><span class="hljs-params">(<span class="hljs-keyword">int</span>[] arr, <span class="hljs-keyword">int</span> left, <span class="hljs-keyword">int</span> right)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (left &gt;= right) <span class="hljs-keyword">return</span>;<br>    <span class="hljs-keyword">int</span> pivot = partition(arr, left, right);<br>    quickSort(arr, left, pivot - <span class="hljs-number">1</span>);<br>    quickSort(arr, pivot + <span class="hljs-number">1</span>, right);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">partition</span><span class="hljs-params">(<span class="hljs-keyword">int</span>[] arr, <span class="hljs-keyword">int</span> left, <span class="hljs-keyword">int</span> right)</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> pivot = arr[right];  <span class="hljs-comment">// 选最后一个为基准</span><br>    <span class="hljs-keyword">int</span> i = left;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> j = left; j &lt; right; j++) &#123;<br>        <span class="hljs-keyword">if</span> (arr[j] &lt; pivot) &#123;<br>            swap(arr, i++, j);<br>        &#125;<br>    &#125;<br>    swap(arr, i, right);<br>    <span class="hljs-keyword">return</span> i;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="归并排序"><a href="#归并排序" class="headerlink" title="归并排序"></a>归并排序</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 时间复杂度：O(n log n)</span><br><span class="hljs-comment">// 空间复杂度：O(n)</span><br><span class="hljs-comment">// 稳定</span><br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">mergeSort</span><span class="hljs-params">(<span class="hljs-keyword">int</span>[] arr, <span class="hljs-keyword">int</span> left, <span class="hljs-keyword">int</span> right)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (left &gt;= right) <span class="hljs-keyword">return</span>;<br>    <span class="hljs-keyword">int</span> mid = left + (right - left) / <span class="hljs-number">2</span>;<br>    mergeSort(arr, left, mid);<br>    mergeSort(arr, mid + <span class="hljs-number">1</span>, right);<br>    merge(arr, left, mid, right);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">merge</span><span class="hljs-params">(<span class="hljs-keyword">int</span>[] arr, <span class="hljs-keyword">int</span> left, <span class="hljs-keyword">int</span> mid, <span class="hljs-keyword">int</span> right)</span> </span>&#123;<br>    <span class="hljs-keyword">int</span>[] temp = <span class="hljs-keyword">new</span> <span class="hljs-keyword">int</span>[right - left + <span class="hljs-number">1</span>];<br>    <span class="hljs-keyword">int</span> i = left, j = mid + <span class="hljs-number">1</span>, k = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">while</span> (i &lt;= mid &amp;&amp; j &lt;= right) &#123;<br>        temp[k++] = arr[i] &lt;= arr[j] ? arr[i++] : arr[j++];<br>    &#125;<br>    <span class="hljs-keyword">while</span> (i &lt;= mid) temp[k++] = arr[i++];<br>    <span class="hljs-keyword">while</span> (j &lt;= right) temp[k++] = arr[j++];<br>    System.arraycopy(temp, <span class="hljs-number">0</span>, arr, left, temp.length);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="排序对比"><a href="#排序对比" class="headerlink" title="排序对比"></a>排序对比</h3><table>
+<thead>
+<tr>
+<th>算法</th>
+<th align="center">平均</th>
+<th align="center">最坏</th>
+<th align="center">空间</th>
+<th align="center">稳定</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>冒泡</strong></td>
+<td align="center">O(n²)</td>
+<td align="center">O(n²)</td>
+<td align="center">O(1)</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td><strong>选择</strong></td>
+<td align="center">O(n²)</td>
+<td align="center">O(n²)</td>
+<td align="center">O(1)</td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td><strong>插入</strong></td>
+<td align="center">O(n²)</td>
+<td align="center">O(n²)</td>
+<td align="center">O(1)</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td><strong>快速</strong></td>
+<td align="center">O(n log n)</td>
+<td align="center">O(n²)</td>
+<td align="center">O(log n)</td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td><strong>归并</strong></td>
+<td align="center">O(n log n)</td>
+<td align="center">O(n log n)</td>
+<td align="center">O(n)</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td><strong>堆</strong></td>
+<td align="center">O(n log n)</td>
+<td align="center">O(n log n)</td>
+<td align="center">O(1)</td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td><strong>计数</strong></td>
+<td align="center">O(n+k)</td>
+<td align="center">O(n+k)</td>
+<td align="center">O(k)</td>
+<td align="center">✅</td>
+</tr>
+</tbody></table>
+<h2 id="三、常见算法模板"><a href="#三、常见算法模板" class="headerlink" title="三、常见算法模板"></a>三、常见算法模板</h2><h3 id="二分查找"><a href="#二分查找" class="headerlink" title="二分查找"></a>二分查找</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 标准的二分（找 target）</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">binarySearch</span><span class="hljs-params">(<span class="hljs-keyword">int</span>[] nums, <span class="hljs-keyword">int</span> target)</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> left = <span class="hljs-number">0</span>, right = nums.length - <span class="hljs-number">1</span>;<br>    <span class="hljs-keyword">while</span> (left &lt;= right) &#123;<br>        <span class="hljs-keyword">int</span> mid = left + (right - left) / <span class="hljs-number">2</span>;<br>        <span class="hljs-keyword">if</span> (nums[mid] == target) <span class="hljs-keyword">return</span> mid;<br>        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (nums[mid] &lt; target) left = mid + <span class="hljs-number">1</span>;<br>        <span class="hljs-keyword">else</span> right = mid - <span class="hljs-number">1</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;  <span class="hljs-comment">// 没找到</span><br>&#125;<br><br><span class="hljs-comment">// 找左边界（第一个 &gt;= target 的位置）</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">leftBound</span><span class="hljs-params">(<span class="hljs-keyword">int</span>[] nums, <span class="hljs-keyword">int</span> target)</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> left = <span class="hljs-number">0</span>, right = nums.length;<br>    <span class="hljs-keyword">while</span> (left &lt; right) &#123;<br>        <span class="hljs-keyword">int</span> mid = left + (right - left) / <span class="hljs-number">2</span>;<br>        <span class="hljs-keyword">if</span> (nums[mid] &gt;= target) right = mid;<br>        <span class="hljs-keyword">else</span> left = mid + <span class="hljs-number">1</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> left;<br>&#125;<br><br><span class="hljs-comment">// 找右边界（最后一个 &lt;= target 的位置）</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">rightBound</span><span class="hljs-params">(<span class="hljs-keyword">int</span>[] nums, <span class="hljs-keyword">int</span> target)</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> left = <span class="hljs-number">0</span>, right = nums.length;<br>    <span class="hljs-keyword">while</span> (left &lt; right) &#123;<br>        <span class="hljs-keyword">int</span> mid = left + (right - left) / <span class="hljs-number">2</span>;<br>        <span class="hljs-keyword">if</span> (nums[mid] &lt;= target) left = mid + <span class="hljs-number">1</span>;<br>        <span class="hljs-keyword">else</span> right = mid;<br>    &#125;<br>    <span class="hljs-keyword">return</span> left - <span class="hljs-number">1</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="双指针"><a href="#双指针" class="headerlink" title="双指针"></a>双指针</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 左右指针（两数之和、反转数组）</span><br><span class="hljs-keyword">int</span> left = <span class="hljs-number">0</span>, right = arr.length - <span class="hljs-number">1</span>;<br><span class="hljs-keyword">while</span> (left &lt; right) &#123;<br>    <span class="hljs-keyword">if</span> (arr[left] + arr[right] == target) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-keyword">int</span>[]&#123;left, right&#125;;<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (arr[left] + arr[right] &lt; target) &#123;<br>        left++;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        right--;<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 快慢指针（环检测、找中点）</span><br>ListNode slow = head, fast = head;<br><span class="hljs-keyword">while</span> (fast != <span class="hljs-keyword">null</span> &amp;&amp; fast.next != <span class="hljs-keyword">null</span>) &#123;<br>    slow = slow.next;<br>    fast = fast.next.next;<br>    <span class="hljs-keyword">if</span> (slow == fast) &#123;<br>        <span class="hljs-comment">// 有环</span><br>        <span class="hljs-keyword">break</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="滑动窗口"><a href="#滑动窗口" class="headerlink" title="滑动窗口"></a>滑动窗口</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 模板：最长/最短子串问题</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">slidingWindow</span><span class="hljs-params">(String s)</span> </span>&#123;<br>    Map&lt;Character, Integer&gt; window = <span class="hljs-keyword">new</span> HashMap&lt;&gt;();<br>    <span class="hljs-keyword">int</span> left = <span class="hljs-number">0</span>, right = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">int</span> result = <span class="hljs-number">0</span>;<br>    <br>    <span class="hljs-keyword">while</span> (right &lt; s.length()) &#123;<br>        <span class="hljs-comment">// 扩大窗口</span><br>        <span class="hljs-keyword">char</span> c = s.charAt(right);<br>        window.merge(c, <span class="hljs-number">1</span>, Integer::sum);<br>        right++;<br>        <br>        <span class="hljs-comment">// 收缩窗口条件</span><br>        <span class="hljs-keyword">while</span> (needShrink(window)) &#123;<br>            <span class="hljs-keyword">char</span> d = s.charAt(left);<br>            window.merge(d, -<span class="hljs-number">1</span>, Integer::sum);<br>            left++;<br>        &#125;<br>        <br>        <span class="hljs-comment">// 更新结果</span><br>        result = Math.max(result, right - left);<br>    &#125;<br>    <span class="hljs-keyword">return</span> result;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="DFS"><a href="#DFS" class="headerlink" title="DFS"></a>DFS</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 树/图的 DFS 模板</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">dfs</span><span class="hljs-params">(TreeNode root, List&lt;Integer&gt; result)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (root == <span class="hljs-keyword">null</span>) <span class="hljs-keyword">return</span>;<br>    <span class="hljs-comment">// 前序</span><br>    result.add(root.val);<br>    dfs(root.left, result);<br>    dfs(root.right, result);<br>&#125;<br><br><span class="hljs-comment">// 岛屿类问题</span><br><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">dfs</span><span class="hljs-params">(<span class="hljs-keyword">int</span>[][] grid, <span class="hljs-keyword">int</span> i, <span class="hljs-keyword">int</span> j)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (i &lt; <span class="hljs-number">0</span> || i &gt;= grid.length || j &lt; <span class="hljs-number">0</span> || j &gt;= grid[<span class="hljs-number">0</span>].length) <span class="hljs-keyword">return</span>;<br>    <span class="hljs-keyword">if</span> (grid[i][j] != <span class="hljs-string">&#x27;1&#x27;</span>) <span class="hljs-keyword">return</span>;  <span class="hljs-comment">// 不是陆地或已访问</span><br>    <br>    grid[i][j] = <span class="hljs-string">&#x27;0&#x27;</span>;  <span class="hljs-comment">// 标记已访问（沉岛）</span><br>    dfs(grid, i+<span class="hljs-number">1</span>, j);  <span class="hljs-comment">// 下</span><br>    dfs(grid, i-<span class="hljs-number">1</span>, j);  <span class="hljs-comment">// 上</span><br>    dfs(grid, i, j+<span class="hljs-number">1</span>);  <span class="hljs-comment">// 右</span><br>    dfs(grid, i, j-<span class="hljs-number">1</span>);  <span class="hljs-comment">// 左</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="BFS"><a href="#BFS" class="headerlink" title="BFS"></a>BFS</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 最短路径模板</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">bfs</span><span class="hljs-params">(Node start, Node target)</span> </span>&#123;<br>    Queue&lt;Node&gt; queue = <span class="hljs-keyword">new</span> ArrayDeque&lt;&gt;();<br>    Set&lt;Node&gt; visited = <span class="hljs-keyword">new</span> HashSet&lt;&gt;();<br>    queue.offer(start);<br>    visited.add(start);<br>    <span class="hljs-keyword">int</span> steps = <span class="hljs-number">0</span>;<br>    <br>    <span class="hljs-keyword">while</span> (!queue.isEmpty()) &#123;<br>        <span class="hljs-keyword">int</span> size = queue.size();<br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; size; i++) &#123;<br>            Node cur = queue.poll();<br>            <span class="hljs-keyword">if</span> (cur == target) <span class="hljs-keyword">return</span> steps;<br>            <span class="hljs-keyword">for</span> (Node next : cur.neighbors) &#123;<br>                <span class="hljs-keyword">if</span> (!visited.contains(next)) &#123;<br>                    queue.offer(next);<br>                    visited.add(next);<br>                &#125;<br>            &#125;<br>        &#125;<br>        steps++;<br>    &#125;<br>    <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;  <span class="hljs-comment">// 没找到</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="动态规划"><a href="#动态规划" class="headerlink" title="动态规划"></a>动态规划</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// DP 三大要素：</span><br><span class="hljs-comment">// 1. 状态定义</span><br><span class="hljs-comment">// 2. 状态转移方程</span><br><span class="hljs-comment">// 3. 边界条件</span><br><br><span class="hljs-comment">// 斐波那契（一维 DP）</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">fib</span><span class="hljs-params">(<span class="hljs-keyword">int</span> n)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (n &lt;= <span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> n;<br>    <span class="hljs-keyword">int</span>[] dp = <span class="hljs-keyword">new</span> <span class="hljs-keyword">int</span>[n + <span class="hljs-number">1</span>];<br>    dp[<span class="hljs-number">0</span>] = <span class="hljs-number">0</span>;<br>    dp[<span class="hljs-number">1</span>] = <span class="hljs-number">1</span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">2</span>; i &lt;= n; i++) &#123;<br>        dp[i] = dp[i-<span class="hljs-number">1</span>] + dp[i-<span class="hljs-number">2</span>];<br>    &#125;<br>    <span class="hljs-keyword">return</span> dp[n];<br>&#125;<br><br><span class="hljs-comment">// 背包问题（二维 DP）</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">knapsack</span><span class="hljs-params">(<span class="hljs-keyword">int</span>[] weights, <span class="hljs-keyword">int</span>[] values, <span class="hljs-keyword">int</span> W)</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> n = weights.length;<br>    <span class="hljs-keyword">int</span>[][] dp = <span class="hljs-keyword">new</span> <span class="hljs-keyword">int</span>[n+<span class="hljs-number">1</span>][W+<span class="hljs-number">1</span>];<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">1</span>; i &lt;= n; i++) &#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> w = <span class="hljs-number">1</span>; w &lt;= W; w++) &#123;<br>            <span class="hljs-keyword">if</span> (weights[i-<span class="hljs-number">1</span>] &gt; w) &#123;<br>                dp[i][w] = dp[i-<span class="hljs-number">1</span>][w];  <span class="hljs-comment">// 装不下</span><br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                dp[i][w] = Math.max(dp[i-<span class="hljs-number">1</span>][w],          <span class="hljs-comment">// 不装</span><br>                    dp[i-<span class="hljs-number">1</span>][w - weights[i-<span class="hljs-number">1</span>]] + values[i-<span class="hljs-number">1</span>]); <span class="hljs-comment">// 装</span><br>            &#125;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> dp[n][W];<br>&#125;<br><br><span class="hljs-comment">// 最长递增子序列（LIS）</span><br><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">lengthOfLIS</span><span class="hljs-params">(<span class="hljs-keyword">int</span>[] nums)</span> </span>&#123;<br>    <span class="hljs-keyword">int</span>[] dp = <span class="hljs-keyword">new</span> <span class="hljs-keyword">int</span>[nums.length];<br>    Arrays.fill(dp, <span class="hljs-number">1</span>);<br>    <span class="hljs-keyword">int</span> max = <span class="hljs-number">1</span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">1</span>; i &lt; nums.length; i++) &#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> j = <span class="hljs-number">0</span>; j &lt; i; j++) &#123;<br>            <span class="hljs-keyword">if</span> (nums[i] &gt; nums[j]) &#123;<br>                dp[i] = Math.max(dp[i], dp[j] + <span class="hljs-number">1</span>);<br>            &#125;<br>        &#125;<br>        max = Math.max(max, dp[i]);<br>    &#125;<br>    <span class="hljs-keyword">return</span> max;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、LeetCode-高频分类"><a href="#四、LeetCode-高频分类" class="headerlink" title="四、LeetCode 高频分类"></a>四、LeetCode 高频分类</h2><h3 id="数组类"><a href="#数组类" class="headerlink" title="数组类"></a>数组类</h3><figure class="highlight processing"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs processing">├── 两数之和（<span class="hljs-keyword">HashMap</span>）⭐<br>├── 三数之和（排序+双指针）<br>├── 盛最多水的容器（双指针）<br>├── 买卖股票最佳时机（一次遍历）<br>├── 旋转数组（反转三次）<br>├── 合并两个有序数组（双指针从后）<br>└── 下一个排列<br></code></pre></td></tr></table></figure>
+
+<h3 id="链表类"><a href="#链表类" class="headerlink" title="链表类"></a>链表类</h3><figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs excel">├── 反转链表（迭代/递归）⭐<br>├── 环形链表（快慢指针）<br>├── 合并两个有序链表（递归/迭代）<br>├── 删除倒数第 <span class="hljs-built_in">N</span> 个节点（快慢指针）<br>├── 链表相交（双指针）<br>└── LRU 缓存（LinkedHashMap）<br></code></pre></td></tr></table></figure>
+
+<h3 id="树类"><a href="#树类" class="headerlink" title="树类"></a>树类</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs awk">├── 二叉树遍历（前<span class="hljs-regexp">/中/</span>后/层序）<br>├── 二叉树最大深度（递归）<br>├── 验证二叉搜索树（中序递增）<br>├── 路径总和（DFS）<br>├── 最近公共祖先（LCA）<br>└── 二叉树的序列化（BFS/前序）<br></code></pre></td></tr></table></figure>
+
+<h3 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a>字符串</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs">├── 无重复字符的最长子串（滑动窗口）<br>├── 最长回文子串（中心扩散）<br>├── 有效的括号（栈）<br>└── 字符串匹配（KMP）<br></code></pre></td></tr></table></figure>
+
+<h3 id="动态规划-1"><a href="#动态规划-1" class="headerlink" title="动态规划"></a>动态规划</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs">├── 爬楼梯（一维 DP）<br>├── 打家劫舍（一维 DP）<br>├── 最长公共子序列（二维 DP）<br>├── 编辑距离（二维 DP）<br>└── 完全平方数（BFS/DP）<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、复杂度分析"><a href="#五、复杂度分析" class="headerlink" title="五、复杂度分析"></a>五、复杂度分析</h2><h3 id="大-O-表示法"><a href="#大-O-表示法" class="headerlink" title="大 O 表示法"></a>大 O 表示法</h3><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs stylus"><span class="hljs-function"><span class="hljs-title">O</span><span class="hljs-params">(<span class="hljs-number">1</span>)</span></span>：常数时间   → 数组随机访问、HashMap 查找<br><span class="hljs-function"><span class="hljs-title">O</span><span class="hljs-params">(log n)</span></span>：对数   → 二分查找、平衡树<br><span class="hljs-function"><span class="hljs-title">O</span><span class="hljs-params">(n)</span></span>：线性      → 遍历数组、链表<br><span class="hljs-function"><span class="hljs-title">O</span><span class="hljs-params">(n log n)</span></span>：    → 排序（快排、归并）<br><span class="hljs-function"><span class="hljs-title">O</span><span class="hljs-params">(n²)</span></span>：平方     → 双层循环、冒泡排序<br><span class="hljs-function"><span class="hljs-title">O</span><span class="hljs-params">(<span class="hljs-number">2</span>^n)</span></span>：指数    → 斐波那契递归（未优化）<br><span class="hljs-function"><span class="hljs-title">O</span><span class="hljs-params">(n!)</span></span>：阶乘     → 排列问题<br></code></pre></td></tr></table></figure>
+
+<h3 id="数据结构复杂度"><a href="#数据结构复杂度" class="headerlink" title="数据结构复杂度"></a>数据结构复杂度</h3><table>
+<thead>
+<tr>
+<th>数据结构</th>
+<th align="center">查找</th>
+<th align="center">插入</th>
+<th align="center">删除</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>数组</strong></td>
+<td align="center">O(1)</td>
+<td align="center">O(n)</td>
+<td align="center">O(n)</td>
+</tr>
+<tr>
+<td><strong>链表</strong></td>
+<td align="center">O(n)</td>
+<td align="center">O(1)</td>
+<td align="center">O(1)</td>
+</tr>
+<tr>
+<td><strong>栈</strong></td>
+<td align="center">O(n)</td>
+<td align="center">O(1)</td>
+<td align="center">O(1)</td>
+</tr>
+<tr>
+<td><strong>队列</strong></td>
+<td align="center">O(n)</td>
+<td align="center">O(1)</td>
+<td align="center">O(1)</td>
+</tr>
+<tr>
+<td><strong>哈希表</strong></td>
+<td align="center">O(1)</td>
+<td align="center">O(1)</td>
+<td align="center">O(1)</td>
+</tr>
+<tr>
+<td><strong>BST</strong></td>
+<td align="center">O(log n)</td>
+<td align="center">O(log n)</td>
+<td align="center">O(log n)</td>
+</tr>
+<tr>
+<td><strong>堆</strong></td>
+<td align="center">O(1)*</td>
+<td align="center">O(log n)</td>
+<td align="center">O(log n)</td>
+</tr>
+</tbody></table>
+<p>*堆的查找指查最小/最大值</p>
+<h2 id="六、面试题"><a href="#六、面试题" class="headerlink" title="六、面试题"></a>六、面试题</h2><h4 id="1-ArrayList-和-LinkedList-的区别？"><a href="#1-ArrayList-和-LinkedList-的区别？" class="headerlink" title="1. ArrayList 和 LinkedList 的区别？"></a>1. ArrayList 和 LinkedList 的区别？</h4><p>ArrayList 基于数组，随机访问 O(1)，插入删除 O(n)。LinkedList 基于链表，随机访问 O(n)，插入删除 O(1)。</p>
+<h4 id="2-HashMap-的底层实现？"><a href="#2-HashMap-的底层实现？" class="headerlink" title="2. HashMap 的底层实现？"></a>2. HashMap 的底层实现？</h4><p>数组 + 链表 + 红黑树。put 时计算 hash → 定位桶 → 插入（链表/树）。容量为 2 的幂，负载因子 0.75，扩容翻倍。</p>
+<h4 id="3-排序算法中哪个最快？"><a href="#3-排序算法中哪个最快？" class="headerlink" title="3. 排序算法中哪个最快？"></a>3. 排序算法中哪个最快？</h4><p>实际场景中快排最快（时间复杂度 O(n log n)，空间复杂度 O(log n)，缓存友好）。但最坏 O(n²)，归并排序更稳定。</p>
+<h4 id="4-DFS-和-BFS-的区别？"><a href="#4-DFS-和-BFS-的区别？" class="headerlink" title="4. DFS 和 BFS 的区别？"></a>4. DFS 和 BFS 的区别？</h4><p>DFS 用栈（递归或显式栈），适合路径搜索、拓扑排序。BFS 用队列，适合最短路径、层序遍历。</p>
+<h4 id="5-动态规划的核心思想？"><a href="#5-动态规划的核心思想？" class="headerlink" title="5. 动态规划的核心思想？"></a>5. 动态规划的核心思想？</h4><p>重叠子问题 + 最优子结构。将大问题分解为子问题，避免重复计算。关键是状态定义和状态转移方程。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">数据结构</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%AE%97%E6%B3%95/">算法</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%8E%92%E5%BA%8F/">排序</a>
+                    
+                      <a class="hover-with-bg" href="/tags/LeetCode/">LeetCode</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/26/SpringCloudAlibaba%E8%AF%A6%E8%A7%A3NacosGatewayFeign/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Spring Cloud Alibaba：Nacos、Gateway、OpenFeign 实战</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/26/Sentinel%E9%99%90%E6%B5%81%E7%86%94%E6%96%AD%E9%99%8D%E7%BA%A7%E5%AE%9E%E6%88%98/">
+                        <span class="hidden-mobile">Sentinel 限流熔断降级实战</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

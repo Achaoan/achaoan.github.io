@@ -1,0 +1,593 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>CAS原理与ABA问题解决方案 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/cas-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="CAS原理与ABA问题解决方案">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 22:30" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.3k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      17
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">CAS原理与ABA问题解决方案</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：1 小时前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、CAS-概述"><a href="#一、CAS-概述" class="headerlink" title="一、CAS 概述"></a>一、CAS 概述</h2><h3 id="什么是-CAS？"><a href="#什么是-CAS？" class="headerlink" title="什么是 CAS？"></a>什么是 CAS？</h3><p>CAS（Compare And Swap）是一种<strong>乐观锁</strong>技术，通过比较内存值是否等于预期值，相等则更新，不相等则重试。</p>
+<figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs mathematica"><span class="hljs-variable">CAS</span><span class="hljs-punctuation">(</span><span class="hljs-variable">V</span><span class="hljs-operator">,</span> <span class="hljs-built_in">E</span><span class="hljs-operator">,</span> <span class="hljs-built_in">N</span><span class="hljs-punctuation">)</span>：<br>  └── <span class="hljs-variable">V</span>：内存地址中的值<br>  └── <span class="hljs-built_in">E</span>：预期的旧值<br>  └── <span class="hljs-built_in">N</span>：新值<br>  └── 如果 <span class="hljs-variable">V</span> <span class="hljs-operator">==</span> <span class="hljs-built_in">E</span> → <span class="hljs-variable">V</span> <span class="hljs-operator">=</span> <span class="hljs-built_in">N</span>（成功）<br>  └── 如果 <span class="hljs-variable">V</span> <span class="hljs-operator">!=</span> <span class="hljs-built_in">E</span> → 不操作（失败，返回 <span class="hljs-variable">false</span>）<br></code></pre></td></tr></table></figure>
+
+<h3 id="硬件支持"><a href="#硬件支持" class="headerlink" title="硬件支持"></a>硬件支持</h3><p>CAS 是<strong>CPU 原语</strong>（不可中断），在 x86 上对应 <code>CMPXCHG</code> 指令。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Unsafe 类提供的 CAS 方法</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">native</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">compareAndSwapInt</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">    Object o, <span class="hljs-keyword">long</span> offset, <span class="hljs-keyword">int</span> expected, <span class="hljs-keyword">int</span> x)</span></span>;<br></code></pre></td></tr></table></figure>
+
+<p><strong>原子性保证</strong>：由 CPU 硬件保证比较和交换的原子性。</p>
+<h2 id="二、CAS-的应用"><a href="#二、CAS-的应用" class="headerlink" title="二、CAS 的应用"></a>二、CAS 的应用</h2><h3 id="AtomicInteger"><a href="#AtomicInteger" class="headerlink" title="AtomicInteger"></a>AtomicInteger</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AtomicInteger</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Number</span> </span>&#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">int</span> value;  <span class="hljs-comment">// 值</span><br>    <br>    <span class="hljs-comment">// CAS 更新</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> <span class="hljs-title">incrementAndGet</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> unsafe.getAndAddInt(<span class="hljs-keyword">this</span>, valueOffset, <span class="hljs-number">1</span>) + <span class="hljs-number">1</span>;<br>    &#125;<br>    <br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">compareAndSet</span><span class="hljs-params">(<span class="hljs-keyword">int</span> expect, <span class="hljs-keyword">int</span> update)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> unsafe.compareAndSwapInt(<span class="hljs-keyword">this</span>, valueOffset, expect, update);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="getAndAddInt-源码"><a href="#getAndAddInt-源码" class="headerlink" title="getAndAddInt 源码"></a>getAndAddInt 源码</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> <span class="hljs-title">getAndAddInt</span><span class="hljs-params">(Object o, <span class="hljs-keyword">long</span> offset, <span class="hljs-keyword">int</span> delta)</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> v;<br>    <span class="hljs-keyword">do</span> &#123;<br>        v = getIntVolatile(o, offset);  <span class="hljs-comment">// 获取当前值</span><br>    &#125; <span class="hljs-keyword">while</span> (!compareAndSwapInt(o, offset, v, v + delta));  <br>    <span class="hljs-comment">// CAS 自旋：失败则重试</span><br>    <span class="hljs-keyword">return</span> v;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="自旋-CAS"><a href="#自旋-CAS" class="headerlink" title="自旋 CAS"></a>自旋 CAS</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// CAS 自旋模板</span><br><span class="hljs-keyword">int</span> v;<br><span class="hljs-keyword">do</span> &#123;<br>    v = get();  <span class="hljs-comment">// 读取当前值</span><br>&#125; <span class="hljs-keyword">while</span> (!compareAndSet(v, v + delta));  <span class="hljs-comment">// CAS 失败则重试（自旋）</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="三、CAS-的三大问题"><a href="#三、CAS-的三大问题" class="headerlink" title="三、CAS 的三大问题"></a>三、CAS 的三大问题</h2><h3 id="问题-1：ABA-问题"><a href="#问题-1：ABA-问题" class="headerlink" title="问题 1：ABA 问题"></a>问题 1：ABA 问题</h3><figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs gcode">线程 <span class="hljs-number">1</span>：读取 A = <span class="hljs-number">1</span><br>线程 <span class="hljs-number">2</span>：CAS<span class="hljs-comment">(1→2)</span> 成功<br>线程 <span class="hljs-number">2</span>：CAS<span class="hljs-comment">(2→1)</span> 成功<br>线程 <span class="hljs-number">1</span>：CAS<span class="hljs-comment">(1→3)</span> 成功（线程 <span class="hljs-number">1</span> 不知道值被改过）<br><br>问题：线程 <span class="hljs-number">1</span> 认为 A 没变，但实际上已经被改过<br></code></pre></td></tr></table></figure>
+
+<h3 id="问题-2：自旋开销大"><a href="#问题-2：自旋开销大" class="headerlink" title="问题 2：自旋开销大"></a>问题 2：自旋开销大</h3><figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs objectivec"><span class="hljs-built_in">CAS</span> 失败 → 立即重试<br>极端情况：长时间自旋 → CPU 空转<br>  ├── 大量线程竞争同一个变量<br>  ├── 每个线程都在循环 <span class="hljs-built_in">CAS</span><br>  └── CPU 飙升，性能急剧下降<br></code></pre></td></tr></table></figure>
+
+<h3 id="问题-3：只能保证一个共享变量"><a href="#问题-3：只能保证一个共享变量" class="headerlink" title="问题 3：只能保证一个共享变量"></a>问题 3：只能保证一个共享变量</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// CAS 不能同时原子更新两个变量</span><br><span class="hljs-keyword">int</span> a = <span class="hljs-number">1</span>;<br><span class="hljs-keyword">int</span> b = <span class="hljs-number">2</span>;<br><span class="hljs-comment">// ❌ 无法同时对 a 和 b 做 CAS</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="四、ABA-解决方案"><a href="#四、ABA-解决方案" class="headerlink" title="四、ABA 解决方案"></a>四、ABA 解决方案</h2><h3 id="AtomicStampedReference（推荐）"><a href="#AtomicStampedReference（推荐）" class="headerlink" title="AtomicStampedReference（推荐）"></a>AtomicStampedReference（推荐）</h3><p>带版本号的原子引用，每次修改版本号 +1。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 初始化：value = A, stamp = 0</span><br>AtomicStampedReference&lt;String&gt; ref = <br>    <span class="hljs-keyword">new</span> AtomicStampedReference&lt;&gt;(<span class="hljs-string">&quot;A&quot;</span>, <span class="hljs-number">0</span>);<br><br><span class="hljs-keyword">int</span>[] stampHolder = <span class="hljs-keyword">new</span> <span class="hljs-keyword">int</span>[<span class="hljs-number">1</span>];<br>String value = ref.get(stampHolder);  <span class="hljs-comment">// value = &quot;A&quot;, stamp = 0</span><br><br><span class="hljs-comment">// 线程 1：CAS(A→B, stamp=0→1)</span><br><span class="hljs-keyword">boolean</span> r1 = ref.compareAndSet(<span class="hljs-string">&quot;A&quot;</span>, <span class="hljs-string">&quot;B&quot;</span>, stampHolder[<span class="hljs-number">0</span>], stampHolder[<span class="hljs-number">0</span>] + <span class="hljs-number">1</span>);<br><br><span class="hljs-comment">// 线程 2：CAS(B→A, stamp=1→2)</span><br><span class="hljs-keyword">boolean</span> r2 = ref.compareAndSet(<span class="hljs-string">&quot;B&quot;</span>, <span class="hljs-string">&quot;A&quot;</span>, stampHolder[<span class="hljs-number">0</span>], stampHolder[<span class="hljs-number">0</span>] + <span class="hljs-number">1</span>);<br><br><span class="hljs-comment">// 线程 1 再次尝试 CAS(A→D)</span><br><span class="hljs-keyword">int</span>[] currentStamp = <span class="hljs-keyword">new</span> <span class="hljs-keyword">int</span>[<span class="hljs-number">1</span>];<br>ref.get(currentStamp);  <span class="hljs-comment">// stamp = 2 ≠ 0</span><br><span class="hljs-keyword">boolean</span> r3 = ref.compareAndSet(<span class="hljs-string">&quot;A&quot;</span>, <span class="hljs-string">&quot;D&quot;</span>, <span class="hljs-number">0</span>, <span class="hljs-number">3</span>);  <span class="hljs-comment">// ❌ 失败！stamp 不匹配</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="AtomicMarkableReference（简化版）"><a href="#AtomicMarkableReference（简化版）" class="headerlink" title="AtomicMarkableReference（简化版）"></a>AtomicMarkableReference（简化版）</h3><p>只关心是否被改过（true/false），不关心被改了几次。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java">AtomicMarkableReference&lt;String&gt; ref = <br>    <span class="hljs-keyword">new</span> AtomicMarkableReference&lt;&gt;(<span class="hljs-string">&quot;A&quot;</span>, <span class="hljs-keyword">false</span>);<br>ref.compareAndSet(<span class="hljs-string">&quot;A&quot;</span>, <span class="hljs-string">&quot;B&quot;</span>, <span class="hljs-keyword">false</span>, <span class="hljs-keyword">true</span>);  <span class="hljs-comment">// 标记为已修改</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="业务层面解决"><a href="#业务层面解决" class="headerlink" title="业务层面解决"></a>业务层面解决</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs css">有些场景 ABA 不影响：<br>├── 栈操作：弹出 <span class="hljs-selector-tag">A</span> → 入栈 C → 入栈 <span class="hljs-selector-tag">A</span>（链表节点不可复用）<br>└── 值类型：数字 <span class="hljs-number">1</span>→<span class="hljs-number">2</span>→<span class="hljs-number">1</span>，最终值一样<br><br>需要解决 ABA 的场景：<br>├── 指针/引用类型的 CAS<br>└── 数据一致性敏感的操作<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、自旋优化策略"><a href="#五、自旋优化策略" class="headerlink" title="五、自旋优化策略"></a>五、自旋优化策略</h2><h3 id="1-自适应自旋（JDK-1-6-）"><a href="#1-自适应自旋（JDK-1-6-）" class="headerlink" title="1. 自适应自旋（JDK 1.6+）"></a>1. 自适应自旋（JDK 1.6+）</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm"><span class="hljs-keyword">JVM </span>根据上次自旋成功率动态调整：<br>├── 上次成功 → 多自旋几次<br>└── 上次失败 → 减少或跳过自旋<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-退避策略"><a href="#2-退避策略" class="headerlink" title="2. 退避策略"></a>2. 退避策略</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 自旋 + 退避</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">increment</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> v;<br>    <span class="hljs-keyword">int</span> spinCount = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">do</span> &#123;<br>        v = get();<br>        <span class="hljs-keyword">if</span> (spinCount++ &gt; SPIN_THRESHOLD) &#123;<br>            Thread.yield();  <span class="hljs-comment">// 让出 CPU</span><br>        &#125;<br>    &#125; <span class="hljs-keyword">while</span> (!compareAndSet(v, v + <span class="hljs-number">1</span>));<br>    <span class="hljs-keyword">return</span> v;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-LongAdder（分散竞争）"><a href="#3-LongAdder（分散竞争）" class="headerlink" title="3. LongAdder（分散竞争）"></a>3. LongAdder（分散竞争）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// AtomicLong vs LongAdder</span><br><span class="hljs-comment">// AtomicLong：所有线程 CAS 同一个变量 → 竞争激烈</span><br><span class="hljs-comment">// LongAdder：分散到 Cell[] 数组，每个线程只 CAS 自己的 Cell</span><br><br>LongAdder adder = <span class="hljs-keyword">new</span> LongAdder();<br>adder.increment();       <span class="hljs-comment">// 线程安全</span><br>adder.sum();             <span class="hljs-comment">// Cell[] 求和 + base 值</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="六、原子类体系"><a href="#六、原子类体系" class="headerlink" title="六、原子类体系"></a>六、原子类体系</h2><h3 id="基本类型"><a href="#基本类型" class="headerlink" title="基本类型"></a>基本类型</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java">AtomicBoolean    <span class="hljs-comment">// 原子更新 boolean</span><br>AtomicInteger    <span class="hljs-comment">// 原子更新 int</span><br>AtomicLong       <span class="hljs-comment">// 原子更新 long</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="引用类型"><a href="#引用类型" class="headerlink" title="引用类型"></a>引用类型</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java">AtomicReference&lt;T&gt;           <span class="hljs-comment">// 原子更新引用</span><br>AtomicStampedReference&lt;T&gt;    <span class="hljs-comment">// 带版本号的引用（解决 ABA）</span><br>AtomicMarkableReference&lt;T&gt;   <span class="hljs-comment">// 带标记位的引用</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java">AtomicIntegerArray    <span class="hljs-comment">// 原子更新 int[]</span><br>AtomicLongArray       <span class="hljs-comment">// 原子更新 long[]</span><br>AtomicReferenceArray  <span class="hljs-comment">// 原子更新对象数组</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="字段更新器"><a href="#字段更新器" class="headerlink" title="字段更新器"></a>字段更新器</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java">AtomicIntegerFieldUpdater&lt;T&gt;  <span class="hljs-comment">// 原子更新对象 volatile int 字段</span><br>AtomicLongFieldUpdater&lt;T&gt;     <span class="hljs-comment">// 原子更新对象 volatile long 字段</span><br>AtomicReferenceFieldUpdater&lt;T,V&gt;  <span class="hljs-comment">// 原子更新对象 volatile 引用字段</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="七、synchronized-vs-CAS"><a href="#七、synchronized-vs-CAS" class="headerlink" title="七、synchronized vs CAS"></a>七、synchronized vs CAS</h2><table>
+<thead>
+<tr>
+<th>对比</th>
+<th>synchronized</th>
+<th>CAS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>类型</td>
+<td>悲观锁</td>
+<td>乐观锁</td>
+</tr>
+<tr>
+<td>开销</td>
+<td>线程阻塞/唤醒（内核态）</td>
+<td>CPU 自旋（用户态）</td>
+</tr>
+<tr>
+<td>竞争激烈</td>
+<td>适合（线程挂起减少 CPU 消耗）</td>
+<td>不适合（大量自旋）</td>
+</tr>
+<tr>
+<td>冲突少</td>
+<td>不适合（不必要的阻塞）</td>
+<td>适合（一次成功）</td>
+</tr>
+<tr>
+<td>使用场景</td>
+<td>代码块、方法级别</td>
+<td>原子变量、计数器</td>
+</tr>
+</tbody></table>
+<h2 id="八、面试题"><a href="#八、面试题" class="headerlink" title="八、面试题"></a>八、面试题</h2><h4 id="1-CAS-原理？"><a href="#1-CAS-原理？" class="headerlink" title="1. CAS 原理？"></a>1. CAS 原理？</h4><p>CPU 原语 <code>CMPXCHG</code>，比较内存值是否等于预期值，相等则更新，不相等则重试。</p>
+<h4 id="2-CAS-的三大问题？"><a href="#2-CAS-的三大问题？" class="headerlink" title="2. CAS 的三大问题？"></a>2. CAS 的三大问题？</h4><p>ABA 问题（AtomicStampedReference 解决）、自旋开销大（LongAdder 分散）、只能保证一个变量（用 AtomicReference 封装）。</p>
+<h4 id="3-ABA-问题及解决？"><a href="#3-ABA-问题及解决？" class="headerlink" title="3. ABA 问题及解决？"></a>3. ABA 问题及解决？</h4><p>值被修改后又改回原值。用 AtomicStampedReference（版本号）解决。</p>
+<h4 id="4-CAS-自旋一定会阻塞吗？"><a href="#4-CAS-自旋一定会阻塞吗？" class="headerlink" title="4. CAS 自旋一定会阻塞吗？"></a>4. CAS 自旋一定会阻塞吗？</h4><p>不会，CAS 在用户态自旋（循环），不会进入内核态。但长时间自旋会浪费 CPU。</p>
+<h4 id="5-LongAdder-怎么解决-CAS-竞争？"><a href="#5-LongAdder-怎么解决-CAS-竞争？" class="headerlink" title="5. LongAdder 怎么解决 CAS 竞争？"></a>5. LongAdder 怎么解决 CAS 竞争？</h4><p>分散到 Cell[] 数组，每个线程 CAS 自己的 Cell，求和时汇总（sum = base + ΣCell[]）。</p>
+<h4 id="6-乐观锁和悲观锁的区别？"><a href="#6-乐观锁和悲观锁的区别？" class="headerlink" title="6. 乐观锁和悲观锁的区别？"></a>6. 乐观锁和悲观锁的区别？</h4><p>悲观锁（synchronized）：假设冲突一定发生，加锁阻塞。乐观锁（CAS）：假设冲突少，失败则重试。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Java/">Java</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/CAS/">CAS</a>
+                    
+                      <a class="hover-with-bg" href="/tags/ABA/">ABA</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/SpringBean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E8%AF%A6%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Spring Bean生命周期：从实例化到销毁的完整过程</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/Volatile%E4%B8%8EJMM%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">Volatile与JMM：可见性、有序性、Happens-Before</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

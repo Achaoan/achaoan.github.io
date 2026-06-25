@@ -1,0 +1,614 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>Spring循环依赖：三级缓存原理与源码分析 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/spring-core-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Spring循环依赖：三级缓存原理与源码分析">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 23:30" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.5k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      20
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Spring循环依赖：三级缓存原理与源码分析</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：1 小时前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、什么是循环依赖？"><a href="#一、什么是循环依赖？" class="headerlink" title="一、什么是循环依赖？"></a>一、什么是循环依赖？</h2><h3 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 情景 A 依赖 B，B 依赖 A</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">A</span> </span>&#123;<br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> B b;  <span class="hljs-comment">// A 依赖 B</span><br>&#125;<br><br><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">B</span> </span>&#123;<br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> A a;  <span class="hljs-comment">// B 依赖 A</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>Spring 容器通过<strong>三级缓存</strong>解决这个问题。</p>
+<h3 id="哪些循环依赖能解决？"><a href="#哪些循环依赖能解决？" class="headerlink" title="哪些循环依赖能解决？"></a>哪些循环依赖能解决？</h3><table>
+<thead>
+<tr>
+<th>注入方式</th>
+<th align="center">能否解决</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Setter 注入（单例）</td>
+<td align="center">✅</td>
+<td>先实例化，后 set 属性</td>
+</tr>
+<tr>
+<td>字段注入（单例）</td>
+<td align="center">✅</td>
+<td>同 setter，通过反射赋值</td>
+</tr>
+<tr>
+<td>构造器注入（单例）</td>
+<td align="center">❌</td>
+<td>实例化时需要参数，但参数还没创建</td>
+</tr>
+<tr>
+<td>非单例（prototype）</td>
+<td align="center">❌</td>
+<td>原型 Bean 不缓存</td>
+</tr>
+</tbody></table>
+<h2 id="二、三级缓存"><a href="#二、三级缓存" class="headerlink" title="二、三级缓存"></a>二、三级缓存</h2><h3 id="缓存结构"><a href="#缓存结构" class="headerlink" title="缓存结构"></a>缓存结构</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DefaultSingletonBeanRegistry</span> </span>&#123;<br>    <span class="hljs-comment">// 一级缓存：完整 Bean（成品）</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, Object&gt; singletonObjects = <span class="hljs-keyword">new</span> ConcurrentHashMap&lt;&gt;(<span class="hljs-number">256</span>);<br>    <br>    <span class="hljs-comment">// 二级缓存：半成品 Bean（尚未完全初始化）</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, Object&gt; earlySingletonObjects = <span class="hljs-keyword">new</span> HashMap&lt;&gt;(<span class="hljs-number">16</span>);<br>    <br>    <span class="hljs-comment">// 三级缓存：Bean 工厂（生成代理对象）</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, ObjectFactory&lt;?&gt;&gt; singletonFactories = <span class="hljs-keyword">new</span> HashMap&lt;&gt;(<span class="hljs-number">16</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="各级缓存的作用"><a href="#各级缓存的作用" class="headerlink" title="各级缓存的作用"></a>各级缓存的作用</h3><table>
+<thead>
+<tr>
+<th align="center">缓存</th>
+<th>名称</th>
+<th>存储内容</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>①</strong></td>
+<td><code>singletonObjects</code></td>
+<td>完整 Bean（已完成初始化）</td>
+<td>最终存放处，getBean 优先查这里</td>
+</tr>
+<tr>
+<td align="center"><strong>②</strong></td>
+<td><code>earlySingletonObjects</code></td>
+<td>早期 Bean（刚实例化，未属性赋值）</td>
+<td>提前暴露给依赖方</td>
+</tr>
+<tr>
+<td align="center"><strong>③</strong></td>
+<td><code>singletonFactories</code></td>
+<td>ObjectFactory（生成 Bean 的工厂）</td>
+<td>生成 Bean 的代理或原始对象</td>
+</tr>
+</tbody></table>
+<h2 id="三、解决流程"><a href="#三、解决流程" class="headerlink" title="三、解决流程"></a>三、解决流程</h2><h3 id="示例：A-依赖-B，B-依赖-A"><a href="#示例：A-依赖-B，B-依赖-A" class="headerlink" title="示例：A 依赖 B，B 依赖 A"></a>示例：A 依赖 B，B 依赖 A</h3><figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><code class="hljs less">① <span class="hljs-selector-tag">getBean</span>(A)<br><br>    └── <span class="hljs-selector-tag">doCreateBean</span>(A) → 实例化 <span class="hljs-selector-tag">A</span>（构造方法）<br>        │<br>        ├── <span class="hljs-selector-tag">addSingletonFactory</span>(<span class="hljs-string">&quot;A&quot;</span>, factory) → 放入三级缓存<br>        │<br>        ├── <span class="hljs-selector-tag">populateBean</span>(A) → 发现依赖 <span class="hljs-selector-tag">B</span><br>        │<br>        └── <span class="hljs-selector-tag">getBean</span>(B) ——→ 递归<br>              │<br>              ├── <span class="hljs-selector-tag">doCreateBean</span>(B) → 实例化 <span class="hljs-selector-tag">B</span><br>              │   │<br>              │   ├── <span class="hljs-selector-tag">addSingletonFactory</span>(<span class="hljs-string">&quot;B&quot;</span>, factory) → 放入三级缓存<br>              │   │<br>              │   ├── <span class="hljs-selector-tag">populateBean</span>(B) → 发现依赖 <span class="hljs-selector-tag">A</span><br>              │   │<br>              │   └── <span class="hljs-selector-tag">getBean</span>(A) ——→ 递归<br>              │         │<br>              │         ├── <span class="hljs-selector-tag">singletonObjects</span>(<span class="hljs-string">&quot;A&quot;</span>) → ❌ 找不到<br>              │         ├── <span class="hljs-selector-tag">earlySingletonObjects</span>(<span class="hljs-string">&quot;A&quot;</span>) → ❌ 找不到<br>              │         ├── <span class="hljs-selector-tag">singletonFactories</span>(<span class="hljs-string">&quot;A&quot;</span>) → ✅ 拿到 <span class="hljs-selector-tag">ObjectFactory</span><br>              │         │<br>              │         ├── <span class="hljs-selector-tag">factory</span><span class="hljs-selector-class">.getEarlyBeanReference</span>() → 拿到 <span class="hljs-selector-tag">A</span> 的引用<br>              │         │<br>              │         ├── 放入二级缓存 → <span class="hljs-selector-tag">earlySingletonObjects</span>(<span class="hljs-string">&quot;A&quot;</span>)<br>              │         └── 返回 <span class="hljs-selector-tag">A</span> 的引用<br>              │<br>              ├── <span class="hljs-selector-tag">B</span> 拿到 <span class="hljs-selector-tag">A</span> 的引用 → 完成属性赋值<br>              │<br>              ├── <span class="hljs-selector-tag">B</span> 完成初始化<br>              │<br>              └── <span class="hljs-selector-tag">B</span> 放入一级缓存 → <span class="hljs-selector-tag">singletonObjects</span>(<span class="hljs-string">&quot;B&quot;</span>)<br>                  └── 从二级/三级缓存移除 <span class="hljs-selector-tag">B</span><br>      <br>      <span class="hljs-selector-tag">A</span> 继续执行剩余初始化<br>    <br>    <span class="hljs-selector-tag">A</span> 放入一级缓存 → <span class="hljs-selector-tag">singletonObjects</span>(<span class="hljs-string">&quot;A&quot;</span>)<br>    └── 从二级/三级缓存移除 <span class="hljs-selector-tag">A</span><br><br>② <span class="hljs-selector-tag">getBean</span>(A) 返回完整 <span class="hljs-selector-tag">A</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="四、核心源码"><a href="#四、核心源码" class="headerlink" title="四、核心源码"></a>四、核心源码</h2><h3 id="getSingleton（核心方法）"><a href="#getSingleton（核心方法）" class="headerlink" title="getSingleton（核心方法）"></a>getSingleton（核心方法）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> Object <span class="hljs-title">getSingleton</span><span class="hljs-params">(String beanName, <span class="hljs-keyword">boolean</span> allowEarlyReference)</span> </span>&#123;<br>    <span class="hljs-comment">// 1. 查一级缓存（成品）</span><br>    Object singletonObject = <span class="hljs-keyword">this</span>.singletonObjects.get(beanName);<br>    <span class="hljs-keyword">if</span> (singletonObject == <span class="hljs-keyword">null</span> &amp;&amp; isSingletonCurrentlyInCreation(beanName)) &#123;<br>        <span class="hljs-comment">// 2. 查二级缓存（半成品）</span><br>        singletonObject = <span class="hljs-keyword">this</span>.earlySingletonObjects.get(beanName);<br>        <span class="hljs-keyword">if</span> (singletonObject == <span class="hljs-keyword">null</span> &amp;&amp; allowEarlyReference) &#123;<br>            <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>.singletonObjects) &#123;<br>                singletonObject = <span class="hljs-keyword">this</span>.earlySingletonObjects.get(beanName);<br>                <span class="hljs-keyword">if</span> (singletonObject == <span class="hljs-keyword">null</span>) &#123;<br>                    <span class="hljs-comment">// 3. 查三级缓存（工厂）</span><br>                    ObjectFactory&lt;?&gt; singletonFactory = <span class="hljs-keyword">this</span>.singletonFactories.get(beanName);<br>                    <span class="hljs-keyword">if</span> (singletonFactory != <span class="hljs-keyword">null</span>) &#123;<br>                        <span class="hljs-comment">// 4. 通过工厂获取早期引用（AOP 代理在这里产生）</span><br>                        singletonObject = singletonFactory.getObject();<br>                        <span class="hljs-comment">// 5. 升级到二级缓存（提升速度）</span><br>                        <span class="hljs-keyword">this</span>.earlySingletonObjects.put(beanName, singletonObject);<br>                        <span class="hljs-keyword">this</span>.singletonFactories.remove(beanName);<br>                    &#125;<br>                &#125;<br>            &#125;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> singletonObject;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="提前曝光的工厂"><a href="#提前曝光的工厂" class="headerlink" title="提前曝光的工厂"></a>提前曝光的工厂</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// AbstractAutowireCapableBeanFactory.doCreateBean()</span><br><span class="hljs-function"><span class="hljs-keyword">protected</span> Object <span class="hljs-title">doCreateBean</span><span class="hljs-params">(String beanName, RootBeanDefinition mbd, Object[] args)</span> </span>&#123;<br>    BeanWrapper instanceWrapper = <span class="hljs-keyword">null</span>;<br>    <span class="hljs-keyword">if</span> (instanceWrapper == <span class="hljs-keyword">null</span>) &#123;<br>        <span class="hljs-comment">// 1. 实例化</span><br>        instanceWrapper = createBeanInstance(beanName, mbd, args);<br>    &#125;<br>    <span class="hljs-keyword">final</span> Object bean = instanceWrapper.getWrappedInstance();<br>    <br>    <span class="hljs-comment">// 2. 提前曝光：将 Bean 工厂放入三级缓存</span><br>    <span class="hljs-keyword">boolean</span> earlySingletonExposure = (mbd.isSingleton() &amp;&amp; <span class="hljs-keyword">this</span>.allowCircularReferences<br>            &amp;&amp; isSingletonCurrentlyInCreation(beanName));<br>    <span class="hljs-keyword">if</span> (earlySingletonExposure) &#123;<br>        addSingletonFactory(beanName, () -&gt; getEarlyBeanReference(beanName, mbd, bean));<br>    &#125;<br>    <br>    <span class="hljs-comment">// 3. 属性赋值（可能触发循环依赖）</span><br>    populateBean(beanName, mbd, instanceWrapper);<br>    <br>    <span class="hljs-comment">// 4. 初始化</span><br>    exposedObject = initializeBean(beanName, exposedObject, mbd);<br>    <br>    <span class="hljs-keyword">return</span> exposedObject;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="getEarlyBeanReference（AOP-代理的入口）"><a href="#getEarlyBeanReference（AOP-代理的入口）" class="headerlink" title="getEarlyBeanReference（AOP 代理的入口）"></a>getEarlyBeanReference（AOP 代理的入口）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> Object <span class="hljs-title">getEarlyBeanReference</span><span class="hljs-params">(String beanName, RootBeanDefinition mbd, Object bean)</span> </span>&#123;<br>    Object exposedObject = bean;<br>    <span class="hljs-comment">// SmarmartInstantiationAwareBeanPostProcessor 处理 AOP</span><br>    <span class="hljs-keyword">for</span> (BeanPostProcessor bp : getBeanPostProcessors()) &#123;<br>        <span class="hljs-keyword">if</span> (bp <span class="hljs-keyword">instanceof</span> SmartInstantiationAwareBeanPostProcessor) &#123;<br>            SmartInstantiationAwareBeanPostProcessor ibp = <br>                (SmartInstantiationAwareBeanPostProcessor) bp;<br>            exposedObject = ibp.getEarlyBeanReference(exposedObject, beanName);<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> exposedObject;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、为什么需要三级缓存？"><a href="#五、为什么需要三级缓存？" class="headerlink" title="五、为什么需要三级缓存？"></a>五、为什么需要三级缓存？</h2><h3 id="只用两级不行吗？"><a href="#只用两级不行吗？" class="headerlink" title="只用两级不行吗？"></a>只用两级不行吗？</h3><p><strong>只用一级缓存</strong>：</p>
+<ul>
+<li>半成品 Bean 直接暴露在一级缓存</li>
+<li>其他线程 getBean 可能拿到未初始化完成的 Bean</li>
+<li>混乱：成品和半成品混在一起</li>
+</ul>
+<p><strong>只用两级缓存（去掉三级）</strong>：</p>
+<ul>
+<li>无法解决 AOP 代理问题</li>
+<li>如果 A 需要 AOP 代理，B 依赖的 A 必须是代理对象</li>
+<li>没有三级缓存，无法在实例化后立即产生代理对象</li>
+</ul>
+<h3 id="三级缓存的必要性"><a href="#三级缓存的必要性" class="headerlink" title="三级缓存的必要性"></a>三级缓存的必要性</h3><figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs less">三级缓存存储的是 <span class="hljs-selector-tag">ObjectFactory</span><br>├── 在实例化后立即注册<br>├── 只有真正出现循环依赖时才执行<br>└── 执行时调用 <span class="hljs-selector-tag">getEarlyBeanReference</span>() 生成 <span class="hljs-selector-tag">AOP</span> 代理<br><br>如果没有三级缓存：<br>├── 必须在实例化时就完成 <span class="hljs-selector-tag">AOP</span> 代理（浪费）<br>└── 或者只能在初始化后才产生 <span class="hljs-selector-tag">AOP</span> 代理（<span class="hljs-selector-tag">B</span> 拿到的 <span class="hljs-selector-tag">A</span> 不是代理）<br></code></pre></td></tr></table></figure>
+
+<h3 id="核心设计思想"><a href="#核心设计思想" class="headerlink" title="核心设计思想"></a>核心设计思想</h3><blockquote>
+<p><strong>用三级缓存延迟 AOP 代理的创建，只有出现循环依赖时才触发。</strong></p>
+</blockquote>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs">正常流程：实例化 → 属性赋值 → 初始化 → AOP 创建代理（一级缓存就够）<br>循环依赖：实例化 → 提前曝光（三级缓存）→ 产生代理 → 完成初始化<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、构造器注入的循环依赖"><a href="#六、构造器注入的循环依赖" class="headerlink" title="六、构造器注入的循环依赖"></a>六、构造器注入的循环依赖</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">A</span> </span>&#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> B b;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">A</span><span class="hljs-params">(B b)</span> </span>&#123; <span class="hljs-keyword">this</span>.b = b; &#125;  <span class="hljs-comment">// 构造器注入</span><br>&#125;<br><br><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">B</span> </span>&#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> A a;  <br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">B</span><span class="hljs-params">(A a)</span> </span>&#123; <span class="hljs-keyword">this</span>.a = a; &#125;  <span class="hljs-comment">// 构造器注入</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>为什么无法解决？</strong></p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs css">getBean(<span class="hljs-selector-tag">A</span>) → createInstance(<span class="hljs-selector-tag">A</span>) → 需要 <span class="hljs-selector-tag">B</span><br>  → getBean(<span class="hljs-selector-tag">B</span>) → createInstance(<span class="hljs-selector-tag">B</span>) → 需要 <span class="hljs-selector-tag">A</span><br>  → getBean(<span class="hljs-selector-tag">A</span>) → 创建中，等待...（死锁）<br><br>实例化时就需要参数！<br>而 setter/字段注入：先实例化（未赋值），再注入属性<br></code></pre></td></tr></table></figure>
+
+<p><strong>解决方案</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 1. 改用 @Autowired（字段注入）</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">A</span> </span>&#123;<br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> B b;<br>&#125;<br><br><span class="hljs-comment">// 2. 使用 @Lazy（延迟代理）</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">A</span> </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">A</span><span class="hljs-params">(<span class="hljs-meta">@Lazy</span> B b)</span> </span>&#123; ... &#125;  <span class="hljs-comment">// 注入代理对象</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="七、面试题"><a href="#七、面试题" class="headerlink" title="七、面试题"></a>七、面试题</h2><h4 id="1-Spring-怎么解决循环依赖？"><a href="#1-Spring-怎么解决循环依赖？" class="headerlink" title="1. Spring 怎么解决循环依赖？"></a>1. Spring 怎么解决循环依赖？</h4><p>三级缓存：一级存成品 Bean，二级存半成品 Bean，三级存 ObjectFactory。A 先实例化放入三级缓存，B 依赖 A 时从三级缓存获取早期引用，B 完成后再完成 A 的初始化。</p>
+<h4 id="2-为什么需要三级缓存，两级不行吗？"><a href="#2-为什么需要三级缓存，两级不行吗？" class="headerlink" title="2. 为什么需要三级缓存，两级不行吗？"></a>2. 为什么需要三级缓存，两级不行吗？</h4><p>两级缓存无法处理 AOP 代理。三级缓存的 ObjectFactory 只有在循环依赖时才触发 AOP 代理创建，避免正常流程中提前代理。</p>
+<h4 id="3-哪些循环依赖解决不了？"><a href="#3-哪些循环依赖解决不了？" class="headerlink" title="3. 哪些循环依赖解决不了？"></a>3. 哪些循环依赖解决不了？</h4><p>构造器注入（实例化时需要参数）和非单例 Bean（prototype 不缓存）解决不了。</p>
+<h4 id="4-三级缓存和-AOP-的关系？"><a href="#4-三级缓存和-AOP-的关系？" class="headerlink" title="4. 三级缓存和 AOP 的关系？"></a>4. 三级缓存和 AOP 的关系？</h4><p>三级缓存的 getEarlyBeanReference 会调用 SmartInstantiationAwareBeanPostProcessor 提前创建 AOP 代理，确保依赖方拿到的是代理对象。</p>
+<h4 id="5-构造器注入的循环依赖怎么解决？"><a href="#5-构造器注入的循环依赖怎么解决？" class="headerlink" title="5. 构造器注入的循环依赖怎么解决？"></a>5. 构造器注入的循环依赖怎么解决？</h4><p>用 @Lazy 注入代理，或改用字段注入 / setter 注入。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%BA%90%E7%A0%81/">源码</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Spring/">Spring</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96/">循环依赖</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98/">三级缓存</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/SpringBoot%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Spring Boot自动配置原理：@EnableAutoConfiguration源码解析</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/ZooKeeper%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">Zookeeper原理：Zab协议、选举机制、应用场景</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

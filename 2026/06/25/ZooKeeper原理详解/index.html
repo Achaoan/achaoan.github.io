@@ -1,0 +1,597 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>Zookeeper原理：Zab协议、选举机制、应用场景 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/zookeeper-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Zookeeper原理：Zab协议、选举机制、应用场景">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 23:30" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.2k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      14
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Zookeeper原理：Zab协议、选举机制、应用场景</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：40 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、ZooKeeper-概述"><a href="#一、ZooKeeper-概述" class="headerlink" title="一、ZooKeeper 概述"></a>一、ZooKeeper 概述</h2><h3 id="是什么？"><a href="#是什么？" class="headerlink" title="是什么？"></a>是什么？</h3><p>分布式协调服务，提供<strong>配置管理</strong>、<strong>命名服务</strong>、<strong>分布式锁</strong>、<strong>集群管理</strong>。</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">ZooKeeper</span> 保证：<br>├── 顺序一致性（更新按顺序执行）<br>├── 原子性（更新要么全成功要么全失败）<br>├── 单一系统镜像（客户端看到的是一样的）<br>├── 可靠性（更新后持久化）<br>└── 及时性（最终一致性）<br></code></pre></td></tr></table></figure>
+
+<h3 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a>数据模型</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs awk">ZooKeeper 的命名空间类似文件系统（树形结构）：<br><br>/<br>├── /services<br>│   ├── <span class="hljs-regexp">/services/</span>order-service<br>│   └── <span class="hljs-regexp">/services/u</span>ser-service<br>├── /config<br>│   ├── <span class="hljs-regexp">/config/</span>db-config<br>│   └── <span class="hljs-regexp">/config/</span>redis-config<br>└── /locks<br>    └── <span class="hljs-regexp">/locks/</span>order-lock<br><br>每个节点叫 ZNode，可以是：<br>├── 持久节点（可带子节点）<br>├── 临时节点（会话结束自动删除，不可带子节点）<br>├── 顺序节点（名称自动加递增序号）<br>└── 容器节点（子节点清空后自动删除）<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、Zab-协议"><a href="#二、Zab-协议" class="headerlink" title="二、Zab 协议"></a>二、Zab 协议</h2><h3 id="什么是-Zab？"><a href="#什么是-Zab？" class="headerlink" title="什么是 Zab？"></a>什么是 Zab？</h3><p>Zab（ZooKeeper Atomic Broadcast）是 ZK 的<strong>原子广播协议</strong>，保证集群数据一致性。</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">Zab</span> 与 Paxos 的区别：<br>├── Zab 是为 ZK 设计的，主要用于主备同步<br>├── 与 Paxos 不同，Zab 使用<span class="hljs-string">&quot;主进程&quot;</span>来协调写入<br>└── Zab 保证了<span class="hljs-string">&quot;已提交&quot;</span>的变更不会丢失<br></code></pre></td></tr></table></figure>
+
+<h3 id="两种模式"><a href="#两种模式" class="headerlink" title="两种模式"></a>两种模式</h3><figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs sqf"><span class="hljs-number">1</span>. 崩溃恢复（<span class="hljs-built_in">Leader</span> 选举）<br>   └── 集群启动或 <span class="hljs-built_in">Leader</span> 宕机时<br><br><span class="hljs-number">2</span>. 原子广播（数据同步）<br>   └── <span class="hljs-built_in">Leader</span> 正常工作，处理写请求<br></code></pre></td></tr></table></figure>
+
+<h3 id="原子广播流程"><a href="#原子广播流程" class="headerlink" title="原子广播流程"></a>原子广播流程</h3><figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs arduino"><span class="hljs-built_in">Client</span> → 写请求<br>    │<br>    ▼<br>Leader（主）<br>    │<br>    ├── <span class="hljs-number">1.</span> 将请求转为 Proposal（提案），分配 ZXID（全局递增）<br>    │<br>    ├── <span class="hljs-number">2.</span> 发送 Proposal 到所有 Follower<br>    │     └── Follower 写入事务日志，返回 ACK<br>    │<br>    ├── <span class="hljs-number">3.</span> 收到过半 ACK → 提交（Commit）<br>    │<br>    └── <span class="hljs-number">4.</span> 通知所有 Follower 提交<br>          └── Follower 应用到内存数据<br></code></pre></td></tr></table></figure>
+
+<p><strong>关键</strong>：写操作必须经过 Leader，读操作可以直接从 Follower 读取。</p>
+<h2 id="三、Leader-选举"><a href="#三、Leader-选举" class="headerlink" title="三、Leader 选举"></a>三、Leader 选举</h2><h3 id="触发条件"><a href="#触发条件" class="headerlink" title="触发条件"></a>触发条件</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-bullet">1.</span> 集群启动时<br><span class="hljs-bullet">2.</span> Leader 宕机（Leader 失去与过半节点的连接）<br><span class="hljs-bullet">3.</span> 初始化阶段<br></code></pre></td></tr></table></figure>
+
+<h3 id="选举算法（Fast-Leader-Election）"><a href="#选举算法（Fast-Leader-Election）" class="headerlink" title="选举算法（Fast Leader Election）"></a>选举算法（Fast Leader Election）</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs markdown">选举基于两个维度（优先级）：<br><span class="hljs-bullet">1.</span> ZXID：事务 ID 越大，数据越新<br><span class="hljs-bullet">2.</span> myid：服务器 ID（在 myid 文件中配置）<br><br>规则：<br>├── 优先选 ZXID 最大的节点<br>├── ZXID 相同则选 myid 最大的<br>└── 获得过半票数 → 成为 Leader<br></code></pre></td></tr></table></figure>
+
+<h3 id="选举过程"><a href="#选举过程" class="headerlink" title="选举过程"></a>选举过程</h3><figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs gcode">假设 <span class="hljs-number">3</span> 节点集群（myid: <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>），Leader 宕机：<br><br>节点 <span class="hljs-number">1</span>：投票 <span class="hljs-comment">(1, ZXID_1)</span><br>节点 <span class="hljs-number">2</span>：投票 <span class="hljs-comment">(2, ZXID_2)</span>  <br>节点 <span class="hljs-number">3</span>：投票 <span class="hljs-comment">(3, ZXID_3)</span><br><br>假设 ZXID_<span class="hljs-number">3</span> &gt; ZXID_<span class="hljs-number">2</span> &gt; ZXID_<span class="hljs-number">1</span>：<br><br>第一轮：<br>  <span class="hljs-number">1</span> → <span class="hljs-number">2</span>,<span class="hljs-number">3</span>: 投给 <span class="hljs-comment">(1, ZXID_1)</span><br>  <span class="hljs-number">2</span> → <span class="hljs-number">1</span>,<span class="hljs-number">3</span>: 投给 <span class="hljs-comment">(2, ZXID_2)</span><br>  <span class="hljs-number">3</span> → <span class="hljs-number">1</span>,<span class="hljs-number">2</span>: 投给 <span class="hljs-comment">(3, ZXID_3)</span><br><br>比较后各自更新投票：<br>  <span class="hljs-number">1</span> 改为投 <span class="hljs-comment">(3, ZXID_3)</span><br>  <span class="hljs-number">2</span> 改为投 <span class="hljs-comment">(3, ZXID_3)</span><br>  <span class="hljs-number">3</span> 投自己 <span class="hljs-comment">(3, ZXID_3)</span><br><br>节点 <span class="hljs-number">3</span> 获得 <span class="hljs-number">3</span> 票（过半）→ 成为 Leader<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、角色与职责"><a href="#四、角色与职责" class="headerlink" title="四、角色与职责"></a>四、角色与职责</h2><table>
+<thead>
+<tr>
+<th>角色</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Leader</strong></td>
+<td>处理写请求，发起提案，协调同步</td>
+</tr>
+<tr>
+<td><strong>Follower</strong></td>
+<td>处理读请求，参与选举，同步 Leader 数据</td>
+</tr>
+<tr>
+<td><strong>Observer</strong></td>
+<td>只读节点，不参与选举（提升读性能）</td>
+</tr>
+</tbody></table>
+<h3 id="Quorum（法定人数）"><a href="#Quorum（法定人数）" class="headerlink" title="Quorum（法定人数）"></a>Quorum（法定人数）</h3><figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs tap">集群需要过半节点存活才能正常工作：<br><br>节点数 = 2N + 1（推荐奇数，容忍 N 个节点故障）<br>├──<span class="hljs-number"> 3 </span>节点 → 容忍<span class="hljs-number"> 1 </span>个故障<br>├──<span class="hljs-number"> 5 </span>节点 → 容忍<span class="hljs-number"> 2 </span>个故障<br>├──<span class="hljs-number"> 7 </span>节点 → 容忍<span class="hljs-number"> 3 </span>个故障<br><br>为什么不用偶数？<br>├──<span class="hljs-number"> 3 </span>和<span class="hljs-number"> 4 </span>节点都只能容忍<span class="hljs-number"> 1 </span>个故障<br>├──<span class="hljs-number"> 4 </span>节点多一台机器但没提升可用性<br>└── 还增加了脑裂风险（2 vs<span class="hljs-number"> 2 </span>无法过半）<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、应用场景"><a href="#五、应用场景" class="headerlink" title="五、应用场景"></a>五、应用场景</h2><h3 id="配置中心"><a href="#配置中心" class="headerlink" title="配置中心"></a>配置中心</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 配置文件存储在 ZK 节点</span><br><span class="hljs-comment">// 客户端监听节点变化</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ConfigWatcher</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Watcher</span> </span>&#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">process</span><span class="hljs-params">(WatchedEvent event)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (event.getType() == Event.EventType.NodeDataChanged) &#123;<br>            <span class="hljs-comment">// 配置变化，重新加载</span><br>            String newConfig = zk.getData(CONFIG_PATH, <span class="hljs-keyword">true</span>, <span class="hljs-keyword">null</span>);<br>            reloadConfig(newConfig);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="分布式锁"><a href="#分布式锁" class="headerlink" title="分布式锁"></a>分布式锁</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Curator 实现</span><br>InterProcessMutex lock = <span class="hljs-keyword">new</span> InterProcessMutex(client, <span class="hljs-string">&quot;/locks/order&quot;</span>);<br>lock.acquire();<br><span class="hljs-keyword">try</span> &#123; <span class="hljs-comment">/* 业务 */</span> &#125;<br><span class="hljs-keyword">finally</span> &#123; lock.release(); &#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="服务注册与发现"><a href="#服务注册与发现" class="headerlink" title="服务注册与发现"></a>服务注册与发现</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 服务注册（临时节点）</span><br>String path = <span class="hljs-string">&quot;/services/order-service/&quot;</span> + instanceId;<br>zk.create(path, address.getBytes(), <br>    ZooDefs.Ids.OPEN_ACL_UNSAFE, <br>    CreateMode.EPHEMERAL);  <span class="hljs-comment">// 服务下线自动删除</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="六、ZooKeeper-vs-Eureka"><a href="#六、ZooKeeper-vs-Eureka" class="headerlink" title="六、ZooKeeper vs Eureka"></a>六、ZooKeeper vs Eureka</h2><table>
+<thead>
+<tr>
+<th>对比</th>
+<th>ZooKeeper</th>
+<th>Eureka</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>设计哲学</td>
+<td>CP（一致优先）</td>
+<td>AP（可用优先）</td>
+</tr>
+<tr>
+<td>选举</td>
+<td>内置 Zab 协议</td>
+<td>无（各节点平等）</td>
+</tr>
+<tr>
+<td>数据一致性</td>
+<td>强一致性</td>
+<td>最终一致</td>
+</tr>
+<tr>
+<td>网络分区时</td>
+<td>不可用（丢失节点）</td>
+<td>可用（保留存活的）</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>配置/锁/选举</td>
+<td>服务注册发现</td>
+</tr>
+</tbody></table>
+<h2 id="七、面试题"><a href="#七、面试题" class="headerlink" title="七、面试题"></a>七、面试题</h2><h4 id="1-ZooKeeper-是什么？"><a href="#1-ZooKeeper-是什么？" class="headerlink" title="1. ZooKeeper 是什么？"></a>1. ZooKeeper 是什么？</h4><p>分布式协调服务，提供配置管理、命名服务、分布式锁、服务注册发现。</p>
+<h4 id="2-Zab-协议的流程？"><a href="#2-Zab-协议的流程？" class="headerlink" title="2. Zab 协议的流程？"></a>2. Zab 协议的流程？</h4><p>Leader 接收写请求 → 生成 Proposal → 发给 Follower 等待 ACK → 过半则 Commit。</p>
+<h4 id="3-Leader-选举过程？"><a href="#3-Leader-选举过程？" class="headerlink" title="3. Leader 选举过程？"></a>3. Leader 选举过程？</h4><p>优先选 ZXID 最大的，ZXID 相同选 myid 最大的，获得过半票数即当选。</p>
+<h4 id="4-ZK-为什么推荐奇数节点？"><a href="#4-ZK-为什么推荐奇数节点？" class="headerlink" title="4. ZK 为什么推荐奇数节点？"></a>4. ZK 为什么推荐奇数节点？</h4><p>容忍相同数量的故障时，奇数节点比偶数节点少一台机器，更经济。</p>
+<h4 id="5-ZK-和-Eureka-的区别？"><a href="#5-ZK-和-Eureka-的区别？" class="headerlink" title="5. ZK 和 Eureka 的区别？"></a>5. ZK 和 Eureka 的区别？</h4><p>ZK 是 CP 系统（一致优先），Eureka 是 AP 系统（可用优先）。</p>
+<h4 id="6-ZK-的应用场景？"><a href="#6-ZK-的应用场景？" class="headerlink" title="6. ZK 的应用场景？"></a>6. ZK 的应用场景？</h4><p>分布式锁（Curator）、配置中心（监听变化）、服务注册发现（临时节点实现健康检测）。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Zookeeper/">Zookeeper</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%80%89%E4%B8%BE/">选举</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/Spring%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98%E8%AF%A6%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Spring循环依赖：三级缓存原理与源码分析</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">分布式ID生成：雪花算法原理与优化方案</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

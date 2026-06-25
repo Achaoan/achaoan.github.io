@@ -1,0 +1,1106 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>📚 Java 后端知识体系完整目录（80篇） - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/java-interview-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="📚 Java 后端知识体系完整目录（80篇）">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-26 01:00" pubdate>
+        2026年6月26日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.5k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      18
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">📚 Java 后端知识体系完整目录（80篇）</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：7 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <blockquote>
+<p>本站共收录 80 篇 Java 后端面试/技术文章，按知识领域分类整理。点击标题直达原文，⭐ 为重点推荐。</p>
+</blockquote>
+<hr>
+<h2 id="一、Java-基础（12篇）"><a href="#一、Java-基础（12篇）" class="headerlink" title="一、Java 基础（12篇）"></a>一、Java 基础（12篇）</h2><table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>文章</th>
+<th>标签</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td><a href="String%E6%B7%B1%E5%85%A5%E8%AF%A6%E8%A7%A3.html">String深入详解：常量池、不可变性、拼接原理与intern</a></td>
+<td>String、常量池</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><a href="HashMap%E6%BA%90%E7%A0%81%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90.html">HashMap源码深度解析：put、resize、红黑树、扩容机制</a> ⭐</td>
+<td>集合、源码</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td><a href="ConcurrentHashMap%E6%BA%90%E7%A0%81%E8%AF%A6%E8%A7%A3.html">ConcurrentHashMap源码详解：CAS+synchronized、JDK7与JDK8对比</a> ⭐</td>
+<td>集合、并发</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td><a href="ArrayList%E4%B8%8ELinkedList%E6%BA%90%E7%A0%81%E5%AF%B9%E6%AF%94.html">ArrayList与LinkedList源码对比分析</a></td>
+<td>集合、源码</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td><a href="Java8-21%E6%96%B0%E7%89%B9%E6%80%A7%E8%AF%A6%E8%A7%A3.html">Java 8-21 新特性详解：Lambda到虚拟线程</a> ⭐</td>
+<td>新特性、虚拟线程</td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td><a href="JavaIO%E8%AF%A6%E8%A7%A3BIO%E5%92%8CNIO%E5%92%8CAIO.html">Java IO详解：BIO、NIO、AIO、零拷贝</a></td>
+<td>IO、网络编程</td>
+</tr>
+<tr>
+<td align="center">7</td>
+<td><a href="java%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B.html">java基本数据类型</a></td>
+<td>基础</td>
+</tr>
+<tr>
+<td align="center">8</td>
+<td><a href="java%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1.html">java面向对象</a></td>
+<td>面向对象</td>
+</tr>
+<tr>
+<td align="center">9</td>
+<td><a href="java%E6%95%B0%E7%BB%84%E5%9F%BA%E7%A1%80%E4%BB%A5%E5%8F%8A%E5%AF%B9%E6%AF%94.html">java数组基础以及对比</a></td>
+<td>数组</td>
+</tr>
+<tr>
+<td align="center">10</td>
+<td><a href="hashcode%E5%92%8Cequals%E7%9A%84%E5%85%B3%E7%B3%BB.html">hashcode和equals的关系</a></td>
+<td>基础</td>
+</tr>
+<tr>
+<td align="center">11</td>
+<td><a href="java%E5%9F%BA%E7%A1%80%E9%97%AE%E9%A2%98.html">java基础问题汇总</a></td>
+<td>基础</td>
+</tr>
+<tr>
+<td align="center">12</td>
+<td><a href="java%E9%9D%A2%E8%AF%9536%E9%97%AE.html">java面试36问</a> ⭐</td>
+<td>面试汇总</td>
+</tr>
+</tbody></table>
+<h2 id="二、多线程-并发（8篇）"><a href="#二、多线程-并发（8篇）" class="headerlink" title="二、多线程/并发（8篇）"></a>二、多线程/并发（8篇）</h2><table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>文章</th>
+<th>标签</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td><a href="AQS%E8%AF%A6%E8%A7%A3%E4%B8%8EReentrantLock%E5%8E%9F%E7%90%86.html">AQS源码详解：ReentrantLock、独占锁、条件队列原理</a> ⭐</td>
+<td>AQS、JUC</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><a href="%E7%BA%BF%E7%A8%8B%E6%B1%A0%E8%AF%A6%E8%A7%A3.html">线程池详解：核心参数、执行流程、拒绝策略、Executors陷阱</a> ⭐</td>
+<td>线程池</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td><a href="Volatile%E4%B8%8EJMM%E8%AF%A6%E8%A7%A3.html">Volatile与JMM：可见性、有序性、Happens-Before</a></td>
+<td>JMM、Volatile</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td><a href="synchronized%E9%94%81%E5%8D%87%E7%BA%A7%E5%8E%9F%E7%90%86.html">synchronized锁升级原理：偏向锁、轻量级锁、重量级锁</a> ⭐</td>
+<td>锁、synchronized</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td><a href="ThreadLocal%E8%AF%A6%E8%A7%A3.html">ThreadLocal详解：原理、内存泄漏、InheritableThreadLocal</a></td>
+<td>ThreadLocal</td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td><a href="CAS%E5%8E%9F%E7%90%86%E4%B8%8EABA%E9%97%AE%E9%A2%98%E8%AF%A6%E8%A7%A3.html">CAS原理与ABA问题解决方案</a></td>
+<td>CAS、ABA</td>
+</tr>
+<tr>
+<td align="center">7</td>
+<td><a href="JUC%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB%E8%AF%A6%E8%A7%A3.html">JUC并发工具类详解：CountDownLatch、CyclicBarrier、Semaphore</a></td>
+<td>JUC、并发工具</td>
+</tr>
+<tr>
+<td align="center">8</td>
+<td><a href="java%E7%BA%BF%E7%A8%8B.html">java线程基础</a></td>
+<td>线程基础</td>
+</tr>
+</tbody></table>
+<h2 id="三、JVM（4篇）"><a href="#三、JVM（4篇）" class="headerlink" title="三、JVM（4篇）"></a>三、JVM（4篇）</h2><table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>文章</th>
+<th>标签</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td><a href="JVM%E5%9F%BA%E7%A1%80%E5%8F%8A%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95.html">JVM基础及回收算法</a> ⭐</td>
+<td>内存结构、GC</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><a href="JVM%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3.html">JVM类加载机制详解：加载、连接、初始化、双亲委派</a> ⭐</td>
+<td>类加载</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td><a href="JVM%E8%B0%83%E4%BC%98%E5%AE%9E%E6%88%98.html">JVM调优实战：内存调优、GC调优、性能监控工具</a> ⭐</td>
+<td>调优、Arthas</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td><a href="OOM%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90.html">OOM案例分析：堆转储分析与MAT使用实战</a></td>
+<td>OOM、MAT</td>
+</tr>
+</tbody></table>
+<h2 id="四、Spring-全家桶（20篇）"><a href="#四、Spring-全家桶（20篇）" class="headerlink" title="四、Spring 全家桶（20篇）"></a>四、Spring 全家桶（20篇）</h2><h3 id="Spring-核心（5篇）"><a href="#Spring-核心（5篇）" class="headerlink" title="Spring 核心（5篇）"></a>Spring 核心（5篇）</h3><table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>文章</th>
+<th>标签</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td><a href="Spring%E5%9F%BA%E7%A1%80%E5%8F%8A%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98.html">Spring基础及相关问题</a></td>
+<td>IoC、AOP</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><a href="SpringBean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E8%AF%A6%E8%A7%A3.html">Spring Bean生命周期：从实例化到销毁的完整过程</a> ⭐</td>
+<td>Bean生命周期</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td><a href="Spring%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98%E8%AF%A6%E8%A7%A3.html">Spring循环依赖：三级缓存原理与源码分析</a> ⭐</td>
+<td>三级缓存</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td><a href="Spring%E4%BA%8B%E5%8A%A1%E8%AF%A6%E8%A7%A3.html">Spring事务详解：@Transactional原理、传播行为、隔离级别</a> ⭐</td>
+<td>事务</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td><a href="%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%9C%A8Spring%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8.html">设计模式在Spring中的应用：工厂、单例、代理、策略、模板</a></td>
+<td>设计模式</td>
+</tr>
+</tbody></table>
+<h3 id="Spring-Boot（3篇）"><a href="#Spring-Boot（3篇）" class="headerlink" title="Spring Boot（3篇）"></a>Spring Boot（3篇）</h3><table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>文章</th>
+<th>标签</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td><a href="SpringBoot%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86.html">SpringBoot自动配置原理：@EnableAutoConfiguration源码解析</a> ⭐</td>
+<td>自动配置</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><a href="SpringBoot%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B.html">SpringBoot启动过程详解</a></td>
+<td>启动流程</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td><a href="SpringBoot%E5%9F%BA%E7%A1%80%E5%8F%8A%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98.html">SpringBoot基础及相关问题</a></td>
+<td>基础</td>
+</tr>
+</tbody></table>
+<h3 id="Spring-MVC-Security（3篇）"><a href="#Spring-MVC-Security（3篇）" class="headerlink" title="Spring MVC / Security（3篇）"></a>Spring MVC / Security（3篇）</h3><table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>文章</th>
+<th>标签</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td><a href="SpringMVC%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3.html">Spring MVC请求流程详解：DispatcherServlet、HandlerMapping、HandlerAdapter</a> ⭐</td>
+<td>MVC</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><a href="SpringSecurity%E8%AF%A6%E8%A7%A3.html">Spring Security详解：认证授权流程、过滤器链、JWT集成</a></td>
+<td>安全</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td><a href="%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86%E7%9A%84%E5%AE%9E%E7%8E%B0%E4%B8%A4%E7%A7%8D%E6%96%B9%E5%BC%8F%E5%92%8C%E5%8C%BA%E5%88%AB.html">动态代理的实现两种方式和区别</a></td>
+<td>代理</td>
+</tr>
+</tbody></table>
+<h3 id="Spring-Cloud-分布式（9篇）"><a href="#Spring-Cloud-分布式（9篇）" class="headerlink" title="Spring Cloud / 分布式（9篇）"></a>Spring Cloud / 分布式（9篇）</h3><table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>文章</th>
+<th>标签</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td><a href="SpringCloudAlibaba%E8%AF%A6%E8%A7%A3NacosGatewayFeign.html">Spring Cloud Alibaba：Nacos、Gateway、OpenFeign 实战</a> ⭐</td>
+<td>微服务</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><a href="SpringCloud%E5%9F%BA%E7%A1%80%E5%8F%8A%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98.html">SpringCloud基础及相关问题</a></td>
+<td>微服务基础</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td><a href="Dubbo%E5%8E%9F%E7%90%86%E4%B8%8ERPC%E8%AF%A6%E8%A7%A3.html">Dubbo原理：服务暴露/引用、负载均衡、容错机制</a> ⭐</td>
+<td>RPC、Dubbo</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td><a href="Sentinel%E9%99%90%E6%B5%81%E7%86%94%E6%96%AD%E9%99%8D%E7%BA%A7%E5%AE%9E%E6%88%98.html">Sentinel 限流熔断降级实战</a> ⭐</td>
+<td>限流、熔断</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td><a href="%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E8%AF%A6%E8%A7%A3Seata%E4%B8%8ETCC.html">分布式事务详解：Seata AT/TCC、可靠消息最终一致性</a> ⭐</td>
+<td>Seata、TCC</td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td><a href="%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E7%8E%B0%E8%AF%A6%E8%A7%A3.html">分布式锁实现：Redis RedLock vs ZooKeeper 选型对比</a> ⭐</td>
+<td>分布式锁</td>
+</tr>
+<tr>
+<td align="center">7</td>
+<td><a href="%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E8%AF%A6%E8%A7%A3.html">分布式ID生成：雪花算法原理与优化方案</a></td>
+<td>雪花算法</td>
+</tr>
+<tr>
+<td align="center">8</td>
+<td><a href="ZooKeeper%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3.html">Zookeeper原理：Zab协议、选举机制、应用场景</a></td>
+<td>ZK、选举</td>
+</tr>
+<tr>
+<td align="center">9</td>
+<td><a href="%E9%99%90%E6%B5%81%E7%AE%97%E6%B3%95%E4%B8%8E%E5%AE%9E%E7%8E%B0.html">限流算法与实现：计数器、滑动窗口、令牌桶、漏桶</a></td>
+<td>限流</td>
+</tr>
+</tbody></table>
+<h2 id="五、MyBatis（2篇）"><a href="#五、MyBatis（2篇）" class="headerlink" title="五、MyBatis（2篇）"></a>五、MyBatis（2篇）</h2><table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>文章</th>
+<th>标签</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td><a href="MyBatis%E7%BC%93%E5%AD%98%E4%B8%8E%E6%8F%92%E4%BB%B6%E6%9C%BA%E5%88%B6.html">MyBatis缓存机制与插件原理详解</a> ⭐</td>
+<td>缓存、插件</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><a href="Mybatis%E5%9F%BA%E7%A1%80%E5%8F%8A%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98.html">Mybatis基础及相关问题</a></td>
+<td>基础</td>
+</tr>
+</tbody></table>
+<h2 id="六、数据库（6篇）"><a href="#六、数据库（6篇）" class="headerlink" title="六、数据库（6篇）"></a>六、数据库（6篇）</h2><table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>文章</th>
+<th>标签</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td><a href="SQL%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98.html">SQL优化实战：Explain执行计划、索引优化、慢查询</a> ⭐</td>
+<td>SQL、索引</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><a href="MySQL%E9%94%81%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3.html">MySQL锁机制：行锁、间隙锁、临键锁、死锁分析</a> ⭐</td>
+<td>锁</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td><a href="MySQL%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%E4%B8%8E%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB.html">MySQL主从复制原理与读写分离架构详解</a> ⭐</td>
+<td>主从复制</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td><a href="%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8.html">分库分表详解：垂直拆分、水平拆分、ShardingSphere</a> ⭐</td>
+<td>分库分表</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td><a href="MySQL%E8%BF%9B%E9%98%B6%E7%89%88.html">MySQL进阶版</a></td>
+<td>进阶</td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td><a href="3NF%E8%8C%83%E5%BC%8F.html">3NF范式</a></td>
+<td>范式</td>
+</tr>
+</tbody></table>
+<h2 id="七、NoSQL（4篇）"><a href="#七、NoSQL（4篇）" class="headerlink" title="七、NoSQL（4篇）"></a>七、NoSQL（4篇）</h2><table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>文章</th>
+<th>标签</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td><a href="Redis%E9%AB%98%E7%BA%A7%E8%BF%9B%E9%98%B6.html">Redis高级进阶：持久化、集群、哨兵、RedLock、缓存策略</a> ⭐</td>
+<td>Redis</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><a href="Redis%E5%9F%BA%E7%A1%80%E5%8F%8A%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98.html">Redis基础及相关问题</a></td>
+<td>基础</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td><a href="Elasticsearch%E5%9F%BA%E7%A1%80%E5%8F%8A%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98.html">Elasticsearch基础及相关问题</a></td>
+<td>ES、搜索引擎</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td><a href="MongoDB%E5%9F%BA%E7%A1%80%E4%BB%A5%E5%8F%8A%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98.html">MongoDB基础以及相关问题</a></td>
+<td>MongoDB</td>
+</tr>
+</tbody></table>
+<h2 id="八、消息中间件（4篇）"><a href="#八、消息中间件（4篇）" class="headerlink" title="八、消息中间件（4篇）"></a>八、消息中间件（4篇）</h2><table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>文章</th>
+<th>标签</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td><a href="Kafka%E6%B7%B1%E5%85%A5%E8%AF%A6%E8%A7%A3.html">Kafka深入详解：架构、分区、副本、消息可靠性</a> ⭐</td>
+<td>Kafka</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><a href="RocketMQ%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98.html">RocketMQ原理与实战：架构、消息模型、事务消息</a> ⭐</td>
+<td>RocketMQ</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td><a href="RabbitMQ%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98.html">RabbitMQ原理与实战：交换机类型、消息确认、死信队列</a> ⭐</td>
+<td>RabbitMQ</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td><a href="%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6.html">消息中间件基础</a></td>
+<td>基础对比</td>
+</tr>
+</tbody></table>
+<h2 id="九、计算机基础（5篇）"><a href="#九、计算机基础（5篇）" class="headerlink" title="九、计算机基础（5篇）"></a>九、计算机基础（5篇）</h2><table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>文章</th>
+<th>标签</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td><a href="%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CTCP-IP%E8%AF%A6%E8%A7%A3.html">计算机网络：TCP/IP 协议详解</a> ⭐</td>
+<td>TCP/IP</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><a href="%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CHTTP-HTTPS%E8%AF%A6%E8%A7%A3.html">计算机网络：HTTP/HTTPS 协议详解</a> ⭐</td>
+<td>HTTP、HTTPS</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td><a href="%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E8%AF%A6%E8%A7%A3.html">操作系统核心概念：进程线程、死锁、内存管理</a></td>
+<td>操作系统</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td><a href="%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95%E9%9D%A2%E8%AF%95%E6%8C%87%E5%8D%97.html">数据结构与算法面试指南</a></td>
+<td>数据结构、算法</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td><a href="%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E4%B8%8E%E4%BD%8D%E5%9B%BE%E8%AF%A6%E8%A7%A3.html">布隆过滤器与位图：原理、实现与应用</a></td>
+<td>布隆过滤器</td>
+</tr>
+</tbody></table>
+<h2 id="十、开发工具（8篇）"><a href="#十、开发工具（8篇）" class="headerlink" title="十、开发工具（8篇）"></a>十、开发工具（8篇）</h2><table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>文章</th>
+<th>标签</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td><a href="Docker%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8%E4%B8%8E%E5%AE%9E%E6%88%98.html">Docker基础入门与实战</a> ⭐</td>
+<td>Docker</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><a href="Kubernetes%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8.html">Kubernetes基础入门：Pod、Deployment、Service核心概念</a> ⭐</td>
+<td>K8s</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td><a href="Netty%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3.html">Netty核心：Reactor模型、EventLoop、零拷贝</a> ⭐</td>
+<td>Netty</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td><a href="CI-CD%E5%AE%9E%E6%88%98GitLab%E4%B8%8EJenkins.html">CI/CD实战：GitLab CI 与 Jenkins 流水线</a></td>
+<td>CI/CD</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td><a href="Linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E5%AE%9E%E6%88%98.html">Linux常用命令实战：文本处理、网络排查、系统监控</a></td>
+<td>Linux</td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td><a href="Tomcat%E5%92%8CUndertow%E7%9A%84%E4%BC%98%E7%BC%BA%E7%82%B9.html">Tomcat和Undertow的优缺点</a></td>
+<td>Web容器</td>
+</tr>
+<tr>
+<td align="center">7</td>
+<td><a href="Svn%E5%92%8CGit%E5%8C%BA%E5%88%AB.html">Svn和Git区别</a></td>
+<td>版本控制</td>
+</tr>
+<tr>
+<td align="center">8</td>
+<td><a href="docker%E4%B8%8Bgitlab%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE%E4%BD%BF%E7%94%A8(%E5%AE%8C%E6%95%B4%E7%89%88).html">docker下gitlab安装配置使用(完整版)</a></td>
+<td>GitLab</td>
+</tr>
+</tbody></table>
+<h2 id="十一、系统设计（4篇）"><a href="#十一、系统设计（4篇）" class="headerlink" title="十一、系统设计（4篇）"></a>十一、系统设计（4篇）</h2><table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>文章</th>
+<th>标签</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td><a href="%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1.html">秒杀系统设计：缓存+MQ+限流+降级方案</a> ⭐</td>
+<td>秒杀、高并发</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><a href="%E7%9F%AD%E9%93%BE%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1.html">短链系统设计：发号器+重定向+高性能架构</a></td>
+<td>短链</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td><a href="%E9%99%90%E6%B5%81%E7%AE%97%E6%B3%95%E4%B8%8E%E5%AE%9E%E7%8E%B0.html">限流算法与实现</a></td>
+<td>限流</td>
+</tr>
+</tbody></table>
+<h2 id="十二、其他"><a href="#十二、其他" class="headerlink" title="十二、其他"></a>十二、其他</h2><table>
+<thead>
+<tr>
+<th align="center">#</th>
+<th>文章</th>
+<th>标签</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td><a href="golang%E9%9D%A2%E8%AF%95%E6%95%B4%E7%90%86.html">golang面试整理</a></td>
+<td>Golang</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td><a href="%E5%BC%80%E5%8F%91%E4%BA%BA%E5%91%98%E6%8E%A5%E7%A7%81%E6%B4%BB%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B%E8%AE%BE%E8%AE%A1.html">开发人员接私活完整流程设计</a></td>
+<td>经验分享</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="统计"><a href="#统计" class="headerlink" title="统计"></a>统计</h2><table>
+<thead>
+<tr>
+<th align="left">分类</th>
+<th align="center">数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">Java 基础</td>
+<td align="center">12</td>
+</tr>
+<tr>
+<td align="left">多线程/并发</td>
+<td align="center">8</td>
+</tr>
+<tr>
+<td align="left">JVM</td>
+<td align="center">4</td>
+</tr>
+<tr>
+<td align="left">Spring 全家桶</td>
+<td align="center">20</td>
+</tr>
+<tr>
+<td align="left">MyBatis</td>
+<td align="center">2</td>
+</tr>
+<tr>
+<td align="left">数据库</td>
+<td align="center">6</td>
+</tr>
+<tr>
+<td align="left">NoSQL</td>
+<td align="center">4</td>
+</tr>
+<tr>
+<td align="left">消息中间件</td>
+<td align="center">4</td>
+</tr>
+<tr>
+<td align="left">计算机基础</td>
+<td align="center">5</td>
+</tr>
+<tr>
+<td align="left">开发工具</td>
+<td align="center">8</td>
+</tr>
+<tr>
+<td align="left">系统设计</td>
+<td align="center">3</td>
+</tr>
+<tr>
+<td align="left">其他</td>
+<td align="center">2</td>
+</tr>
+<tr>
+<td align="left"><strong>合计</strong></td>
+<td align="center"><strong>80</strong></td>
+</tr>
+</tbody></table>
+<hr>
+<blockquote>
+<p>📌 本文档置顶，方便快速检索。如有新文章发布，会同步更新此目录。</p>
+</blockquote>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E9%9A%8F%E7%AC%94/">随笔</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Java/">Java</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E8%A7%84%E5%88%92/">规划</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB/">知识体系</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%9B%AE%E5%BD%95/">目录</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/26/Java%E5%90%8E%E7%AB%AF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF2026/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java 后端学习路线 2026：从零基础到架构师</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/26/SpringCloudAlibaba%E8%AF%A6%E8%A7%A3NacosGatewayFeign/">
+                        <span class="hidden-mobile">Spring Cloud Alibaba：Nacos、Gateway、OpenFeign 实战</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

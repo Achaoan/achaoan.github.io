@@ -1,0 +1,563 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>ThreadLocal详解：原理、内存泄漏、InheritableThreadLocal - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/threadlocal-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="ThreadLocal详解：原理、内存泄漏、InheritableThreadLocal">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 21:00" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.4k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      19
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">ThreadLocal详解：原理、内存泄漏、InheritableThreadLocal</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：1 小时前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、ThreadLocal-概述"><a href="#一、ThreadLocal-概述" class="headerlink" title="一、ThreadLocal 概述"></a>一、ThreadLocal 概述</h2><h3 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h3><p>创建<strong>线程局部变量</strong>，每个线程拥有自己的独立副本，互不干扰。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">ThreadLocal&lt;String&gt; local = <span class="hljs-keyword">new</span> ThreadLocal&lt;&gt;();<br>local.set(<span class="hljs-string">&quot;线程A的数据&quot;</span>);  <span class="hljs-comment">// 当前线程存储</span><br>local.get();               <span class="hljs-comment">// 当前线程读取</span><br>local.remove();            <span class="hljs-comment">// 清理</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-bullet">1.</span> 数据库连接管理（Spring 事务管理器）<br><span class="hljs-bullet">2.</span> Web 请求上下文（用户信息、请求 ID）<br><span class="hljs-bullet">3.</span> 日志 MDC（Mapped Diagnostic Context）<br><span class="hljs-bullet">4.</span> 线程安全的日期格式化（SimpleDateFormat）<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、数据结构"><a href="#二、数据结构" class="headerlink" title="二、数据结构"></a>二、数据结构</h2><h3 id="每个-Thread-持有-ThreadLocalMap"><a href="#每个-Thread-持有-ThreadLocalMap" class="headerlink" title="每个 Thread 持有 ThreadLocalMap"></a>每个 Thread 持有 ThreadLocalMap</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Thread 类内部</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Thread</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Runnable</span> </span>&#123;<br>    ThreadLocal.ThreadLocalMap threadLocals;  <span class="hljs-comment">// 每个线程自己的 Map</span><br>    ThreadLocal.ThreadLocalMap inheritableThreadLocals;  <span class="hljs-comment">// 可继承的</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="ThreadLocalMap-结构"><a href="#ThreadLocalMap-结构" class="headerlink" title="ThreadLocalMap 结构"></a>ThreadLocalMap 结构</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ThreadLocalMap</span> </span>&#123;<br>    <span class="hljs-comment">// 数组，不是链表！</span><br>    <span class="hljs-keyword">private</span> Entry[] table;<br>    <br>    <span class="hljs-comment">// Entry 继承 WeakReference，key 是 ThreadLocal 的弱引用</span><br>    <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Entry</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">WeakReference</span>&lt;<span class="hljs-title">ThreadLocal</span>&lt;?&gt;&gt; </span>&#123;<br>        Object value;  <span class="hljs-comment">// 实际存储的值</span><br>        <br>        Entry(ThreadLocal&lt;?&gt; k, Object v) &#123;<br>            <span class="hljs-keyword">super</span>(k);   <span class="hljs-comment">// key 是弱引用</span><br>            value = v;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="结构图"><a href="#结构图" class="headerlink" title="结构图"></a>结构图</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs css">Thread<br>  └── threadLocals（ThreadLocalMap）<br>        └── Entry<span class="hljs-selector-attr">[]</span> <span class="hljs-selector-tag">table</span><br>              ├── <span class="hljs-selector-attr">[0]</span> Entry&#123; key: ThreadLocal①(弱引用), value: <span class="hljs-string">&quot;A&quot;</span> &#125;<br>              ├── <span class="hljs-selector-attr">[1]</span> Entry&#123; key: ThreadLocal②(弱引用), value: <span class="hljs-string">&quot;B&quot;</span> &#125;<br>              ├── <span class="hljs-selector-attr">[2]</span> null<br>              └── <span class="hljs-selector-attr">[3]</span> Entry&#123; key: ThreadLocal③(弱引用), value: <span class="hljs-string">&quot;C&quot;</span> &#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、核心方法源码"><a href="#三、核心方法源码" class="headerlink" title="三、核心方法源码"></a>三、核心方法源码</h2><h3 id="set-方法"><a href="#set-方法" class="headerlink" title="set 方法"></a>set 方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">set</span><span class="hljs-params">(T value)</span> </span>&#123;<br>    Thread t = Thread.currentThread();<br>    ThreadLocalMap map = getMap(t);  <span class="hljs-comment">// t.threadLocals</span><br>    <span class="hljs-keyword">if</span> (map != <span class="hljs-keyword">null</span>)<br>        map.set(<span class="hljs-keyword">this</span>, value);<br>    <span class="hljs-keyword">else</span><br>        createMap(t, value);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">createMap</span><span class="hljs-params">(Thread t, T firstValue)</span> </span>&#123;<br>    t.threadLocals = <span class="hljs-keyword">new</span> ThreadLocalMap(<span class="hljs-keyword">this</span>, firstValue);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="ThreadLocalMap-set"><a href="#ThreadLocalMap-set" class="headerlink" title="ThreadLocalMap.set()"></a>ThreadLocalMap.set()</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">set</span><span class="hljs-params">(ThreadLocal&lt;?&gt; key, Object value)</span> </span>&#123;<br>    Entry[] tab = table;<br>    <span class="hljs-keyword">int</span> len = tab.length;<br>    <span class="hljs-keyword">int</span> i = key.threadLocalHashCode &amp; (len - <span class="hljs-number">1</span>);  <span class="hljs-comment">// 计算下标</span><br>    <br>    <span class="hljs-comment">// 线性探测法解决哈希冲突</span><br>    <span class="hljs-keyword">for</span> (Entry e = tab[i]; e != <span class="hljs-keyword">null</span>; e = tab[i = nextIndex(i, len)]) &#123;<br>        <span class="hljs-keyword">if</span> (e.refersTo(key)) &#123;  <span class="hljs-comment">// key 相同 → 覆盖</span><br>            e.value = value;<br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br>        <span class="hljs-keyword">if</span> (e.refersTo(<span class="hljs-keyword">null</span>)) &#123;  <span class="hljs-comment">// key 已被 GC 回收 → 替换 stale entry</span><br>            replaceStaleEntry(key, value, i);<br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br>    &#125;<br>    <br>    tab[i] = <span class="hljs-keyword">new</span> Entry(key, value);<br>    <span class="hljs-keyword">int</span> sz = ++size;<br>    <span class="hljs-keyword">if</span> (!cleanSomeSlots(i, sz) &amp;&amp; sz &gt;= threshold)<br>        rehash();  <span class="hljs-comment">// 扩容</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="get-方法"><a href="#get-方法" class="headerlink" title="get 方法"></a>get 方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> T <span class="hljs-title">get</span><span class="hljs-params">()</span> </span>&#123;<br>    Thread t = Thread.currentThread();<br>    ThreadLocalMap map = getMap(t);<br>    <span class="hljs-keyword">if</span> (map != <span class="hljs-keyword">null</span>) &#123;<br>        ThreadLocalMap.Entry e = map.getEntry(<span class="hljs-keyword">this</span>);<br>        <span class="hljs-keyword">if</span> (e != <span class="hljs-keyword">null</span>) <span class="hljs-keyword">return</span> (T)e.value;<br>    &#125;<br>    <span class="hljs-keyword">return</span> setInitialValue();  <span class="hljs-comment">// 无值 → 返回 null</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">private</span> T <span class="hljs-title">setInitialValue</span><span class="hljs-params">()</span> </span>&#123;<br>    T value = initialValue();<br>    Thread t = Thread.currentThread();<br>    ThreadLocalMap map = getMap(t);<br>    <span class="hljs-keyword">if</span> (map != <span class="hljs-keyword">null</span>)<br>        map.set(<span class="hljs-keyword">this</span>, value);<br>    <span class="hljs-keyword">else</span><br>        createMap(t, value);<br>    <span class="hljs-keyword">return</span> value;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">protected</span> T <span class="hljs-title">initialValue</span><span class="hljs-params">()</span> </span>&#123; <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>; &#125;  <span class="hljs-comment">// 默认 null，可重写</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="remove-方法"><a href="#remove-方法" class="headerlink" title="remove 方法"></a>remove 方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">remove</span><span class="hljs-params">()</span> </span>&#123;<br>    ThreadLocalMap m = getMap(Thread.currentThread());<br>    <span class="hljs-keyword">if</span> (m != <span class="hljs-keyword">null</span>)<br>        m.remove(<span class="hljs-keyword">this</span>);  <span class="hljs-comment">// 删除 Entry</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、哈希冲突解决"><a href="#四、哈希冲突解决" class="headerlink" title="四、哈希冲突解决"></a>四、哈希冲突解决</h2><h3 id="为什么用线性探测而不是链表？"><a href="#为什么用线性探测而不是链表？" class="headerlink" title="为什么用线性探测而不是链表？"></a>为什么用线性探测而不是链表？</h3><figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs ada">HashMap：链地址法（链表 + 红黑树）<br>ThreadLocalMap：开放地址法（线性探测）<br><br>原因：<br>├── ThreadLocalMap 的 <span class="hljs-keyword">Entry</span> 数量极少（通常 &lt; <span class="hljs-number">16</span>）<br>├── <span class="hljs-keyword">Entry</span> 数量不可能很大（一个线程不会用太多 ThreadLocal）<br>└── 线性探测在数据量小时效率更好<br></code></pre></td></tr></table></figure>
+
+<h3 id="黄金分割数（魔数）"><a href="#黄金分割数（魔数）" class="headerlink" title="黄金分割数（魔数）"></a>黄金分割数（魔数）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// ThreadLocal 的哈希值每次累加 0x61c88647</span><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> HASH_INCREMENT = <span class="hljs-number">0x61c88647</span>;<br><br><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> <span class="hljs-title">nextHashCode</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> nextHashCode.getAndAdd(HASH_INCREMENT);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>0x61c88647</code> 是黄金分割数，用它作为步长能保证哈希值均匀分布在 2 的幂次数组上。</p>
+<h2 id="五、内存泄漏分析"><a href="#五、内存泄漏分析" class="headerlink" title="五、内存泄漏分析"></a>五、内存泄漏分析</h2><h3 id="弱引用设计"><a href="#弱引用设计" class="headerlink" title="弱引用设计"></a>弱引用设计</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Entry 的 key 是弱引用</span><br><span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Entry</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">WeakReference</span>&lt;<span class="hljs-title">ThreadLocal</span>&lt;?&gt;&gt; </span>&#123;<br>    Object value;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="为什么用弱引用？"><a href="#为什么用弱引用？" class="headerlink" title="为什么用弱引用？"></a>为什么用弱引用？</h3><figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs gauss">强引用：ThreadLocal 对象无法被 GC，即使业务代码不再使用它<br>弱引用：ThreadLocal 对象可以被 GC 回收，<span class="hljs-built_in">key</span> 变为 <span class="hljs-built_in">null</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="内存泄漏的真正原因"><a href="#内存泄漏的真正原因" class="headerlink" title="内存泄漏的真正原因"></a>内存泄漏的真正原因</h3><figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs nix">ThreadLocal 被 GC 回收后：<br>  ├── <span class="hljs-attr">key</span> = <span class="hljs-literal">null</span>（弱引用，已回收）<br>  └── value ≠ <span class="hljs-literal">null</span>（强引用，仍有值）<br>       └── 只要线程存活，value 就存活<br>            └── 线程池中的线程复用，value 永远不会被清理！<br></code></pre></td></tr></table></figure>
+
+<h3 id="泄漏链"><a href="#泄漏链" class="headerlink" title="泄漏链"></a>泄漏链</h3><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">Thread 存活（线程池复用）<br>  └── ThreadLocalMap 存活<br>        └── <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Entry</span>.</span></span>value 强引用<br>              └── 永远不会被 GC！<br></code></pre></td></tr></table></figure>
+
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 1. 每次使用后必须 remove</span><br><span class="hljs-keyword">try</span> &#123;<br>    threadLocal.set(value);<br>    <span class="hljs-comment">// ... 业务逻辑</span><br>&#125; <span class="hljs-keyword">finally</span> &#123;<br>    threadLocal.remove();  <span class="hljs-comment">// 必须清理！</span><br>&#125;<br><br><span class="hljs-comment">// 2. ThreadLocalMap 自身的保护机制</span><br><span class="hljs-comment">//    - set() 时：清理过期 Entry（replaceStaleEntry / cleanSomeSlots）</span><br><span class="hljs-comment">//    - get() 时：发现 key 为 null 则清理（expungeStaleEntry）</span><br><span class="hljs-comment">//    - 扩容时：expungeStaleEntries() 全面清理</span><br><span class="hljs-comment">//    但不能完全依赖，手动 remove 才是最佳实践</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="六、InheritableThreadLocal"><a href="#六、InheritableThreadLocal" class="headerlink" title="六、InheritableThreadLocal"></a>六、InheritableThreadLocal</h2><h3 id="作用-1"><a href="#作用-1" class="headerlink" title="作用"></a>作用</h3><p>子线程继承父线程的 ThreadLocal 值。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">InheritableThreadLocal</span>&lt;<span class="hljs-title">T</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">ThreadLocal</span>&lt;<span class="hljs-title">T</span>&gt; </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">protected</span> T <span class="hljs-title">childValue</span><span class="hljs-params">(T parentValue)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> parentValue;  <span class="hljs-comment">// 直接继承父线程的值</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Thread 构造时</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Thread</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-comment">// 父线程</span><br>    Thread parent = currentThread();<br>    <br>    <span class="hljs-comment">// 复制父线程的 inheritableThreadLocals</span><br>    <span class="hljs-keyword">if</span> (parent.inheritableThreadLocals != <span class="hljs-keyword">null</span>)<br>        <span class="hljs-keyword">this</span>.inheritableThreadLocals =<br>            ThreadLocal.createInheritedMap(parent.inheritableThreadLocals);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="局限性"><a href="#局限性" class="headerlink" title="局限性"></a>局限性</h3><figure class="highlight autohotkey"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs autohotkey">InheritableThreadLocal 只在 <span class="hljs-keyword">new</span> <span class="hljs-keyword">Thread</span>() 时传递<br>线程池复用线程 → 不会传递！值丢失！<br><br>解决方案：TransmittableThreadLocal（阿里开源）<br>  └── 解决线程池场景下的上下文传递问题<br></code></pre></td></tr></table></figure>
+
+<h3 id="TransmittableThreadLocal（TTL）"><a href="#TransmittableThreadLocal（TTL）" class="headerlink" title="TransmittableThreadLocal（TTL）"></a>TransmittableThreadLocal（TTL）</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.alibaba<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>transmittable-thread-local<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>2.14.2<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 修饰线程池</span><br>ExecutorService executor = TtlExecutors.getTtlExecutorService(<br>    <span class="hljs-keyword">new</span> ThreadPoolExecutor(<span class="hljs-number">3</span>, <span class="hljs-number">3</span>, <span class="hljs-number">0L</span>, TimeUnit.MILLISECONDS,<br>        <span class="hljs-keyword">new</span> LinkedBlockingQueue&lt;&gt;()));<br><br><span class="hljs-comment">// 或通过 TtlRunnable 包装</span><br>Runnable ttlRunnable = TtlRunnable.get(runnable);<br></code></pre></td></tr></table></figure>
+
+<h2 id="七、面试题"><a href="#七、面试题" class="headerlink" title="七、面试题"></a>七、面试题</h2><h4 id="1-ThreadLocal-原理？"><a href="#1-ThreadLocal-原理？" class="headerlink" title="1. ThreadLocal 原理？"></a>1. ThreadLocal 原理？</h4><p>每个 Thread 持有 ThreadLocalMap，key 是 ThreadLocal 弱引用，value 是存储的值。通过 <code>set()</code> / <code>get()</code> 操作当前线程的 Map。</p>
+<h4 id="2-ThreadLocal-内存泄漏原因？"><a href="#2-ThreadLocal-内存泄漏原因？" class="headerlink" title="2. ThreadLocal 内存泄漏原因？"></a>2. ThreadLocal 内存泄漏原因？</h4><p>Entry 的 key 是弱引用，GC 后被回收，但 value 是强引用。线程池中线程复用，value 无法被回收。**必须 remove()**。</p>
+<h4 id="3-为什么用弱引用-key？"><a href="#3-为什么用弱引用-key？" class="headerlink" title="3. 为什么用弱引用 key？"></a>3. 为什么用弱引用 key？</h4><p>防止 ThreadLocal 对象无法被 GC。如果用强引用，即使业务不再使用 ThreadLocal，它也无法被回收。</p>
+<h4 id="4-ThreadLocalMap-的哈希冲突怎么解决？"><a href="#4-ThreadLocalMap-的哈希冲突怎么解决？" class="headerlink" title="4. ThreadLocalMap 的哈希冲突怎么解决？"></a>4. ThreadLocalMap 的哈希冲突怎么解决？</h4><p>线性探测（开放地址法），因为 ThreadLocalMap 的 Entry 数量通常很少。</p>
+<h4 id="5-InheritableThreadLocal-有什么用？有什么坑？"><a href="#5-InheritableThreadLocal-有什么用？有什么坑？" class="headerlink" title="5. InheritableThreadLocal 有什么用？有什么坑？"></a>5. InheritableThreadLocal 有什么用？有什么坑？</h4><p>子线程继承父线程的 ThreadLocal 值。在线程池中会失效（线程复用），可用阿里 TTL 解决。</p>
+<h4 id="6-ThreadLocal-的应用场景？"><a href="#6-ThreadLocal-的应用场景？" class="headerlink" title="6. ThreadLocal 的应用场景？"></a>6. ThreadLocal 的应用场景？</h4><p>Spring 事务管理器（事务上下文）、请求上下文（用户信息）、MDC 日志、SimpleDateFormat 线程安全。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Java/">Java</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%BA%90%E7%A0%81/">源码</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/ThreadLocal/">ThreadLocal</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E8%AF%A6%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">线程池详解：核心参数、执行流程、拒绝策略、Executors陷阱</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/AQS%E8%AF%A6%E8%A7%A3%E4%B8%8EReentrantLock%E5%8E%9F%E7%90%86/">
+                        <span class="hidden-mobile">AQS源码详解：ReentrantLock、独占锁、条件队列原理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

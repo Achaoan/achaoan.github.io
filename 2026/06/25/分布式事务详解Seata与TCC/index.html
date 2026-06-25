@@ -1,0 +1,645 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>分布式事务详解：Seata AT/TCC、可靠消息最终一致性 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/distributed-tx-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="分布式事务详解：Seata AT/TCC、可靠消息最终一致性">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 23:30" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.4k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      16
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">分布式事务详解：Seata AT/TCC、可靠消息最终一致性</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：1 小时前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、什么是分布式事务？"><a href="#一、什么是分布式事务？" class="headerlink" title="一、什么是分布式事务？"></a>一、什么是分布式事务？</h2><h3 id="为什么需要分布式事务？"><a href="#为什么需要分布式事务？" class="headerlink" title="为什么需要分布式事务？"></a>为什么需要分布式事务？</h3><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs asciidoc">微服务架构中，一个业务操作可能跨多个服务、多个数据库：<br>下单业务：<br>├── 订单服务 → 创建订单（order<span class="hljs-emphasis">_db）</span><br><span class="hljs-emphasis">├── 库存服务 → 扣减库存（stock_db）</span><br><span class="hljs-emphasis">└── 账户服务 → 扣减余额（account_</span>db）<br></code></pre></td></tr></table></figure>
+
+<h3 id="CAP-定理"><a href="#CAP-定理" class="headerlink" title="CAP 定理"></a>CAP 定理</h3><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">一致性（<span class="hljs-variable">Consistency</span>）、可用性（<span class="hljs-variable">Availability</span>）、分区容错性（<span class="hljs-built_in">Partition</span> <span class="hljs-built_in">Tolerance</span>）<br>三者最多同时满足两个。<br><br>分布式系统中 <span class="hljs-variable">P</span> 是必选的：<br>├── <span class="hljs-variable">CP</span> 系统（<span class="hljs-variable">ZooKeeper</span>）：一致性优先<br>└── <span class="hljs-variable">AP</span> 系统（<span class="hljs-variable">Eureka</span>）：可用性优先<br><br>分布式事务需要在一致性和可用性之间权衡。<br></code></pre></td></tr></table></figure>
+
+<h3 id="BASE-理论"><a href="#BASE-理论" class="headerlink" title="BASE 理论"></a>BASE 理论</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm"><span class="hljs-keyword">Basically </span>Available（基本可用）<br>Soft State（软状态）<br>Eventually Consistent（最终一致性）<br><br>不再是传统的强一致性，而是允许一段时间内不一致，最终达到一致。<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、分布式事务方案对比"><a href="#二、分布式事务方案对比" class="headerlink" title="二、分布式事务方案对比"></a>二、分布式事务方案对比</h2><table>
+<thead>
+<tr>
+<th>方案</th>
+<th align="center">一致性</th>
+<th align="center">性能</th>
+<th align="center">复杂度</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>2PC</strong>（XA）</td>
+<td align="center">强一致</td>
+<td align="center">低</td>
+<td align="center">低</td>
+<td>短事务、低并发</td>
+</tr>
+<tr>
+<td><strong>TCC</strong></td>
+<td align="center">最终一致</td>
+<td align="center">中</td>
+<td align="center">高</td>
+<td>高并发、长事务</td>
+</tr>
+<tr>
+<td><strong>Seata AT</strong></td>
+<td align="center">最终一致</td>
+<td align="center">中</td>
+<td align="center">低</td>
+<td>大多数场景</td>
+</tr>
+<tr>
+<td><strong>可靠消息</strong></td>
+<td align="center">最终一致</td>
+<td align="center">高</td>
+<td align="center">中</td>
+<td>异步、高并发</td>
+</tr>
+<tr>
+<td><strong>最大努力通知</strong></td>
+<td align="center">最终一致</td>
+<td align="center">高</td>
+<td align="center">低</td>
+<td>外部系统回调</td>
+</tr>
+</tbody></table>
+<h2 id="三、2PC（两阶段提交）"><a href="#三、2PC（两阶段提交）" class="headerlink" title="三、2PC（两阶段提交）"></a>三、2PC（两阶段提交）</h2><h3 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h3><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">阶段 <span class="hljs-number">1</span>：准备（<span class="hljs-keyword">Prepare</span>）<br>  Coordinator → 所有参与者<br>    │<br>    ├── 询问：&quot;准备好提交事务了吗？&quot;<br>    ├── 参与者：执行本地事务（不提交），记录 undo/redo 日志<br>    └── 返回：Yes / <span class="hljs-keyword">No</span><br><br>阶段 <span class="hljs-number">2</span>：提交/回滚（<span class="hljs-keyword">Commit</span> / <span class="hljs-keyword">Rollback</span>）<br>  Coordinator<br>    │<br>    ├── 全部返回 Yes → 发送 <span class="hljs-keyword">commit</span> 指令<br>    │     └── 参与者提交本地事务<br>    │<br>    └── 任一返回 <span class="hljs-keyword">No</span> → 发送 <span class="hljs-keyword">rollback</span> 指令<br>          └── 参与者回滚本地事务<br></code></pre></td></tr></table></figure>
+
+<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-bullet">1.</span> 同步阻塞：参与者持有资源锁，无法处理其他事务<br><span class="hljs-bullet">2.</span> 单点故障：协调者挂了，参与者不知道提交还是回滚<br><span class="hljs-bullet">3.</span> 数据不一致：协调者发 commit，只有部分参与者收到<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、TCC（Try-Confirm-Cancel）"><a href="#四、TCC（Try-Confirm-Cancel）" class="headerlink" title="四、TCC（Try-Confirm-Cancel）"></a>四、TCC（Try-Confirm-Cancel）</h2><h3 id="三阶段"><a href="#三阶段" class="headerlink" title="三阶段"></a>三阶段</h3><table>
+<thead>
+<tr>
+<th align="center">阶段</th>
+<th>操作</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>Try</strong></td>
+<td>预占资源</td>
+<td>冻结库存、锁定余额（不下单）</td>
+</tr>
+<tr>
+<td align="center"><strong>Confirm</strong></td>
+<td>确认执行</td>
+<td>真正扣减（from frozen to actual）</td>
+</tr>
+<tr>
+<td align="center"><strong>Cancel</strong></td>
+<td>取消回滚</td>
+<td>释放 Try 阶段预占的资源</td>
+</tr>
+</tbody></table>
+<h3 id="示例：库存扣减"><a href="#示例：库存扣减" class="headerlink" title="示例：库存扣减"></a>示例：库存扣减</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">InventoryService</span> </span>&#123;<br>    <br>    <span class="hljs-comment">// Try：冻结库存</span><br>    <span class="hljs-meta">@Try</span><br>    <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">tryDeduct</span><span class="hljs-params">(Long orderId, Long productId, <span class="hljs-keyword">int</span> quantity)</span></span>;<br>    <br>    <span class="hljs-comment">// Confirm：确认扣减</span><br>    <span class="hljs-meta">@Confirm</span><br>    <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">confirmDeduct</span><span class="hljs-params">(Long orderId)</span></span>;<br>    <br>    <span class="hljs-comment">// Cancel：释放冻结库存</span><br>    <span class="hljs-meta">@Cancel</span><br>    <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">cancelDeduct</span><span class="hljs-params">(Long orderId)</span></span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="TCC-注意事项"><a href="#TCC-注意事项" class="headerlink" title="TCC 注意事项"></a>TCC 注意事项</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-bullet">1.</span> 空回滚：Confirm 从未执行，Cancel 需能识别并空回滚<br><span class="hljs-bullet">2.</span> 幂等性：Confirm/Cancel 可能多次调用，需要幂等<br><span class="hljs-bullet">3.</span> 悬挂：Try 超时后 Cancel 执行了，Try 才到达 → 防悬挂控制<br><span class="hljs-bullet">4.</span> 业务侵入性高（需要实现三个接口）<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、Seata-AT-模式"><a href="#五、Seata-AT-模式" class="headerlink" title="五、Seata AT 模式"></a>五、Seata AT 模式</h2><h3 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs awk">Transaction Coordinator（TC，事务协调器）<br>    │<br>    ├── TM（事务管理器）：开启<span class="hljs-regexp">/提交/</span>回滚全局事务<br>    └── RM（资源管理器）：管理分支事务<br></code></pre></td></tr></table></figure>
+
+<h3 id="AT-模式原理"><a href="#AT-模式原理" class="headerlink" title="AT 模式原理"></a>AT 模式原理</h3><figure class="highlight mel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs mel">Seata AT 对业务无侵入（自动生成逆向 SQL）：<br>├── 阶段 <span class="hljs-number">1</span>（RM）：执行业务 SQL，自动生成 <span class="hljs-keyword">undo</span>-<span class="hljs-keyword">log</span><br>│     └── 注册分支事务到 TC<br>│<br>├── 阶段 <span class="hljs-number">2</span>（TC）：<br>│     ├── 全部成功 → 删除 <span class="hljs-keyword">undo</span>-<span class="hljs-keyword">log</span>（异步清理）<br>│     └── 任一失败 → 根据 <span class="hljs-keyword">undo</span>-<span class="hljs-keyword">log</span> 回滚（补偿）<br></code></pre></td></tr></table></figure>
+
+<h3 id="配置示例"><a href="#配置示例" class="headerlink" title="配置示例"></a>配置示例</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 全局事务</span><br><span class="hljs-meta">@GlobalTransactional(name = &quot;create-order&quot;, timeoutMills = 30000)</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">createOrder</span><span class="hljs-params">(OrderDTO order)</span> </span>&#123;<br>    <span class="hljs-comment">// 1. 创建订单（订单服务）</span><br>    orderService.create(order);<br>    <br>    <span class="hljs-comment">// 2. 扣减库存（库存服务）</span><br>    inventoryService.deduct(order.getProductId(), order.getQuantity());<br>    <br>    <span class="hljs-comment">// 3. 扣减余额（账户服务）</span><br>    accountService.debit(order.getUserId(), order.getAmount());<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="AT-vs-TCC"><a href="#AT-vs-TCC" class="headerlink" title="AT vs TCC"></a>AT vs TCC</h3><table>
+<thead>
+<tr>
+<th>对比</th>
+<th>Seata AT</th>
+<th>TCC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>代码侵入</td>
+<td>无</td>
+<td>高</td>
+</tr>
+<tr>
+<td>资源锁定</td>
+<td>写隔离（全局锁）</td>
+<td>预占资源</td>
+</tr>
+<tr>
+<td>回滚</td>
+<td>自动 undo-log</td>
+<td>手动 Cancel</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>中等</td>
+<td>较高</td>
+</tr>
+</tbody></table>
+<h2 id="六、可靠消息最终一致性"><a href="#六、可靠消息最终一致性" class="headerlink" title="六、可靠消息最终一致性"></a>六、可靠消息最终一致性</h2><h3 id="流程（以-RocketMQ-为例）"><a href="#流程（以-RocketMQ-为例）" class="headerlink" title="流程（以 RocketMQ 为例）"></a>流程（以 RocketMQ 为例）</h3><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">应用 A（下单）<br>  │<br>  ├── <span class="hljs-number">1.</span> 开启本地事务<br>  ├── <span class="hljs-number">2.</span> 执行本地业务（创建订单） + 发送半消息（<span class="hljs-keyword">prepared</span>）<br>  │<br>  ├── <span class="hljs-number">3.</span> 提交事务 → Broker 确认消息可投递<br>  │<br>  └── <span class="hljs-number">4.</span> 万一步骤 <span class="hljs-number">3</span> 失败<br>        └── Broker 回调查询事务状态 → 决定 <span class="hljs-keyword">commit</span>/<span class="hljs-keyword">rollback</span><br><br>应用 B（库存）<br>  │<br>  ├── <span class="hljs-number">5.</span> 消费消息 → 扣减库存<br>  └── <span class="hljs-number">6.</span> 处理成功 → 手动 ACK<br></code></pre></td></tr></table></figure>
+
+<h3 id="本地消息表"><a href="#本地消息表" class="headerlink" title="本地消息表"></a>本地消息表</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 通用方案：本地消息表</span><br><span class="hljs-comment">// 1. 业务操作 + 消息记录在同一个本地事务</span><br><span class="hljs-meta">@Transactional</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">createOrder</span><span class="hljs-params">(Order order)</span> </span>&#123;<br>    <span class="hljs-comment">// 业务操作</span><br>    orderMapper.insert(order);<br>    <span class="hljs-comment">// 消息记录（同一事务！）</span><br>    messageMapper.insert(<span class="hljs-keyword">new</span> Message(<span class="hljs-string">&quot;order_create&quot;</span>, order.getId()));<br>&#125;<br><br><span class="hljs-comment">// 2. 定时任务扫描未发送的消息</span><br><span class="hljs-meta">@Scheduled(fixedDelay = 5000)</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">sendMessage</span><span class="hljs-params">()</span> </span>&#123;<br>    List&lt;Message&gt; messages = messageMapper.selectPending();<br>    <span class="hljs-keyword">for</span> (Message msg : messages) &#123;<br>        <span class="hljs-keyword">boolean</span> success = mqProducer.send(msg);<br>        <span class="hljs-keyword">if</span> (success) &#123;<br>            messageMapper.updateStatus(msg.getId(), SENT);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="七、Seata-安装与使用"><a href="#七、Seata-安装与使用" class="headerlink" title="七、Seata 安装与使用"></a>七、Seata 安装与使用</h2><h3 id="Docker-部署-Seata-Server"><a href="#Docker-部署-Seata-Server" class="headerlink" title="Docker 部署 Seata Server"></a>Docker 部署 Seata Server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash">docker run -d --name seata-server \<br>  -p 8091:8091 \<br>  -e SEATA_IP=192.168.1.100 \<br>  -e SEATA_PORT=8091 \<br>  seataio/seata-server:1.7.0<br></code></pre></td></tr></table></figure>
+
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">seata:</span><br>  <span class="hljs-attr">enabled:</span> <span class="hljs-literal">true</span><br>  <span class="hljs-attr">application-id:</span> <span class="hljs-string">order-service</span><br>  <span class="hljs-attr">tx-service-group:</span> <span class="hljs-string">my_tx_group</span><br>  <span class="hljs-attr">service:</span><br>    <span class="hljs-attr">vgroup-mapping:</span><br>      <span class="hljs-attr">my_tx_group:</span> <span class="hljs-string">default</span><br>    <span class="hljs-attr">grouplist:</span><br>      <span class="hljs-attr">default:</span> <span class="hljs-number">127.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span><span class="hljs-string">:8091</span><br>  <span class="hljs-attr">registry:</span><br>    <span class="hljs-attr">type:</span> <span class="hljs-string">nacos</span><br>  <span class="hljs-attr">config:</span><br>    <span class="hljs-attr">type:</span> <span class="hljs-string">nacos</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="八、面试题"><a href="#八、面试题" class="headerlink" title="八、面试题"></a>八、面试题</h2><h4 id="1-分布式事务有哪些方案？"><a href="#1-分布式事务有哪些方案？" class="headerlink" title="1. 分布式事务有哪些方案？"></a>1. 分布式事务有哪些方案？</h4><p>2PC（XA）、TCC、Seata AT、可靠消息最终一致性、最大努力通知。</p>
+<h4 id="2-TCC-的-Try-Confirm-Cancel-分别做什么？"><a href="#2-TCC-的-Try-Confirm-Cancel-分别做什么？" class="headerlink" title="2. TCC 的 Try/Confirm/Cancel 分别做什么？"></a>2. TCC 的 Try/Confirm/Cancel 分别做什么？</h4><p>Try 预占资源，Confirm 确认执行，Cancel 回滚释放。</p>
+<h4 id="3-Seata-AT-模式的原理？"><a href="#3-Seata-AT-模式的原理？" class="headerlink" title="3. Seata AT 模式的原理？"></a>3. Seata AT 模式的原理？</h4><p>执行 SQL 时自动记录 undo-log，全局事务回滚时通过 undo-log 逆向补偿。</p>
+<h4 id="4-可靠消息最终一致性的实现思路？"><a href="#4-可靠消息最终一致性的实现思路？" class="headerlink" title="4. 可靠消息最终一致性的实现思路？"></a>4. 可靠消息最终一致性的实现思路？</h4><p>本地消息表+MQ：业务操作和消息记录在同一个本地事务，异步发送消息，消费者消费成功后手动确认。</p>
+<h4 id="5-2PC-的缺点？"><a href="#5-2PC-的缺点？" class="headerlink" title="5. 2PC 的缺点？"></a>5. 2PC 的缺点？</h4><p>同步阻塞、单点故障、数据不一致风险。</p>
+<h4 id="6-TCC-的空回滚和幂等怎么处理？"><a href="#6-TCC-的空回滚和幂等怎么处理？" class="headerlink" title="6. TCC 的空回滚和幂等怎么处理？"></a>6. TCC 的空回滚和幂等怎么处理？</h4><p>空回滚：Try 未执行就收到 Cancel，需要识别并忽略。幂等：用全局事务 ID + 状态表，保证 Confirm/Cancel 只生效一次。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E4%BA%8B%E5%8A%A1/">事务</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Seata/">Seata</a>
+                    
+                      <a class="hover-with-bg" href="/tags/TCC/">TCC</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E8%AF%A6%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">分布式ID生成：雪花算法原理与优化方案</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E7%8E%B0%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">分布式锁实现：Redis RedLock vs ZooKeeper 选型对比</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

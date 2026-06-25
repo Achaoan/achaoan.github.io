@@ -1,0 +1,546 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>Netty核心：Reactor模型、EventLoop、零拷贝 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/netty-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Netty核心：Reactor模型、EventLoop、零拷贝">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 23:30" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      923 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      12
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Netty核心：Reactor模型、EventLoop、零拷贝</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：40 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、Netty-概述"><a href="#一、Netty-概述" class="headerlink" title="一、Netty 概述"></a>一、Netty 概述</h2><h3 id="什么是-Netty？"><a href="#什么是-Netty？" class="headerlink" title="什么是 Netty？"></a>什么是 Netty？</h3><p>Netty 是一个<strong>异步事件驱动</strong>的网络应用框架，用于快速开发高可用的网络服务器和客户端。</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs awk">Netty 的特点：<br>├── 基于 NIO 的异步框架<br>├── 零拷贝<br>├── 内存池<br>├── 支持多种协议（HTTP<span class="hljs-regexp">/WebSocket/g</span>RPC）<br>└── Dubbo、RocketMQ、Elasticsearch 都使用 Netty<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、Reactor-模型"><a href="#二、Reactor-模型" class="headerlink" title="二、Reactor 模型"></a>二、Reactor 模型</h2><h3 id="单线程-Reactor"><a href="#单线程-Reactor" class="headerlink" title="单线程 Reactor"></a>单线程 Reactor</h3><figure class="highlight oxygene"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs oxygene">一个线程处理所有事件：<br><span class="hljs-keyword">Selector</span> → 接收连接 → 读取数据 → 业务处理 → 写入数据<br><br>问题：单线程处理所有事情，无法利用多核 CPU<br></code></pre></td></tr></table></figure>
+
+<h3 id="多线程-Reactor"><a href="#多线程-Reactor" class="headerlink" title="多线程 Reactor"></a>多线程 Reactor</h3><figure class="highlight autohotkey"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs autohotkey">一个 Selector 线程处理 IO 事件<br>业务逻辑交给线程池处理<br><br>Reactor <span class="hljs-keyword">Thread</span> → 读取数据 → 提交到 Worker 线程池<br>                                │<br>                                ▼<br>Worker 线程池 → 业务处理 → 写入响应<br></code></pre></td></tr></table></figure>
+
+<h3 id="主从-Reactor（Netty-模型）"><a href="#主从-Reactor（Netty-模型）" class="headerlink" title="主从 Reactor（Netty 模型）"></a>主从 Reactor（Netty 模型）</h3><figure class="highlight oxygene"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs oxygene">Boss <span class="hljs-keyword">Group</span>（<span class="hljs-number">1</span>-N 线程）<br>    │<br>    ├── 处理 Accept 事件<br>    ├── 将 Channel 注册到 Worker<br>    └── <span class="hljs-keyword">Selector</span> 轮询新的连接<br><br>Worker <span class="hljs-keyword">Group</span>（N 线程）<br>    │<br>    ├── 处理 <span class="hljs-keyword">Read</span>/<span class="hljs-keyword">Write</span> 事件<br>    ├── 业务逻辑处理<br>    └── 编解码<br><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Netty 的主从模型</span><br>EventLoopGroup bossGroup = <span class="hljs-keyword">new</span> NioEventLoopGroup(<span class="hljs-number">1</span>);      <span class="hljs-comment">// 接受连接</span><br>EventLoopGroup workerGroup = <span class="hljs-keyword">new</span> NioEventLoopGroup();      <span class="hljs-comment">// 处理 IO</span><br><br>ServerBootstrap b = <span class="hljs-keyword">new</span> ServerBootstrap();<br>b.group(bossGroup, workerGroup)<br> .channel(NioServerSocketChannel.class)<br> .childHandler(<span class="hljs-keyword">new</span> ChannelInitializer&lt;SocketChannel&gt;() &#123;<br>     <span class="hljs-meta">@Override</span><br>     <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">initChannel</span><span class="hljs-params">(SocketChannel ch)</span> </span>&#123;<br>         ch.pipeline().addLast(<span class="hljs-keyword">new</span> MyHandler());<br>     &#125;<br> &#125;);<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、EventLoop"><a href="#三、EventLoop" class="headerlink" title="三、EventLoop"></a>三、EventLoop</h2><h3 id="关系"><a href="#关系" class="headerlink" title="关系"></a>关系</h3><figure class="highlight julia"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs julia">一个 EventLoopGroup 包含多个 EventLoop<br>一个 EventLoop = 一个线程 + 一个 Selector<br>一个 EventLoop 处理多个 <span class="hljs-built_in">Channel</span><br>一个 <span class="hljs-built_in">Channel</span> 只绑定一个 EventLoop<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight julia"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs julia">EventLoopGroup<br>  ├── EventLoop（线程 + Selector）<br>  │     ├── <span class="hljs-built_in">Channel</span> A<br>  │     └── <span class="hljs-built_in">Channel</span> B<br>  ├── EventLoop（线程 + Selector）<br>  │     ├── <span class="hljs-built_in">Channel</span> C<br>  │     └── <span class="hljs-built_in">Channel</span> D<br>  └── EventLoop（线程 + Selector）<br>        └── <span class="hljs-built_in">Channel</span> E<br></code></pre></td></tr></table></figure>
+
+<h3 id="EventLoop-源码"><a href="#EventLoop-源码" class="headerlink" title="EventLoop 源码"></a>EventLoop 源码</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// NioEventLoop.run() 是核心循环</span><br><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">for</span> (;;) &#123;<br>        <span class="hljs-comment">// 1. 检查是否有任务</span><br>        <span class="hljs-comment">// 2. Selector.select() 检查 IO 事件</span><br>        <span class="hljs-comment">// 3. 处理 IO 事件</span><br>        <span class="hljs-comment">// 4. 执行任务队列中的任务</span><br>        <span class="hljs-comment">// 5. 处理定时任务</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、ChannelPipeline"><a href="#四、ChannelPipeline" class="headerlink" title="四、ChannelPipeline"></a>四、ChannelPipeline</h2><h3 id="责任链模式"><a href="#责任链模式" class="headerlink" title="责任链模式"></a>责任链模式</h3><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs mathematica"><span class="hljs-variable">ChannelPipeline</span><br>  │<br>  ├── <span class="hljs-variable">Inbound</span> <span class="hljs-variable">Handler</span>（入站，处理读）<br>  │     ├── <span class="hljs-built_in">Head</span> <span class="hljs-built_in">Context</span><br>  │     ├── <span class="hljs-variable">HttpServerCodec</span>（<span class="hljs-variable">HTTP</span> 编解码）<br>  │     ├── <span class="hljs-variable">MyBusinessHandler</span>（业务处理）<br>  │     └── <span class="hljs-variable">Tail</span> <span class="hljs-built_in">Context</span><br>  │<br>  └── <span class="hljs-variable">Outbound</span> <span class="hljs-variable">Handler</span>（出站，处理写）<br>        ├── <span class="hljs-variable">Tail</span> <span class="hljs-built_in">Context</span><br>        ├── <span class="hljs-variable">MyEncoder</span>（编码）<br>        └── <span class="hljs-built_in">Head</span> <span class="hljs-built_in">Context</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="自定义-Handler"><a href="#自定义-Handler" class="headerlink" title="自定义 Handler"></a>自定义 Handler</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ChannelInboundHandlerAdapter</span> </span>&#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">channelRead</span><span class="hljs-params">(ChannelHandlerContext ctx, Object msg)</span> </span>&#123;<br>        <span class="hljs-comment">// 读取数据</span><br>        ByteBuf buf = (ByteBuf) msg;<br>        String request = buf.toString(CharsetUtil.UTF_8);<br>        <br>        <span class="hljs-comment">// 处理</span><br>        String response = handle(request);<br>        <br>        <span class="hljs-comment">// 写入</span><br>        ctx.writeAndFlush(Unpooled.copiedBuffer(response, CharsetUtil.UTF_8));<br>    &#125;<br>    <br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">exceptionCaught</span><span class="hljs-params">(ChannelHandlerContext ctx, Throwable cause)</span> </span>&#123;<br>        cause.printStackTrace();<br>        ctx.close();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、ByteBuf"><a href="#五、ByteBuf" class="headerlink" title="五、ByteBuf"></a>五、ByteBuf</h2><h3 id="核心结构"><a href="#核心结构" class="headerlink" title="核心结构"></a>核心结构</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs">读索引（readerIndex）    写索引（writerIndex）    容量（capacity）<br>    │                        │                      │<br>    ▼                        ▼                      ▼<br>┌────────────────────────────────────────────────────────┐<br>│     已读（丢弃）    │    可读数据    │   可写空间      │<br>└────────────────────────────────────────────────────────┘<br></code></pre></td></tr></table></figure>
+
+<h3 id="池化"><a href="#池化" class="headerlink" title="池化"></a>池化</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Netty 4.1+ 默认启用池化 ByteBuf</span><br><span class="hljs-comment">// 减少 GC 压力，复用内存</span><br><br><span class="hljs-comment">// 池化与普通创建对比</span><br>ByteBuf buffer = Unpooled.buffer();  <span class="hljs-comment">// 非池化（每次创建新缓冲区）</span><br>ByteBuf poolBuf = PooledByteBufAllocator.DEFAULT.buffer();  <span class="hljs-comment">// 池化（复用）</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="六、零拷贝"><a href="#六、零拷贝" class="headerlink" title="六、零拷贝"></a>六、零拷贝</h2><h3 id="传统-IO"><a href="#传统-IO" class="headerlink" title="传统 IO"></a>传统 IO</h3><figure class="highlight isbl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs isbl">磁盘 → 内核缓冲区 → 用户缓冲区 → 内核 <span class="hljs-variable">Socket</span> 缓冲区 → 网卡<br>         <span class="hljs-function"><span class="hljs-title">read</span>()              <span class="hljs-title">write</span>()</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="Netty-零拷贝"><a href="#Netty-零拷贝" class="headerlink" title="Netty 零拷贝"></a>Netty 零拷贝</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 1. FileRegion（文件传输，sendfile 系统调用）</span><br>FileRegion region = <span class="hljs-keyword">new</span> DefaultFileRegion(<br>    <span class="hljs-keyword">new</span> FileInputStream(<span class="hljs-string">&quot;file.txt&quot;</span>).getChannel(), <span class="hljs-number">0</span>, fileSize);<br>ctx.writeAndFlush(region);<br><br><span class="hljs-comment">// 2. CompositeByteBuf（组合多个 Buffer，避免拷贝）</span><br>CompositeByteBuf composite = Unpooled.compositeBuffer();<br>composite.addComponents(<span class="hljs-keyword">true</span>, headerBuf, bodyBuf);<br><br><span class="hljs-comment">// 3. Unpooled.wrappedBuffer（包装数组，不拷贝）</span><br><span class="hljs-keyword">byte</span>[] array = &#123;<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>&#125;;<br>ByteBuf buffer = Unpooled.wrappedBuffer(array);<br></code></pre></td></tr></table></figure>
+
+<h2 id="七、编解码"><a href="#七、编解码" class="headerlink" title="七、编解码"></a>七、编解码</h2><h3 id="常用编解码器"><a href="#常用编解码器" class="headerlink" title="常用编解码器"></a>常用编解码器</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 行解码器（按换行符分割）</span><br>ch.pipeline().addLast(<span class="hljs-keyword">new</span> LineBasedFrameDecoder(<span class="hljs-number">1024</span>));<br><br><span class="hljs-comment">// 定长解码器</span><br>ch.pipeline().addLast(<span class="hljs-keyword">new</span> FixedLengthFrameDecoder(<span class="hljs-number">100</span>));<br><br><span class="hljs-comment">// 长度字段解码器（自定义协议）</span><br>ch.pipeline().addLast(<span class="hljs-keyword">new</span> LengthFieldBasedFrameDecoder(<br>    <span class="hljs-number">65536</span>, <span class="hljs-number">0</span>, <span class="hljs-number">4</span>, <span class="hljs-number">0</span>, <span class="hljs-number">4</span>));<br><br><span class="hljs-comment">// HTTP 编解码</span><br>ch.pipeline().addLast(<span class="hljs-keyword">new</span> HttpServerCodec());<br><br><span class="hljs-comment">// JSON 编解码</span><br>ch.pipeline().addLast(<span class="hljs-keyword">new</span> StringEncoder(CharsetUtil.UTF_8));<br>ch.pipeline().addLast(<span class="hljs-keyword">new</span> StringDecoder(CharsetUtil.UTF_8));<br></code></pre></td></tr></table></figure>
+
+<h2 id="八、面试题"><a href="#八、面试题" class="headerlink" title="八、面试题"></a>八、面试题</h2><h4 id="1-Netty-的线程模型？"><a href="#1-Netty-的线程模型？" class="headerlink" title="1. Netty 的线程模型？"></a>1. Netty 的线程模型？</h4><p>主从 Reactor 模型：BossGroup 处理 Accept，WorkerGroup 处理 IO 读写。</p>
+<h4 id="2-EventLoop-是什么？"><a href="#2-EventLoop-是什么？" class="headerlink" title="2. EventLoop 是什么？"></a>2. EventLoop 是什么？</h4><p>一个 EventLoop = 一个线程 + 一个 Selector，处理多个 Channel 的 IO 事件。</p>
+<h4 id="3-Netty-的零拷贝怎么实现？"><a href="#3-Netty-的零拷贝怎么实现？" class="headerlink" title="3. Netty 的零拷贝怎么实现？"></a>3. Netty 的零拷贝怎么实现？</h4><p>FileRegion（sendfile）、CompositeByteBuf（组合不拷贝）、wrappedBuffer（包装数组不拷贝）。</p>
+<h4 id="4-ChannelPipeline-是什么？"><a href="#4-ChannelPipeline-是什么？" class="headerlink" title="4. ChannelPipeline 是什么？"></a>4. ChannelPipeline 是什么？</h4><p>责任链模式的处理器链，Inbound 处理读，Outbound 处理写。</p>
+<h4 id="5-Netty-和-Tomcat-的区别？"><a href="#5-Netty-和-Tomcat-的区别？" class="headerlink" title="5. Netty 和 Tomcat 的区别？"></a>5. Netty 和 Tomcat 的区别？</h4><p>Netty 是 NIO 异步框架，适合高并发长连接（如 WebSocket、RPC）。Tomcat 是 Servlet 容器，适合 HTTP 请求响应模式。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/">开发工具</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/NIO/">NIO</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">网络编程</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Netty/">Netty</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/MySQL%E9%94%81%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">MySQL锁机制：行锁、间隙锁、临键锁、死锁分析</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/OOM%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90/">
+                        <span class="hidden-mobile">OOM案例分析：堆转储分析与MAT使用实战</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

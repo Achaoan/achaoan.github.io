@@ -1,0 +1,564 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>MySQL锁机制：行锁、间隙锁、临键锁、死锁分析 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/mysql-lock-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="MySQL锁机制：行锁、间隙锁、临键锁、死锁分析">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 23:30" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.2k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      15
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">MySQL锁机制：行锁、间隙锁、临键锁、死锁分析</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：44 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、MySQL-锁分类"><a href="#一、MySQL-锁分类" class="headerlink" title="一、MySQL 锁分类"></a>一、MySQL 锁分类</h2><h3 id="按粒度划分"><a href="#按粒度划分" class="headerlink" title="按粒度划分"></a>按粒度划分</h3><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">MySQL 锁<br>├── 全局锁（<span class="hljs-keyword">Global</span> <span class="hljs-keyword">Lock</span>）<br>│     └── FLUSH <span class="hljs-keyword">TABLES</span> <span class="hljs-keyword">WITH</span> <span class="hljs-keyword">READ</span> <span class="hljs-keyword">LOCK</span><br>├── 表级锁（<span class="hljs-keyword">Table</span> <span class="hljs-keyword">Lock</span>）<br>│     ├── 表锁（<span class="hljs-keyword">LOCK</span> <span class="hljs-keyword">TABLES</span>）<br>│     ├── 元数据锁（MDL）<br>│     └── 意向锁（Intention <span class="hljs-keyword">Lock</span>）<br>└── 行级锁（<span class="hljs-keyword">Row</span> <span class="hljs-keyword">Lock</span>）<br>      ├── 记录锁（<span class="hljs-type">Record</span> <span class="hljs-keyword">Lock</span>）<br>      ├── 间隙锁（Gap <span class="hljs-keyword">Lock</span>）<br>      └── 临键锁（Next-Key <span class="hljs-keyword">Lock</span>）<br></code></pre></td></tr></table></figure>
+
+<h3 id="按类型划分"><a href="#按类型划分" class="headerlink" title="按类型划分"></a>按类型划分</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>共享锁（S）</strong></td>
+<td>读锁，允许多个事务同时读，阻塞写</td>
+</tr>
+<tr>
+<td><strong>排他锁（X）</strong></td>
+<td>写锁，阻塞其他事务的读和写</td>
+</tr>
+<tr>
+<td><strong>意向共享锁（IS）</strong></td>
+<td>表级锁，表示事务准备加行级 S 锁</td>
+</tr>
+<tr>
+<td><strong>意向排他锁（IX）</strong></td>
+<td>表级锁，表示事务准备加行级 X 锁</td>
+</tr>
+</tbody></table>
+<h3 id="锁兼容矩阵"><a href="#锁兼容矩阵" class="headerlink" title="锁兼容矩阵"></a>锁兼容矩阵</h3><figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs ada">       S    X    <span class="hljs-keyword">IS</span>   IX<br>S      ✅   ❌   ✅   ❌<br>X      ❌   ❌   ❌   ❌<br><span class="hljs-keyword">IS</span>     ✅   ❌   ✅   ✅<br>IX     ❌   ❌   ✅   ✅<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、行锁实现"><a href="#二、行锁实现" class="headerlink" title="二、行锁实现"></a>二、行锁实现</h2><h3 id="记录锁（Record-Lock）"><a href="#记录锁（Record-Lock）" class="headerlink" title="记录锁（Record Lock）"></a>记录锁（Record Lock）</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-comment">-- 对唯一索引（包括主键）的等值查询使用记录锁</span><br><span class="hljs-comment">-- 只锁住索引记录本身，不锁间隙</span><br><br><span class="hljs-comment">-- 事务 A</span><br><span class="hljs-keyword">BEGIN</span>;<br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> <span class="hljs-number">10</span> <span class="hljs-keyword">FOR</span> UPDATE;  <span class="hljs-comment">-- 锁住 id=10 的记录</span><br><br><span class="hljs-comment">-- 事务 B：被阻塞</span><br>UPDATE <span class="hljs-keyword">user</span> <span class="hljs-keyword">SET</span> name <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;B&#x27;</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> <span class="hljs-number">10</span>;<br></code></pre></td></tr></table></figure>
+
+<h3 id="间隙锁（Gap-Lock）"><a href="#间隙锁（Gap-Lock）" class="headerlink" title="间隙锁（Gap Lock）"></a>间隙锁（Gap Lock）</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-comment">-- 锁定一个范围，但不包含记录本身</span><br><span class="hljs-comment">-- 防止其他事务在间隙中插入数据（防幻读）</span><br><span class="hljs-comment">-- 只在 REPEATABLE READ 级别生效</span><br><br><span class="hljs-comment">-- 假设表中有 id: 5, 10, 15</span><br><br><span class="hljs-comment">-- 事务 A</span><br><span class="hljs-keyword">BEGIN</span>;<br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">&gt;</span> <span class="hljs-number">5</span> <span class="hljs-keyword">AND</span> id <span class="hljs-operator">&lt;</span> <span class="hljs-number">15</span> <span class="hljs-keyword">FOR</span> UPDATE;<br><span class="hljs-comment">-- 锁住 (5, 10) 和 (10, 15) 两个间隙</span><br><br><span class="hljs-comment">-- 事务 B：被阻塞（插在间隙 (5,10) 中）</span><br><span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> <span class="hljs-keyword">user</span>(id, name) <span class="hljs-keyword">VALUES</span> (<span class="hljs-number">8</span>, <span class="hljs-string">&#x27;B&#x27;</span>);<br></code></pre></td></tr></table></figure>
+
+<h3 id="临键锁（Next-Key-Lock）"><a href="#临键锁（Next-Key-Lock）" class="headerlink" title="临键锁（Next-Key Lock）"></a>临键锁（Next-Key Lock）</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-comment">-- 记录锁 + 间隙锁</span><br><span class="hljs-comment">-- InnoDB RR 级别的默认锁</span><br><span class="hljs-comment">-- 锁定左开右闭区间 (a, b]</span><br><br><span class="hljs-comment">-- 假设表中有 id: 5, 10, 15</span><br><br><span class="hljs-comment">-- 事务 A</span><br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">&gt;</span> <span class="hljs-number">5</span> <span class="hljs-keyword">AND</span> id <span class="hljs-operator">&lt;=</span> <span class="hljs-number">10</span> <span class="hljs-keyword">FOR</span> UPDATE;<br><span class="hljs-comment">-- 锁住：(5, 10] → 临键锁</span><br><br><span class="hljs-comment">-- 等价于：间隙锁 (5, 10) + 记录锁 id=10</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="各-SQL-的加锁情况"><a href="#各-SQL-的加锁情况" class="headerlink" title="各 SQL 的加锁情况"></a>各 SQL 的加锁情况</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-comment">-- 假设表结构：id(PK), name(普通索引), age(无索引)</span><br><span class="hljs-comment">-- 数据：id: 5, 10, 15; name: &#x27;a&#x27;, &#x27;b&#x27;, &#x27;c&#x27;; age: 20, 30, 40</span><br><br><span class="hljs-comment">-- 1. 主键等值</span><br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> <span class="hljs-number">10</span> <span class="hljs-keyword">FOR</span> UPDATE;<br><span class="hljs-comment">-- → 记录锁 id=10</span><br><br><span class="hljs-comment">-- 2. 主键范围</span><br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">&gt;</span> <span class="hljs-number">5</span> <span class="hljs-keyword">AND</span> id <span class="hljs-operator">&lt;</span> <span class="hljs-number">15</span> <span class="hljs-keyword">FOR</span> UPDATE;<br><span class="hljs-comment">-- → 临键锁 (5,10] + (10,15)</span><br><br><span class="hljs-comment">-- 3. 普通索引等值</span><br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">WHERE</span> name <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;b&#x27;</span> <span class="hljs-keyword">FOR</span> UPDATE;<br><span class="hljs-comment">-- → 临键锁 (&#x27;a&#x27;,&#x27;b&#x27;] + (&#x27;b&#x27;,&#x27;c&#x27;]（索引记录）</span><br><span class="hljs-comment">-- → 回表主键记录锁 id=10</span><br><br><span class="hljs-comment">-- 4. 无索引条件</span><br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">WHERE</span> age <span class="hljs-operator">=</span> <span class="hljs-number">30</span> <span class="hljs-keyword">FOR</span> UPDATE;<br><span class="hljs-comment">-- → 全表所有行加锁（升级为表锁）</span><br><span class="hljs-comment">-- 因为无索引，需要逐行扫描</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="三、MVCC-与锁"><a href="#三、MVCC-与锁" class="headerlink" title="三、MVCC 与锁"></a>三、MVCC 与锁</h2><h3 id="MVCC（多版本并发控制）"><a href="#MVCC（多版本并发控制）" class="headerlink" title="MVCC（多版本并发控制）"></a>MVCC（多版本并发控制）</h3><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">MVCC 是 InnoDB 实现 RR 隔离级别的核心机制<br>├── 通过 undo <span class="hljs-keyword">log</span> 实现数据多版本<br>├── 通过 ReadView 控制事务可见性<br>└── 快照读（<span class="hljs-keyword">SELECT</span>）无锁，当前读（<span class="hljs-keyword">UPDATE</span>/<span class="hljs-keyword">DELETE</span>/<span class="hljs-keyword">SELECT</span> <span class="hljs-keyword">FOR</span> <span class="hljs-keyword">UPDATE</span>）加锁<br></code></pre></td></tr></table></figure>
+
+<h3 id="快照读-vs-当前读"><a href="#快照读-vs-当前读" class="headerlink" title="快照读 vs 当前读"></a>快照读 vs 当前读</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-comment">-- 快照读（无锁，MVCC 控制）</span><br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> <span class="hljs-number">10</span>;<br><br><span class="hljs-comment">-- 当前读（加锁）</span><br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> <span class="hljs-number">10</span> <span class="hljs-keyword">FOR</span> UPDATE;  <span class="hljs-comment">-- 排他锁</span><br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> <span class="hljs-number">10</span> LOCK <span class="hljs-keyword">IN</span> SHARE MODE;  <span class="hljs-comment">-- 共享锁</span><br>UPDATE <span class="hljs-keyword">user</span> <span class="hljs-keyword">SET</span> name <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;A&#x27;</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> <span class="hljs-number">10</span>;     <span class="hljs-comment">-- 排他锁</span><br><span class="hljs-keyword">DELETE</span> <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> <span class="hljs-number">10</span>;               <span class="hljs-comment">-- 排他锁</span><br><span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> <span class="hljs-keyword">user</span> ...                          <span class="hljs-comment">-- 排他锁</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="四、死锁分析"><a href="#四、死锁分析" class="headerlink" title="四、死锁分析"></a>四、死锁分析</h2><h3 id="死锁示例"><a href="#死锁示例" class="headerlink" title="死锁示例"></a>死锁示例</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-comment">-- 事务 A</span><br><span class="hljs-keyword">BEGIN</span>;<br>UPDATE <span class="hljs-keyword">user</span> <span class="hljs-keyword">SET</span> name <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;A&#x27;</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> <span class="hljs-number">1</span>;  <span class="hljs-comment">-- 锁 id=1</span><br>UPDATE <span class="hljs-keyword">user</span> <span class="hljs-keyword">SET</span> name <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;B&#x27;</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> <span class="hljs-number">2</span>;  <span class="hljs-comment">-- 等待锁 id=2（死锁！）</span><br><br><span class="hljs-comment">-- 事务 B</span><br><span class="hljs-keyword">BEGIN</span>;<br>UPDATE <span class="hljs-keyword">user</span> <span class="hljs-keyword">SET</span> name <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;C&#x27;</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> <span class="hljs-number">2</span>;  <span class="hljs-comment">-- 锁 id=2</span><br>UPDATE <span class="hljs-keyword">user</span> <span class="hljs-keyword">SET</span> name <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;D&#x27;</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> <span class="hljs-number">1</span>;  <span class="hljs-comment">-- 等待锁 id=1（死锁！）</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="死锁检测"><a href="#死锁检测" class="headerlink" title="死锁检测"></a>死锁检测</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-comment">-- InnoDB 自动检测死锁，回滚其中一个事务（选择回滚代价小的事务）</span><br><span class="hljs-comment">-- 查看最近的死锁记录</span><br><span class="hljs-keyword">SHOW</span> ENGINE INNODB STATUS\G<br></code></pre></td></tr></table></figure>
+
+<h3 id="预防死锁"><a href="#预防死锁" class="headerlink" title="预防死锁"></a>预防死锁</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-bullet">1.</span> 固定访问顺序：始终按相同的顺序访问表/行<br><span class="hljs-bullet">2.</span> 缩短事务：减少持有锁的时间<br><span class="hljs-bullet">3.</span> 避免大事务：一次性处理太多数据<br><span class="hljs-bullet">4.</span> 选择合适的索引：防止无索引导致锁表<br><span class="hljs-bullet">5.</span> 使用更低隔离级别：如 READ COMMITTED（无间隙锁）<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、锁监控"><a href="#五、锁监控" class="headerlink" title="五、锁监控"></a>五、锁监控</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-comment">-- 查看当前锁情况</span><br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> performance_schema.data_locks;<br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> performance_schema.data_lock_waits;<br><br><span class="hljs-comment">-- 查看事务</span><br><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> information_schema.INNODB_TRX;<br><br><span class="hljs-comment">-- 查看锁等待</span><br><span class="hljs-keyword">SHOW</span> STATUS <span class="hljs-keyword">LIKE</span> <span class="hljs-string">&#x27;innodb_row_lock%&#x27;</span>;<br><span class="hljs-comment">-- Innodb_row_lock_current_waits: 当前等待数</span><br><span class="hljs-comment">-- Innodb_row_lock_time: 总等待时间</span><br><span class="hljs-comment">-- Innodb_row_lock_time_avg: 平均等待时间</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="六、面试题"><a href="#六、面试题" class="headerlink" title="六、面试题"></a>六、面试题</h2><h4 id="1-Record-Lock、Gap-Lock、Next-Key-Lock-的区别？"><a href="#1-Record-Lock、Gap-Lock、Next-Key-Lock-的区别？" class="headerlink" title="1. Record Lock、Gap Lock、Next-Key Lock 的区别？"></a>1. Record Lock、Gap Lock、Next-Key Lock 的区别？</h4><p>Record Lock 锁记录，Gap Lock 锁间隙（防插入），Next-Key Lock = Record + Gap（RR 默认，防幻读）。</p>
+<h4 id="2-间隙锁在什么隔离级别生效？"><a href="#2-间隙锁在什么隔离级别生效？" class="headerlink" title="2. 间隙锁在什么隔离级别生效？"></a>2. 间隙锁在什么隔离级别生效？</h4><p>REPEATABLE READ。READ COMMITTED 级别下间隙锁失效，可能导致幻读。</p>
+<h4 id="3-什么是死锁？怎么排查？"><a href="#3-什么是死锁？怎么排查？" class="headerlink" title="3. 什么是死锁？怎么排查？"></a>3. 什么是死锁？怎么排查？</h4><p>两个事务互相持有对方需要的锁。用 <code>SHOW ENGINE INNODB STATUS</code> 查看，或查 <code>information_schema.INNODB_TRX</code>。</p>
+<h4 id="4-无索引更新为什么会导致锁表？"><a href="#4-无索引更新为什么会导致锁表？" class="headerlink" title="4. 无索引更新为什么会导致锁表？"></a>4. 无索引更新为什么会导致锁表？</h4><p>无索引时 InnoDB 需要全表扫描，所有行都可能被更新，最终升级为表锁。</p>
+<h4 id="5-MVCC-和锁的关系？"><a href="#5-MVCC-和锁的关系？" class="headerlink" title="5. MVCC 和锁的关系？"></a>5. MVCC 和锁的关系？</h4><p>MVCC 用于快照读（无锁），锁用于当前读（FOR UPDATE/UPDATE/DELETE）。</p>
+<h4 id="6-如何避免死锁？"><a href="#6-如何避免死锁？" class="headerlink" title="6. 如何避免死锁？"></a>6. 如何避免死锁？</h4><p>固定访问顺序、缩短事务、使用 RC 级别、通过索引减少锁范围。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+                    
+                      <a class="hover-with-bg" href="/tags/MySQL/">MySQL</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%94%81/">锁</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/Kubernetes%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Kubernetes基础入门：Pod、Deployment、Service核心概念</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/Netty%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">Netty核心：Reactor模型、EventLoop、零拷贝</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

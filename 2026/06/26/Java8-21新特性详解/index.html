@@ -1,0 +1,559 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>Java 8-21 新特性详解：Lambda到虚拟线程 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/java-new-features-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Java 8-21 新特性详解：Lambda到虚拟线程">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-26 00:00" pubdate>
+        2026年6月26日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      25
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Java 8-21 新特性详解：Lambda到虚拟线程</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：27 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、Java-8（2014）"><a href="#一、Java-8（2014）" class="headerlink" title="一、Java 8（2014）"></a>一、Java 8（2014）</h2><h3 id="Lambda-表达式"><a href="#Lambda-表达式" class="headerlink" title="Lambda 表达式"></a>Lambda 表达式</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 传统匿名类</span><br>Runnable r = <span class="hljs-keyword">new</span> Runnable() &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;<br>        System.out.println(<span class="hljs-string">&quot;Hello&quot;</span>);<br>    &#125;<br>&#125;;<br><br><span class="hljs-comment">// Lambda</span><br>Runnable r = () -&gt; System.out.println(<span class="hljs-string">&quot;Hello&quot;</span>);<br><br><span class="hljs-comment">// 带参数</span><br>Comparator&lt;Person&gt; byAge = (p1, p2) -&gt; p1.age - p2.age;<br><br><span class="hljs-comment">// 方法引用</span><br>List&lt;String&gt; list = Arrays.asList(<span class="hljs-string">&quot;a&quot;</span>, <span class="hljs-string">&quot;b&quot;</span>, <span class="hljs-string">&quot;c&quot;</span>);<br>list.forEach(System.out::println);  <span class="hljs-comment">// 静态方法引用</span><br>list.stream().map(String::length)    <span class="hljs-comment">// 实例方法引用</span><br>             .collect(Collectors.toList());<br></code></pre></td></tr></table></figure>
+
+<h3 id="Stream-API"><a href="#Stream-API" class="headerlink" title="Stream API"></a>Stream API</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 中间操作（lazy）：filter、map、flatMap、sorted、distinct、limit、peek</span><br><span class="hljs-comment">// 终端操作（eager）：collect、forEach、reduce、count、anyMatch、findFirst</span><br><br>List&lt;String&gt; result = list.stream()<br>    .filter(s -&gt; s.length() &gt; <span class="hljs-number">2</span>)<br>    .map(String::toUpperCase)<br>    .sorted()<br>    .collect(Collectors.toList());<br><br><span class="hljs-comment">// Collectors 常用</span><br>Collectors.toList()<br>Collectors.toMap(keyMapper, valueMapper)<br>Collectors.groupingBy(Function)       <span class="hljs-comment">// 分组</span><br>Collectors.partitioningBy(Predicate)  <span class="hljs-comment">// 分区</span><br>Collectors.joining(<span class="hljs-string">&quot;,&quot;</span>)               <span class="hljs-comment">// 拼接</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="Optional"><a href="#Optional" class="headerlink" title="Optional"></a>Optional</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 避免 NPE</span><br>Optional&lt;String&gt; name = Optional.ofNullable(getName());<br><br><span class="hljs-comment">// 推荐用法</span><br>String result = Optional.ofNullable(getName())<br>    .filter(n -&gt; n.length() &gt; <span class="hljs-number">2</span>)<br>    .map(String::toUpperCase)<br>    .orElse(<span class="hljs-string">&quot;default&quot;</span>);<br><br><span class="hljs-comment">// 不推荐：直接用 get()（和直接调用一样危险）</span><br><span class="hljs-comment">// 不推荐：isPresent() + get()（和 if null check 没区别）</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="默认方法与静态方法（接口）"><a href="#默认方法与静态方法（接口）" class="headerlink" title="默认方法与静态方法（接口）"></a>默认方法与静态方法（接口）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">MyInterface</span> </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">normalMethod</span><span class="hljs-params">()</span></span>;<br>    <br>    <span class="hljs-function"><span class="hljs-keyword">default</span> <span class="hljs-keyword">void</span> <span class="hljs-title">defaultMethod</span><span class="hljs-params">()</span> </span>&#123;        <span class="hljs-comment">// 实现类可以选择不重写</span><br>        System.out.println(<span class="hljs-string">&quot;default&quot;</span>);<br>    &#125;<br>    <br>    <span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">staticMethod</span><span class="hljs-params">()</span> </span>&#123;           <span class="hljs-comment">// 工具方法</span><br>        System.out.println(<span class="hljs-string">&quot;static&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="其他重要特性"><a href="#其他重要特性" class="headerlink" title="其他重要特性"></a>其他重要特性</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">├── 新的日期 API（<span class="hljs-keyword">java.time）</span><br><span class="hljs-keyword"></span>│     LocalDate、LocalTime、LocalDateTime<br>│     <span class="hljs-keyword">Instant（时间戳）、Duration、Period</span><br><span class="hljs-keyword"></span>│     线程安全、不可变、设计良好<br>├── CompletableFuture（异步编程）<br>└── Nashorn <span class="hljs-keyword">JavaScript </span>引擎<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、Java-9（2017）"><a href="#二、Java-9（2017）" class="headerlink" title="二、Java 9（2017）"></a>二、Java 9（2017）</h2><h3 id="模块化（JPMS）"><a href="#模块化（JPMS）" class="headerlink" title="模块化（JPMS）"></a>模块化（JPMS）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// module-info.java</span><br><span class="hljs-keyword">module</span> com.example.myapp &#123;<br>    <span class="hljs-keyword">requires</span> java.sql;<br>    <span class="hljs-keyword">exports</span> com.example.api;<br>    provides com.example.spi.MyService with com.example.impl.MyServiceImpl;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 集合工厂方法（不可变）</span><br>List.of(<span class="hljs-string">&quot;a&quot;</span>, <span class="hljs-string">&quot;b&quot;</span>, <span class="hljs-string">&quot;c&quot;</span>);<br>Set.of(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>);<br>Map.of(<span class="hljs-string">&quot;k1&quot;</span>, <span class="hljs-string">&quot;v1&quot;</span>, <span class="hljs-string">&quot;k2&quot;</span>, <span class="hljs-string">&quot;v2&quot;</span>);<br><br><span class="hljs-comment">// Optional 新增</span><br>Optional.ofNullable(value)<br>    .ifPresentOrElse(v -&gt; &#123;&#125;, () -&gt; &#123;&#125;);<br>Optional.ofNullable(value).orElseThrow();<br><br><span class="hljs-comment">// Stream 新增</span><br>Stream.ofNullable(nullableValue);<br>Stream.iterate(<span class="hljs-number">0</span>, i -&gt; i &lt; <span class="hljs-number">10</span>, i -&gt; i + <span class="hljs-number">1</span>);  <span class="hljs-comment">// 带条件的 iterate</span><br><br><span class="hljs-comment">// 接口私有方法</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">MyInterface</span> </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">default</span> <span class="hljs-keyword">void</span> <span class="hljs-title">method</span><span class="hljs-params">()</span> </span>&#123;<br>        helper();  <span class="hljs-comment">// 调用私有方法</span><br>    &#125;<br>    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">helper</span><span class="hljs-params">()</span> </span>&#123;&#125;  <span class="hljs-comment">// Java 9+</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、Java-10（2018）"><a href="#三、Java-10（2018）" class="headerlink" title="三、Java 10（2018）"></a>三、Java 10（2018）</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 局部变量类型推断（var）</span><br><span class="hljs-keyword">var</span> list = <span class="hljs-keyword">new</span> ArrayList&lt;String&gt;();  <span class="hljs-comment">// 编译器推断为 ArrayList&lt;String&gt;</span><br><span class="hljs-keyword">var</span> stream = list.stream();<br><br><span class="hljs-comment">// 注意：var 只能用在本方法内的局部变量</span><br><span class="hljs-comment">// 不能用于成员变量、方法参数、返回值</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="四、Java-11（2018-LTS）"><a href="#四、Java-11（2018-LTS）" class="headerlink" title="四、Java 11（2018 LTS）"></a>四、Java 11（2018 LTS）</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// HTTP Client（标准化）</span><br>HttpClient client = HttpClient.newHttpClient();<br>HttpRequest request = HttpRequest.newBuilder()<br>    .uri(URI.create(<span class="hljs-string">&quot;https://api.example.com&quot;</span>))<br>    .GET()<br>    .build();<br>HttpResponse&lt;String&gt; response = client.send(request, <br>    HttpResponse.BodyHandlers.ofString());<br><br><span class="hljs-comment">// 字符串新方法</span><br><span class="hljs-string">&quot; &quot;</span>.isBlank();          <span class="hljs-comment">// true</span><br><span class="hljs-string">&quot;  foo  &quot;</span>.strip();      <span class="hljs-comment">// &quot;foo&quot;（去除前后空格）</span><br><span class="hljs-string">&quot;a,b,c&quot;</span>.lines();        <span class="hljs-comment">// Stream&lt;String&gt;</span><br><span class="hljs-string">&quot;a&quot;</span>.repeat(<span class="hljs-number">3</span>);          <span class="hljs-comment">// &quot;aaa&quot;</span><br><br><span class="hljs-comment">// 文件读写简化</span><br>Files.writeString(Path.of(<span class="hljs-string">&quot;test.txt&quot;</span>), <span class="hljs-string">&quot;content&quot;</span>);<br>String s = Files.readString(Path.of(<span class="hljs-string">&quot;test.txt&quot;</span>));<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、Java-12-13（2019）"><a href="#五、Java-12-13（2019）" class="headerlink" title="五、Java 12-13（2019）"></a>五、Java 12-13（2019）</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Switch 表达式（预览→正式在 Java 14）</span><br>String result = <span class="hljs-keyword">switch</span> (day) &#123;<br>    <span class="hljs-keyword">case</span> MONDAY, FRIDAY -&gt; <span class="hljs-string">&quot;work&quot;</span>;<br>    <span class="hljs-keyword">case</span> SATURDAY, SUNDAY -&gt; <span class="hljs-string">&quot;rest&quot;</span>;<br>    <span class="hljs-keyword">default</span> -&gt; <span class="hljs-string">&quot;unknown&quot;</span>;<br>&#125;;<br><br><span class="hljs-comment">// Text Block（预览→正式在 Java 15）</span><br>String json = <span class="hljs-string">&quot;&quot;</span><span class="hljs-string">&quot;</span><br><span class="hljs-string">    &#123;</span><br><span class="hljs-string">        &quot;</span>name<span class="hljs-string">&quot;: &quot;</span>Java<span class="hljs-string">&quot;,</span><br><span class="hljs-string">        &quot;</span>version<span class="hljs-string">&quot;: 15</span><br><span class="hljs-string">    &#125;</span><br><span class="hljs-string">    &quot;</span><span class="hljs-string">&quot;&quot;</span>;<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、Java-14（2020）"><a href="#六、Java-14（2020）" class="headerlink" title="六、Java 14（2020）"></a>六、Java 14（2020）</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// instanceof 模式匹配</span><br><span class="hljs-keyword">if</span> (obj <span class="hljs-keyword">instanceof</span> String s) &#123;<br>    System.out.println(s.length());  <span class="hljs-comment">// 直接使用 s</span><br>&#125;<br><br><span class="hljs-comment">// Records（数据载体）</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> record <span class="hljs-title">Point</span><span class="hljs-params">(<span class="hljs-keyword">int</span> x, <span class="hljs-keyword">int</span> y)</span> </span>&#123; &#125;<br><span class="hljs-comment">// 自动生成：构造器、getter、equals、hashCode、toString</span><br><br><span class="hljs-comment">// Helpful NullPointerException</span><br><span class="hljs-comment">// 以前：NullPointerException</span><br><span class="hljs-comment">// 现在：Cannot invoke &quot;String.length()&quot; because &quot;str&quot; is null</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="七、Java-15-16（2020-2021）"><a href="#七、Java-15-16（2020-2021）" class="headerlink" title="七、Java 15-16（2020-2021）"></a>七、Java 15-16（2020-2021）</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Sealed Class（密封类，Java 17 正式）</span><br><span class="hljs-keyword">public</span> sealed <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Shape</span> <span class="hljs-title">permits</span> <span class="hljs-title">Circle</span>, <span class="hljs-title">Rectangle</span>, <span class="hljs-title">Triangle</span> </span>&#123; &#125;<br><span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Circle</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Shape</span> </span>&#123; &#125;<br><span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Rectangle</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Shape</span> </span>&#123; &#125;<br><span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Triangle</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Shape</span> </span>&#123; &#125;<br><br><span class="hljs-comment">// 模式匹配更多应用</span><br><span class="hljs-keyword">if</span> (obj <span class="hljs-keyword">instanceof</span> String s &amp;&amp; s.length() &gt; <span class="hljs-number">5</span>) &#123;<br>    <span class="hljs-comment">// Java 16 起可以使用 &amp;&amp;</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="八、Java-17（2021-LTS）"><a href="#八、Java-17（2021-LTS）" class="headerlink" title="八、Java 17（2021 LTS）"></a>八、Java 17（2021 LTS）</h2><h3 id="正式特性"><a href="#正式特性" class="headerlink" title="正式特性"></a>正式特性</h3><figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs gradle">├── Sealed <span class="hljs-keyword">Class</span>（正式）<br>├── 模式匹配 <span class="hljs-keyword">switch</span>（预览）<br>├── 伪随机数生成器<br>└── 严格浮点语义恢复<br></code></pre></td></tr></table></figure>
+
+<h2 id="九、Java-21（2023-LTS）"><a href="#九、Java-21（2023-LTS）" class="headerlink" title="九、Java 21（2023 LTS）"></a>九、Java 21（2023 LTS）</h2><h3 id="虚拟线程（Virtual-Threads）"><a href="#虚拟线程（Virtual-Threads）" class="headerlink" title="虚拟线程（Virtual Threads）"></a>虚拟线程（Virtual Threads）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 传统线程（平台线程）：1:1 映射到内核线程，数量有限</span><br><span class="hljs-comment">// 虚拟线程：M:N 映射，数百万个没问题</span><br><br><span class="hljs-comment">// 创建方式</span><br>Thread.ofVirtual().start(() -&gt; &#123;<br>    System.out.println(<span class="hljs-string">&quot;Virtual Thread&quot;</span>);<br>&#125;);<br><br><span class="hljs-comment">// 或</span><br>Thread.startVirtualThread(() -&gt; &#123;<br>    System.out.println(<span class="hljs-string">&quot;Virtual Thread&quot;</span>);<br>&#125;);<br><br><span class="hljs-comment">// 使用 Executors</span><br><span class="hljs-keyword">try</span> (<span class="hljs-keyword">var</span> executor = Executors.newVirtualThreadPerTaskExecutor()) &#123;<br>    executor.submit(() -&gt; &#123;<br>        Thread.sleep(<span class="hljs-number">1000</span>);  <span class="hljs-comment">// 不会阻塞平台线程</span><br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;done&quot;</span>;<br>    &#125;);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>虚拟线程原理</strong>：</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs vim">虚拟线程是 JVM 管理的用户线程<br>├── 在平台线程（Carrier Thread）上运行<br>├── 遇到阻塞操作（IO、<span class="hljs-keyword">sleep</span>、lock）时：<br>      虚拟线程从平台线程上脱钩（Yield）<br>      平台线程去执行其他虚拟线程<br>├── 阻塞结束后，虚拟线程重新挂到平台线程上<br>└── 本质：在 JVM 层面实现了异步，但代码看起来是同步的<br><br>对比：<br>├── 虚拟线程 <span class="hljs-keyword">vs</span> WebFlux：虚拟线程是同步代码，WebFlux 是响应式<br>├── 虚拟线程 <span class="hljs-keyword">vs</span> 协程：Go goroutine、Kotlin 协程类似概念<br>└── 适用：高 IO 密集型（Web 服务、微服务）<br></code></pre></td></tr></table></figure>
+
+<h3 id="模式匹配-Switch"><a href="#模式匹配-Switch" class="headerlink" title="模式匹配 Switch"></a>模式匹配 Switch</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Java 21 正式</span><br>String result = <span class="hljs-keyword">switch</span> (obj) &#123;<br>    <span class="hljs-keyword">case</span> Integer i -&gt; <span class="hljs-string">&quot;int: &quot;</span> + i;<br>    <span class="hljs-keyword">case</span> String s when s.length() &gt; <span class="hljs-number">5</span> -&gt; <span class="hljs-string">&quot;long string: &quot;</span> + s;<br>    <span class="hljs-keyword">case</span> String s -&gt; <span class="hljs-string">&quot;string: &quot;</span> + s;<br>    <span class="hljs-keyword">case</span> <span class="hljs-keyword">null</span> -&gt; <span class="hljs-string">&quot;null&quot;</span>;  <span class="hljs-comment">// null 处理</span><br>    <span class="hljs-keyword">default</span> -&gt; <span class="hljs-string">&quot;unknown&quot;</span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h3 id="Record-模式"><a href="#Record-模式" class="headerlink" title="Record 模式"></a>Record 模式</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-class"><span class="hljs-keyword">record</span> <span class="hljs-title">Point</span><span class="hljs-params">(<span class="hljs-keyword">int</span> x, <span class="hljs-keyword">int</span> y)</span> </span>&#123;&#125;<br><br><span class="hljs-comment">// 解构</span><br><span class="hljs-keyword">if</span> (<span class="hljs-function">obj <span class="hljs-keyword">instanceof</span> <span class="hljs-title">Point</span><span class="hljs-params">(<span class="hljs-keyword">int</span> x, <span class="hljs-keyword">int</span> y)</span>) </span>&#123;<br>    System.out.println(x + <span class="hljs-string">&quot;, &quot;</span> + y);<br>&#125;<br><br><span class="hljs-comment">// Switch 中使用</span><br>String desc = <span class="hljs-keyword">switch</span> (obj) &#123;<br>    <span class="hljs-function"><span class="hljs-keyword">case</span> <span class="hljs-title">Point</span><span class="hljs-params">(<span class="hljs-keyword">int</span> x, <span class="hljs-keyword">int</span> y)</span> -&gt; &quot;<span class="hljs-title">Point</span><span class="hljs-params">(<span class="hljs-string">&quot; + x + &quot;</span>,<span class="hljs-string">&quot; + y + &quot;</span>)</span>&quot;</span>;<br>    <span class="hljs-keyword">default</span> -&gt; <span class="hljs-string">&quot;unknown&quot;</span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h3 id="顺序集合"><a href="#顺序集合" class="headerlink" title="顺序集合"></a>顺序集合</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// List、Set、Map 新增顺序方法</span><br>list.getFirst();   <span class="hljs-comment">// 等效 list.get(0)</span><br>list.getLast();    <span class="hljs-comment">// 等效 list.get(list.size()-1)</span><br>list.reversed();   <span class="hljs-comment">// 反向视图</span><br><br>set.getFirst();    <span class="hljs-comment">// 第一个元素</span><br>set.getLast();     <span class="hljs-comment">// 最后一个元素</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="十、各-LTS-版本升级路径"><a href="#十、各-LTS-版本升级路径" class="headerlink" title="十、各 LTS 版本升级路径"></a>十、各 LTS 版本升级路径</h2><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm"><span class="hljs-keyword">Java </span><span class="hljs-number">8</span> → <span class="hljs-keyword">Java </span><span class="hljs-number">11</span>：<br>├── 模块化（可选）<br>├── 用 var、集合工厂方法<br>├── 用 HTTP Client 替换 OkHttp<br>└── 升级框架兼容性<br><br><span class="hljs-keyword">Java </span><span class="hljs-number">11</span> → <span class="hljs-keyword">Java </span><span class="hljs-number">17</span>：<br>├── Records 替代 Lombok @Data<br>├── Text <span class="hljs-keyword">Block </span>简化字符串拼接<br>├── <span class="hljs-keyword">Switch </span>表达式<br>└── Sealed Class<br><br><span class="hljs-keyword">Java </span><span class="hljs-number">17</span> → <span class="hljs-keyword">Java </span><span class="hljs-number">21</span>：<br>├── 虚拟线程（最重要）<br>├── 模式匹配 <span class="hljs-keyword">Switch</span><br><span class="hljs-keyword"></span>├── Record 模式<br>└── 顺序集合<br></code></pre></td></tr></table></figure>
+
+<h2 id="十一、面试题"><a href="#十一、面试题" class="headerlink" title="十一、面试题"></a>十一、面试题</h2><h4 id="1-Lambda-的原理？"><a href="#1-Lambda-的原理？" class="headerlink" title="1. Lambda 的原理？"></a>1. Lambda 的原理？</h4><p>编译成 invokedynamic 指令，运行时动态生成实现类。不会为每个 Lambda 创建匿名内部类。</p>
+<h4 id="2-Stream-的中间操作和终端操作的区别？"><a href="#2-Stream-的中间操作和终端操作的区别？" class="headerlink" title="2. Stream 的中间操作和终端操作的区别？"></a>2. Stream 的中间操作和终端操作的区别？</h4><p>中间操作是 lazy（延迟执行），终端操作触发实际计算。Stream 只能消费一次。</p>
+<h4 id="3-Optional-的正确用法？"><a href="#3-Optional-的正确用法？" class="headerlink" title="3. Optional 的正确用法？"></a>3. Optional 的正确用法？</h4><p>用 map/filter/orElse 链式调用，不要用 get()/isPresent()。作为返回值，不要作为参数/字段。</p>
+<h4 id="4-虚拟线程和平台线程的区别？"><a href="#4-虚拟线程和平台线程的区别？" class="headerlink" title="4. 虚拟线程和平台线程的区别？"></a>4. 虚拟线程和平台线程的区别？</h4><p>虚拟线程是 JVM 管理的轻量级线程（M:N），平台线程是 OS 线程（1:1）。虚拟线程适合 IO 密集型场景，数量可达百万级。</p>
+<h4 id="5-Record-和-Lombok-Data-的区别？"><a href="#5-Record-和-Lombok-Data-的区别？" class="headerlink" title="5. Record 和 Lombok @Data 的区别？"></a>5. Record 和 Lombok @Data 的区别？</h4><p>Record 是语言内置，不可变（final 字段），语义上是值类型。Lombok 是编译期注解处理器，可以有可变字段。</p>
+<h4 id="6-Switch-表达式和-Switch-语句的区别？"><a href="#6-Switch-表达式和-Switch-语句的区别？" class="headerlink" title="6. Switch 表达式和 Switch 语句的区别？"></a>6. Switch 表达式和 Switch 语句的区别？</h4><p>Switch 表达式有返回值，用 -&gt; 语法，不会穿透（没有 break），必须覆盖所有分支（exhaustive）。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Java%E5%9F%BA%E7%A1%80/">Java基础</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Java/">Java</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%96%B0%E7%89%B9%E6%80%A7/">新特性</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E8%99%9A%E6%8B%9F%E7%BA%BF%E7%A8%8B/">虚拟线程</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Lambda/">Lambda</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Stream/">Stream</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/26/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E4%B8%8E%E4%BD%8D%E5%9B%BE%E8%AF%A6%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">布隆过滤器与位图：原理、实现与应用</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">操作系统核心概念：进程线程、死锁、内存管理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

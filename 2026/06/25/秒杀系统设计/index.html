@@ -1,0 +1,543 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>秒杀系统设计：缓存+MQ+限流+降级方案 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/seckill-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="秒杀系统设计：缓存+MQ+限流+降级方案">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 23:30" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.2k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      15
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">秒杀系统设计：缓存+MQ+限流+降级方案</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：42 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、秒杀系统的挑战"><a href="#一、秒杀系统的挑战" class="headerlink" title="一、秒杀系统的挑战"></a>一、秒杀系统的挑战</h2><h3 id="核心难点"><a href="#核心难点" class="headerlink" title="核心难点"></a>核心难点</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-bullet">1.</span> 高并发读：瞬间大量用户涌入，页面访问量激增<br><span class="hljs-bullet">2.</span> 高并发写：秒杀开始瞬间大量下单请求<br><span class="hljs-bullet">3.</span> 库存扣减：防止超卖（扣减库存必须原子）<br><span class="hljs-bullet">4.</span> 限购：同一用户只能买 N 件<br><span class="hljs-bullet">5.</span> 防作弊：防止脚本刷单<br></code></pre></td></tr></table></figure>
+
+<h3 id="性能指标"><a href="#性能指标" class="headerlink" title="性能指标"></a>性能指标</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs">QPS：高峰期可能达到数十万/秒<br>库存：通常很少（几十到几千件）<br>读/写比：读请求远大于写请求<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、整体架构"><a href="#二、整体架构" class="headerlink" title="二、整体架构"></a>二、整体架构</h2><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs jboss-cli">客户端（浏览器<span class="hljs-string">/App</span>）<br>    │<br>    ├── CDN（静态资源加速）<br>    │<br>    ▼<br>Nginx（负载均衡 + 限流）<br>    │<br>    ├── 静态页面 → CDN<br>    ├── 动态请求<br>    │<br>    ▼<br>网关层（限流 + 鉴权）<br>    │<br>    ▼<br>应用层（秒杀服务）<br>    ├── 前置校验（验证码、限购）<br>    ├── Redis 预减库存<br>    └── MQ 异步下单<br>    │<br>    ▼<br>消息队列（削峰填谷）<br>    │<br>    ▼<br>后端服务（扣库存、生成订单）<br>    │<br>    ▼<br>数据库（最终一致性）<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、前端优化"><a href="#三、前端优化" class="headerlink" title="三、前端优化"></a>三、前端优化</h2><h3 id="静态化"><a href="#静态化" class="headerlink" title="静态化"></a>静态化</h3><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs html"><span class="hljs-comment">&lt;!-- 秒杀页面提前生成静态 HTML，部署到 CDN --&gt;</span><br><span class="hljs-comment">&lt;!-- 动态数据（库存、倒计时）通过 Ajax 获取 --&gt;</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="限流措施"><a href="#限流措施" class="headerlink" title="限流措施"></a>限流措施</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-bullet">1.</span> 按钮置灰（点击后 5s 内不可重复提交）<br><span class="hljs-bullet">2.</span> 验证码（倒计时开始前需输入验证码）<br><span class="hljs-bullet">3.</span> 答题（简单问题，消耗脚本时间）<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、Nginx-层限流"><a href="#四、Nginx-层限流" class="headerlink" title="四、Nginx 层限流"></a>四、Nginx 层限流</h2><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-comment"># 限制每个 IP 每秒请求数</span><br><span class="hljs-attribute">limit_req_zone</span> $binary_remote_addr zone=seckill:<span class="hljs-number">10m</span> rate=10r/s;<br><br><span class="hljs-section">server</span> &#123;<br>    <span class="hljs-attribute">location</span> /seckill/ &#123;<br>        <span class="hljs-attribute">limit_req</span> zone=seckill burst=<span class="hljs-number">20</span> nodelay;<br>        <span class="hljs-attribute">proxy_pass</span> http://backend;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、Redis-预减库存"><a href="#五、Redis-预减库存" class="headerlink" title="五、Redis 预减库存"></a>五、Redis 预减库存</h2><h3 id="初始化库存"><a href="#初始化库存" class="headerlink" title="初始化库存"></a>初始化库存</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 秒杀开始前，将库存加载到 Redis</span><br>stringRedisTemplate.opsForValue().set(<span class="hljs-string">&quot;stock:1001&quot;</span>, <span class="hljs-string">&quot;100&quot;</span>);<br></code></pre></td></tr></table></figure>
+
+<h3 id="预减库存（原子操作）"><a href="#预减库存（原子操作）" class="headerlink" title="预减库存（原子操作）"></a>预减库存（原子操作）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">preDeductStock</span><span class="hljs-params">(Long productId)</span> </span>&#123;<br>    String key = <span class="hljs-string">&quot;stock:&quot;</span> + productId;<br>    <span class="hljs-comment">// 原子减 1，返回剩余库存</span><br>    Long stock = stringRedisTemplate.opsForValue().decrement(key);<br>    <br>    <span class="hljs-keyword">if</span> (stock &lt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-comment">// 库存不足，回加（防止多减）</span><br>        stringRedisTemplate.opsForValue().increment(key);<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="Lua-脚本（原子操作）"><a href="#Lua-脚本（原子操作）" class="headerlink" title="Lua 脚本（原子操作）"></a>Lua 脚本（原子操作）</h3><figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs lua"><span class="hljs-comment">-- 库存预减脚本</span><br><span class="hljs-keyword">local</span> key = KEYS[<span class="hljs-number">1</span>]<br><span class="hljs-keyword">local</span> stock = redis.call(<span class="hljs-string">&#x27;get&#x27;</span>, key)<br><span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> stock <span class="hljs-keyword">or</span> <span class="hljs-built_in">tonumber</span>(stock) &lt;= <span class="hljs-number">0</span> <span class="hljs-keyword">then</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>  <span class="hljs-comment">-- 库存不足</span><br><span class="hljs-keyword">end</span><br>redis.call(<span class="hljs-string">&#x27;decrby&#x27;</span>, key, <span class="hljs-number">1</span>)<br><span class="hljs-keyword">return</span> <span class="hljs-number">1</span>  <span class="hljs-comment">-- 成功</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="六、MQ-异步下单"><a href="#六、MQ-异步下单" class="headerlink" title="六、MQ 异步下单"></a>六、MQ 异步下单</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SeckillService</span> </span>&#123;<br>    <br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> StringRedisTemplate redisTemplate;<br>    <br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> RocketMQTemplate mqTemplate;<br>    <br>    <span class="hljs-function"><span class="hljs-keyword">public</span> SeckillResult <span class="hljs-title">doSeckill</span><span class="hljs-params">(Long userId, Long productId)</span> </span>&#123;<br>        <span class="hljs-comment">// 1. 前置校验</span><br>        <span class="hljs-keyword">if</span> (!checkLimit(userId, productId)) &#123;<br>            <span class="hljs-keyword">return</span> SeckillResult.fail(<span class="hljs-string">&quot;超过限购数量&quot;</span>);<br>        &#125;<br>        <br>        <span class="hljs-comment">// 2. Redis 预减库存</span><br>        <span class="hljs-keyword">if</span> (!preDeductStock(productId)) &#123;<br>            <span class="hljs-keyword">return</span> SeckillResult.fail(<span class="hljs-string">&quot;库存不足&quot;</span>);<br>        &#125;<br>        <br>        <span class="hljs-comment">// 3. 发 MQ 异步创建订单</span><br>        SeckillOrder order = <span class="hljs-keyword">new</span> SeckillOrder(userId, productId);<br>        mqTemplate.convertAndSend(<span class="hljs-string">&quot;seckill_order_topic&quot;</span>, order);<br>        <br>        <span class="hljs-comment">// 4. 立即返回用户排队中</span><br>        <span class="hljs-keyword">return</span> SeckillResult.success(<span class="hljs-string">&quot;排队中，请稍候&quot;</span>);<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 消费者：异步处理订单</span><br><span class="hljs-meta">@RocketMQMessageListener(topic = &quot;seckill_order_topic&quot;, consumerGroup = &quot;seckill&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SeckillOrderConsumer</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">RocketMQListener</span>&lt;<span class="hljs-title">SeckillOrder</span>&gt; </span>&#123;<br>    <br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onMessage</span><span class="hljs-params">(SeckillOrder order)</span> </span>&#123;<br>        <span class="hljs-comment">// 1. 数据库扣减库存（乐观锁）</span><br>        <span class="hljs-comment">// 2. 生成订单</span><br>        <span class="hljs-comment">// 3. 记录购买记录</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="七、数据库库存扣减"><a href="#七、数据库库存扣减" class="headerlink" title="七、数据库库存扣减"></a>七、数据库库存扣减</h2><h3 id="乐观锁防超卖"><a href="#乐观锁防超卖" class="headerlink" title="乐观锁防超卖"></a>乐观锁防超卖</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-comment">-- 乐观锁：CAS 方式扣减库存</span><br>UPDATE product <span class="hljs-keyword">SET</span> <br>    stock <span class="hljs-operator">=</span> stock <span class="hljs-operator">-</span> <span class="hljs-number">1</span>,<br>    version <span class="hljs-operator">=</span> version <span class="hljs-operator">+</span> <span class="hljs-number">1</span><br><span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> #&#123;productId&#125; <br>  <span class="hljs-keyword">AND</span> stock <span class="hljs-operator">&gt;</span> <span class="hljs-number">0</span> <br>  <span class="hljs-keyword">AND</span> version <span class="hljs-operator">=</span> #&#123;oldVersion&#125;;<br><br><span class="hljs-comment">-- 影响行数 &gt; 0 → 扣减成功</span><br><span class="hljs-comment">-- 影响行数 = 0 → 库存不足或并发冲突</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="限购判断"><a href="#限购判断" class="headerlink" title="限购判断"></a>限购判断</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-comment">-- 检查用户购买记录</span><br><span class="hljs-keyword">SELECT</span> <span class="hljs-built_in">COUNT</span>(<span class="hljs-operator">*</span>) <span class="hljs-keyword">FROM</span> seckill_order <br><span class="hljs-keyword">WHERE</span> user_id <span class="hljs-operator">=</span> #&#123;userId&#125; <br>  <span class="hljs-keyword">AND</span> product_id <span class="hljs-operator">=</span> #&#123;productId&#125;;<br><span class="hljs-comment">-- &gt; 0 → 已购买过，拒绝</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="八、防刷与安全"><a href="#八、防刷与安全" class="headerlink" title="八、防刷与安全"></a>八、防刷与安全</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 1. 隐藏秒杀接口</span><br><span class="hljs-comment">// 前端先请求获取秒杀路径（带 token）</span><br><span class="hljs-meta">@GetMapping(&quot;/getSeckillPath&quot;)</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getSeckillPath</span><span class="hljs-params">(<span class="hljs-meta">@RequestParam</span> Long productId)</span> </span>&#123;<br>    String path = UUID.randomUUID().toString();<br>    redisTemplate.opsForValue().set(<span class="hljs-string">&quot;seckill_path:&quot;</span> + userId + <span class="hljs-string">&quot;:&quot;</span> + productId, path, <span class="hljs-number">60</span>, TimeUnit.SECONDS);<br>    <span class="hljs-keyword">return</span> path;<br>&#125;<br><br><span class="hljs-comment">// 实际秒杀需要携带 path 参数</span><br><span class="hljs-meta">@PostMapping(&quot;/doSeckill/&#123;path&#125;&quot;)</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> SeckillResult <span class="hljs-title">doSeckill</span><span class="hljs-params">(<span class="hljs-meta">@PathVariable</span> String path, ...)</span> </span>&#123;<br>    <span class="hljs-comment">// 校验 path</span><br>    String savedPath = redisTemplate.opsForValue().get(<span class="hljs-string">&quot;seckill_path:&quot;</span> + userId + <span class="hljs-string">&quot;:&quot;</span> + productId);<br>    <span class="hljs-keyword">if</span> (!path.equals(savedPath)) &#123;<br>        <span class="hljs-keyword">return</span> SeckillResult.fail(<span class="hljs-string">&quot;非法请求&quot;</span>);<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 2. 接口限流（RateLimiter）</span><br><span class="hljs-comment">// 3. 黑名单机制</span><br><span class="hljs-comment">// 4. 风控系统</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="九、整体流程"><a href="#九、整体流程" class="headerlink" title="九、整体流程"></a>九、整体流程</h2><figure class="highlight dos"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs dos">秒杀流程总结：<br>  │<br>  ├── 开始前<br>  │     ├── 页面静态化到 CDN<br>  │     ├── 库存加载到 Redis<br>  │     └── 禁用秒杀按钮<br>  │<br>  ├── 倒计时结束<br>  │     ├── 前端请求获取动态 <span class="hljs-built_in">path</span><br>  │     └── 展示验证码<br>  │<br>  ├── 秒杀请求<br>  │     ├── Nginx 限流<br>  │     ├── 验证码校验<br>  │     ├── <span class="hljs-built_in">path</span> 校验<br>  │     ├── 限购检查<br>  │     ├── Redis 预减库存<br>  │     └── MQ 发送下单消息<br>  │<br>  └── 异步处理<br>        ├── MQ 消费<br>        ├── 数据库扣库存<br>        ├── 生成订单<br>        └── 返回结果（轮询/推送）<br></code></pre></td></tr></table></figure>
+
+<h2 id="十、面试题"><a href="#十、面试题" class="headerlink" title="十、面试题"></a>十、面试题</h2><h4 id="1-秒杀系统怎么设计？"><a href="#1-秒杀系统怎么设计？" class="headerlink" title="1. 秒杀系统怎么设计？"></a>1. 秒杀系统怎么设计？</h4><p>前端静态化 + 验证码，Nginx 限流，Redis 预减库存，MQ 异步下单，数据库乐观锁扣库存。</p>
+<h4 id="2-怎么防止超卖？"><a href="#2-怎么防止超卖？" class="headerlink" title="2. 怎么防止超卖？"></a>2. 怎么防止超卖？</h4><p>Redis 原子减库存 + 数据库乐观锁（<code>UPDATE ... WHERE stock &gt; 0</code>）。</p>
+<h4 id="3-怎么处理库存预热？"><a href="#3-怎么处理库存预热？" class="headerlink" title="3. 怎么处理库存预热？"></a>3. 怎么处理库存预热？</h4><p>秒杀前把库存加载到 Redis，请求先经过 Redis 预减，通过后再走 MQ 异步下单。</p>
+<h4 id="4-秒杀接口怎么防刷？"><a href="#4-秒杀接口怎么防刷？" class="headerlink" title="4. 秒杀接口怎么防刷？"></a>4. 秒杀接口怎么防刷？</h4><p>隐藏接口地址（path 动态化）、验证码、接口限流、限购检查、黑名单。</p>
+<h4 id="5-为什么不直接扣数据库库存？"><a href="#5-为什么不直接扣数据库库存？" class="headerlink" title="5. 为什么不直接扣数据库库存？"></a>5. 为什么不直接扣数据库库存？</h4><p>数据库连接数有限，QPS 上限低。Redis + MQ 做缓冲，削峰填谷。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">高并发</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%A7%92%E6%9D%80/">秒杀</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E7%9F%AD%E9%93%BE%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">短链系统设计：发号器+重定向+高性能架构</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%9C%A8Spring%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/">
+                        <span class="hidden-mobile">设计模式在Spring中的应用：工厂、单例、代理、策略、模板</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

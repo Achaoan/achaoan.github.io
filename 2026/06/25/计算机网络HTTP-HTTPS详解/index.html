@@ -1,0 +1,714 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>计算机网络：HTTP/HTTPS 协议详解 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/network-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="计算机网络：HTTP/HTTPS 协议详解">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 23:45" pubdate>
+        2026年6月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.6k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      19
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">计算机网络：HTTP/HTTPS 协议详解</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：29 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、HTTP-协议概述"><a href="#一、HTTP-协议概述" class="headerlink" title="一、HTTP 协议概述"></a>一、HTTP 协议概述</h2><h3 id="什么是-HTTP？"><a href="#什么是-HTTP？" class="headerlink" title="什么是 HTTP？"></a>什么是 HTTP？</h3><p>HTTP（HyperText Transfer Protocol）是<strong>无状态、无连接</strong>的应用层协议，基于 TCP 实现。</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">HTTP</span> 特点：<br>├── 无状态：每个请求独立，服务端不保存上下文<br>├── 无连接：每次请求完成后断开连接（HTTP/<span class="hljs-number">1</span>.<span class="hljs-number">0</span>）<br>├── 明文传输：数据不加密（HTTPS 解决此问题）<br>└── 客户端-服务端模式<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、HTTP-版本演化"><a href="#二、HTTP-版本演化" class="headerlink" title="二、HTTP 版本演化"></a>二、HTTP 版本演化</h2><h3 id="HTTP-1-0（1996）"><a href="#HTTP-1-0（1996）" class="headerlink" title="HTTP/1.0（1996）"></a>HTTP/1.0（1996）</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs">特点：<br>├── 短连接：每次请求都建立 TCP 连接<br>├── 每个 TCP 连接只处理一个请求<br>└── 性能差：三次握手 + 慢启动 开销大<br></code></pre></td></tr></table></figure>
+
+<h3 id="HTTP-1-1（1999）—-目前最广泛"><a href="#HTTP-1-1（1999）—-目前最广泛" class="headerlink" title="HTTP/1.1（1999）— 目前最广泛"></a>HTTP/1.1（1999）— 目前最广泛</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">改进：<br>├── 持久连接（Keep-Alive）：复用 TCP 连接<br>├── 管道化（Pipelining）：允许一次发送多个请求<br>├── Host 头部：支持虚拟主机<br>├── 分块传输编码（Chunked）<br>└── 新增方法：PUT、DELETE、OPTIONS<br></code></pre></td></tr></table></figure>
+
+<p><strong>问题</strong>：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-bullet">1.</span> 队头阻塞（HOL）：前一个响应慢会阻塞后续响应<br><span class="hljs-bullet">2.</span> 头部冗余：每次请求携带大量重复头部<br><span class="hljs-bullet">3.</span> 无优先级：无法设置请求优先级<br></code></pre></td></tr></table></figure>
+
+<h3 id="HTTP-2-0（2015）"><a href="#HTTP-2-0（2015）" class="headerlink" title="HTTP/2.0（2015）"></a>HTTP/2.0（2015）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">改进：<br>├── 二进制分帧（替代文本协议）<br>├── 多路复用（Multiplexing）：一个 TCP 连接并行多个流<br>├── 头部压缩（HPACK）：减少头部冗余<br>├── 服务端推送（Server Push）<br>└── 流优先级<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// HTTP/2 多路复用：一个 TCP 连接并行多个请求</span><br><span class="hljs-comment">// HTTP/1.1: 6-8 个并发连接（浏览器限制）</span><br><span class="hljs-comment">// HTTP/2:   一个连接内并行多个 Stream</span><br><br><span class="hljs-comment">// 帧（Frame）：最小通信单位</span><br><span class="hljs-comment">// ┌─────────────────────────────────────┐</span><br><span class="hljs-comment">// │  Length (24) | Type (8) | Flags (8) │</span><br><span class="hljs-comment">// │  Stream ID (32)                     │</span><br><span class="hljs-comment">// │  Frame Payload                      │</span><br><span class="hljs-comment">// └─────────────────────────────────────┘</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>问题</strong>：TCP 级别队头阻塞仍在（TCP 丢包时所有 Stream 等待）。</p>
+<h3 id="HTTP-3-0（QUIC）"><a href="#HTTP-3-0（QUIC）" class="headerlink" title="HTTP/3.0（QUIC）"></a>HTTP/3.0（QUIC）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">改进：<br>├── 基于 UDP（非 TCP），彻底解决 TCP 队头阻塞<br>├── 0-RTT 连接建立（首次 1-RTT，后续 0-RTT）<br>├── 内置 TLS 1.3（加密是必选项）<br>├── 连接迁移（切换网络不中断）<br>└── 更好的拥塞控制<br></code></pre></td></tr></table></figure>
+
+<h3 id="版本对比"><a href="#版本对比" class="headerlink" title="版本对比"></a>版本对比</h3><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>传输层</th>
+<th>连接方式</th>
+<th align="center">队头阻塞</th>
+<th align="center">加密</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>1.0</strong></td>
+<td>TCP</td>
+<td>短连接</td>
+<td align="center">有</td>
+<td align="center">可选</td>
+</tr>
+<tr>
+<td><strong>1.1</strong></td>
+<td>TCP</td>
+<td>长连接</td>
+<td align="center">有</td>
+<td align="center">可选</td>
+</tr>
+<tr>
+<td><strong>2.0</strong></td>
+<td>TCP</td>
+<td>多路复用</td>
+<td align="center">TCP 级别</td>
+<td align="center">可选</td>
+</tr>
+<tr>
+<td><strong>3.0</strong></td>
+<td>UDP (QUIC)</td>
+<td>多路复用</td>
+<td align="center">无</td>
+<td align="center">必选</td>
+</tr>
+</tbody></table>
+<h2 id="三、HTTP-请求方法"><a href="#三、HTTP-请求方法" class="headerlink" title="三、HTTP 请求方法"></a>三、HTTP 请求方法</h2><table>
+<thead>
+<tr>
+<th>方法</th>
+<th align="center">幂等</th>
+<th align="center">安全</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>GET</strong></td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td>获取资源</td>
+</tr>
+<tr>
+<td><strong>POST</strong></td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td>提交数据</td>
+</tr>
+<tr>
+<td><strong>PUT</strong></td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+<td>替换资源</td>
+</tr>
+<tr>
+<td><strong>DELETE</strong></td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+<td>删除资源</td>
+</tr>
+<tr>
+<td><strong>PATCH</strong></td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td>部分修改</td>
+</tr>
+<tr>
+<td><strong>HEAD</strong></td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td>获取响应头（无 body）</td>
+</tr>
+<tr>
+<td><strong>OPTIONS</strong></td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td>查询支持的 HTTP 方法</td>
+</tr>
+</tbody></table>
+<p><strong>幂等</strong>：无论调用多少次，结果相同（服务端状态不变）。</p>
+<h2 id="四、HTTP-状态码"><a href="#四、HTTP-状态码" class="headerlink" title="四、HTTP 状态码"></a>四、HTTP 状态码</h2><figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs tap">1xx：信息<br>├──<span class="hljs-number"> 101 </span>Switching Protocols（WebSocket 升级）<br><br>2xx：成功<br>├──<span class="hljs-number"> 200 </span>OK<br>├──<span class="hljs-number"> 201 </span>Created（POST 创建成功）<br>├──<span class="hljs-number"> 204 </span>No Content（删除成功）<br><br>3xx：重定向<br>├──<span class="hljs-number"> 301 </span>Moved Permanently（永久重定向，浏览器缓存）<br>├──<span class="hljs-number"> 302 </span>Found（临时重定向）<br>├──<span class="hljs-number"> 304 </span>Not Modified（协商缓存）<br><br>4xx：客户端错误<br>├──<span class="hljs-number"> 400 </span>Bad Request（参数错误）<br>├──<span class="hljs-number"> 401 </span>Unauthorized（未认证）<br>├──<span class="hljs-number"> 403 </span>Forbidden（已认证但无权限）<br>├──<span class="hljs-number"> 404 </span>Not Found<br>├──<span class="hljs-number"> 405 </span>Method Not Allowed<br>├──<span class="hljs-number"> 429 </span>Too Many Requests（限流）<br><br>5xx：服务端错误<br>├──<span class="hljs-number"> 500 </span>Internal Server Error<br>├──<span class="hljs-number"> 502 </span>Bad Gateway（网关超时/上游不可达）<br>├──<span class="hljs-number"> 503 </span>Service Unavailable（服务过载）<br>├──<span class="hljs-number"> 504 </span>Gateway Timeout<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、HTTPS"><a href="#五、HTTPS" class="headerlink" title="五、HTTPS"></a>五、HTTPS</h2><h3 id="HTTP-的问题"><a href="#HTTP-的问题" class="headerlink" title="HTTP 的问题"></a>HTTP 的问题</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-bullet">1.</span> 明文传输 → 窃听<br><span class="hljs-bullet">2.</span> 不验证身份 → 中间人攻击<br><span class="hljs-bullet">3.</span> 无完整性校验 → 篡改<br></code></pre></td></tr></table></figure>
+
+<h3 id="HTTPS-HTTP-TLS-SSL"><a href="#HTTPS-HTTP-TLS-SSL" class="headerlink" title="HTTPS = HTTP + TLS/SSL"></a>HTTPS = HTTP + TLS/SSL</h3><figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs stata">HTTPS 解决了三个问题：<br>├── 加密 → 防窃听（对称加密传输数据）<br>├── 证书 → 防冒充（<span class="hljs-keyword">CA</span> 数字证书验证身份）<br>└── <span class="hljs-keyword">MAC</span> → 防篡改（消息认证码）<br></code></pre></td></tr></table></figure>
+
+<h3 id="TLS-握手（1-2）"><a href="#TLS-握手（1-2）" class="headerlink" title="TLS 握手（1.2）"></a>TLS 握手（1.2）</h3><figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs arduino"><span class="hljs-built_in">Client</span>                                       <span class="hljs-built_in">Server</span><br>   │                                            │<br>   │──── ClientHello（TLS版本、密码套件、随机数）───→│<br>   │                                            │<br>   │←── ServerHello（选定套件、随机数）─────────────│<br>   │←── Certificate（服务端证书+CA 链）─────────────│<br>   │←── ServerHelloDone ────────────────────────│<br>   │                                            │<br>   │──── ClientKeyExchange（PreMaster Secret）──→│<br>   │      （用服务端公钥加密）                      │<br>   │──── ChangeCipherSpec ─────────────────────→│<br>   │──── Finished ─────────────────────────────→│<br>   │                                            │<br>   │←── ChangeCipherSpec ───────────────────────│<br>   │←── Finished ──────────────────────────────│<br>   │                                            │<br>   │══════════ 加密通信（对称加密）══════════════════│<br></code></pre></td></tr></table></figure>
+
+<p><strong>关键步骤</strong>：</p>
+<figure class="highlight basic"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs basic"><span class="hljs-number">1</span>. 非对称加密交换 P<span class="hljs-comment">reMaster Secret（RSA/ECDHE）</span><br><span class="hljs-number">2</span>. 双方用 P<span class="hljs-comment">reMaster + 随机数生成对称密钥</span><br><span class="hljs-number">3</span>. 后续通信使用对称加密（AES）<br></code></pre></td></tr></table></figure>
+
+<h3 id="TLS-1-3-优化"><a href="#TLS-1-3-优化" class="headerlink" title="TLS 1.3 优化"></a>TLS 1.3 优化</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">TLS 1.3 改进：<br>├── 1-RTT 握手（TLS 1.2 需要 2-RTT）<br>├── 0-RTT 恢复（复用之前会话）<br>├── 移除不安全算法（RSA 握手、RC4、3DES）<br>└── 强制使用前向安全（ECDHE）<br></code></pre></td></tr></table></figure>
+
+<h3 id="证书验证链"><a href="#证书验证链" class="headerlink" title="证书验证链"></a>证书验证链</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs markdown">信任锚（Root CA）<br><span class="hljs-code">    └── 签发 中间 CA</span><br><span class="hljs-code">            └── 签发 服务器证书</span><br><span class="hljs-code">                    ├── 域名（CN/SAN）</span><br><span class="hljs-code">                    ├── 公钥</span><br><span class="hljs-code">                    ├── 有效期</span><br><span class="hljs-code">                    └── 签名（上级 CA 私钥签名）</span><br><span class="hljs-code"></span><br>验证流程：<br><span class="hljs-bullet">1.</span> 用上级 CA 公钥验证下级证书签名<br><span class="hljs-bullet">2.</span> 检查证书是否过期或吊销（CRL/OCSP）<br><span class="hljs-bullet">3.</span> 检查域名是否匹配<br><span class="hljs-bullet">4.</span> 追溯到信任的 Root CA<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、CDN"><a href="#六、CDN" class="headerlink" title="六、CDN"></a>六、CDN</h2><h3 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h3><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs routeros">用户访问 →<span class="hljs-built_in"> DNS </span>解析（CNAME 到 CDN）→ 返回最近节点<span class="hljs-built_in"> IP </span>→ CDN 节点响应<br><br>CDN 节点：<br>├── 有缓存 → 直接返回<br>└── 无缓存 → 回源获取 + 缓存<br></code></pre></td></tr></table></figure>
+
+<h3 id="关键概念"><a href="#关键概念" class="headerlink" title="关键概念"></a>关键概念</h3><table>
+<thead>
+<tr>
+<th>概念</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>边缘节点</strong></td>
+<td>离用户最近的服务器</td>
+</tr>
+<tr>
+<td><strong>回源</strong></td>
+<td>边缘节点无缓存时，去源站获取</td>
+</tr>
+<tr>
+<td><strong>预热</strong></td>
+<td>提前将内容缓存到节点</td>
+</tr>
+<tr>
+<td><strong>刷新</strong></td>
+<td>强制清除节点缓存</td>
+</tr>
+<tr>
+<td><strong>CNAME</strong></td>
+<td>CDN 域名解析记录</td>
+</tr>
+</tbody></table>
+<h2 id="七、DNS"><a href="#七、DNS" class="headerlink" title="七、DNS"></a>七、DNS</h2><h3 id="解析流程"><a href="#解析流程" class="headerlink" title="解析流程"></a>解析流程</h3><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs stylus">浏览器输入 www<span class="hljs-selector-class">.example</span><span class="hljs-selector-class">.com</span><br>    │<br>    ├── <span class="hljs-number">1</span>. 浏览器缓存 → 有则返回<br>    │<br>    ├── <span class="hljs-number">2</span>. 操作系统缓存 → 有则返回<br>    │<br>    ├── <span class="hljs-number">3</span>. 本地 DNS 服务器（LDNS）<br>    │<br>    ├── <span class="hljs-number">4</span>. 根域名服务器（.）<br>    │     └── 返回 <span class="hljs-selector-class">.com</span> 顶级域名服务器地址<br>    │<br>    ├── <span class="hljs-number">5</span>. 顶级域名服务器（.com）<br>    │     └── 返回 example<span class="hljs-selector-class">.com</span> 权威服务器地址<br>    │<br>    └── <span class="hljs-number">6</span>. 权威域名服务器<br>          └── 返回 A 记录（IP 地址）<br></code></pre></td></tr></table></figure>
+
+<h3 id="记录类型"><a href="#记录类型" class="headerlink" title="记录类型"></a>记录类型</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>说明</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>A</strong></td>
+<td>IPv4 地址</td>
+<td><code>1.2.3.4</code></td>
+</tr>
+<tr>
+<td><strong>AAAA</strong></td>
+<td>IPv6 地址</td>
+<td><code>::1</code></td>
+</tr>
+<tr>
+<td><strong>CNAME</strong></td>
+<td>域名别名</td>
+<td><code>cdn.example.com</code></td>
+</tr>
+<tr>
+<td><strong>MX</strong></td>
+<td>邮件服务器</td>
+<td><code>mail.example.com</code></td>
+</tr>
+<tr>
+<td><strong>NS</strong></td>
+<td>域名服务器</td>
+<td><code>ns1.example.com</code></td>
+</tr>
+<tr>
+<td><strong>TXT</strong></td>
+<td>文本记录</td>
+<td>SPF、DKIM 验证</td>
+</tr>
+</tbody></table>
+<h2 id="八、面试题"><a href="#八、面试题" class="headerlink" title="八、面试题"></a>八、面试题</h2><h4 id="1-HTTP-1-1-和-HTTP-2-的区别？"><a href="#1-HTTP-1-1-和-HTTP-2-的区别？" class="headerlink" title="1. HTTP/1.1 和 HTTP/2 的区别？"></a>1. HTTP/1.1 和 HTTP/2 的区别？</h4><p>HTTP/2 是二进制分帧、多路复用、头部压缩（HPACK）、服务端推送。解决了 HTTP/1.1 的队头阻塞问题。</p>
+<h4 id="2-HTTPS-握手过程？"><a href="#2-HTTPS-握手过程？" class="headerlink" title="2. HTTPS 握手过程？"></a>2. HTTPS 握手过程？</h4><p>ClientHello → ServerHello + 证书 → 交换密钥（非对称）→ 协商对称密钥 → 加密通信。</p>
+<h4 id="3-为什么-HTTPS-使用混合加密？"><a href="#3-为什么-HTTPS-使用混合加密？" class="headerlink" title="3. 为什么 HTTPS 使用混合加密？"></a>3. 为什么 HTTPS 使用混合加密？</h4><p>非对称加密慢但安全交换密钥，对称加密快但密钥分发困难。混合加密结合两者优点：非对称加密交换对称密钥，对称加密传输数据。</p>
+<h4 id="4-TLS-1-2-和-1-3-的区别？"><a href="#4-TLS-1-2-和-1-3-的区别？" class="headerlink" title="4. TLS 1.2 和 1.3 的区别？"></a>4. TLS 1.2 和 1.3 的区别？</h4><p>TLS 1.3 握手 1-RTT（1.2 是 2-RTT），支持 0-RTT 恢复，移除不安全算法，强制前向安全。</p>
+<h4 id="5-HTTP-状态码-301-和-302-的区别？"><a href="#5-HTTP-状态码-301-和-302-的区别？" class="headerlink" title="5. HTTP 状态码 301 和 302 的区别？"></a>5. HTTP 状态码 301 和 302 的区别？</h4><p>301 永久重定向（浏览器缓存后续请求），302 临时重定向（每次请求仍然访问原 URL）。</p>
+<h4 id="6-DNS-解析过程？"><a href="#6-DNS-解析过程？" class="headerlink" title="6. DNS 解析过程？"></a>6. DNS 解析过程？</h4><p>先查浏览器缓存 → 操作系统缓存 → 本地 DNS → 根 → 顶级域 → 权威服务器。</p>
+<h4 id="7-Cookie-和-Session-的区别？"><a href="#7-Cookie-和-Session-的区别？" class="headerlink" title="7. Cookie 和 Session 的区别？"></a>7. Cookie 和 Session 的区别？</h4><p>Cookie 存客户端（每次请求自动携带），Session 存服务端内存/Redis。Cookie 不安全，Session 需要存储空间。分布式架构常用 JWT 替代 Session。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a>
+                    
+                      <a class="hover-with-bg" href="/tags/HTTP/">HTTP</a>
+                    
+                      <a class="hover-with-bg" href="/tags/HTTPS/">HTTPS</a>
+                    
+                      <a class="hover-with-bg" href="/tags/TCP-IP/">TCP/IP</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CTCP-IP%E8%AF%A6%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">计算机网络：TCP/IP 协议详解</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/CI-CD%E5%AE%9E%E6%88%98GitLab%E4%B8%8EJenkins/">
+                        <span class="hidden-mobile">CI/CD实战：GitLab CI 与 Jenkins 流水线</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

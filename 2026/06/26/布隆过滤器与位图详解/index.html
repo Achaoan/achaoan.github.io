@@ -1,0 +1,546 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>布隆过滤器与位图：原理、实现与应用 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/bloom-filter-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="布隆过滤器与位图：原理、实现与应用">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-26 00:05" pubdate>
+        2026年6月26日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.6k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      23
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">布隆过滤器与位图：原理、实现与应用</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：26 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、布隆过滤器"><a href="#一、布隆过滤器" class="headerlink" title="一、布隆过滤器"></a>一、布隆过滤器</h2><h3 id="是什么？"><a href="#是什么？" class="headerlink" title="是什么？"></a>是什么？</h3><p>布隆过滤器（Bloom Filter）是一种<strong>空间效率极高的概率性数据结构</strong>，用于判断一个元素是否在集合中。</p>
+<figure class="highlight arcade"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs arcade">特点：<br>├── 说「不存在」→ 一定不存在<br>├── 说「存在」→ 可能存在（有误判率）<br>├── 无法删除元素（除非用 Counting Bloom <span class="hljs-built_in">Filter</span>）<br>└── 空间效率极高（比 HashSet 省 <span class="hljs-number">90</span>%+ 空间）<br></code></pre></td></tr></table></figure>
+
+<h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">初始化：一个 m 位的位数组 + k 个哈希函数<br><br>添加元素：<br>    ┌── <span class="hljs-constructor">Hash1(<span class="hljs-params">x</span>)</span> → 位置 p1 → 置为 <span class="hljs-number">1</span><br>    ├── <span class="hljs-constructor">Hash2(<span class="hljs-params">x</span>)</span> → 位置 p2 → 置为 <span class="hljs-number">1</span><br>    └── <span class="hljs-constructor">Hashk(<span class="hljs-params">x</span>)</span> → 位置 pk → 置为 <span class="hljs-number">1</span><br><br>查询元素：<br>    ┌── <span class="hljs-constructor">Hash1(<span class="hljs-params">x</span>)</span> → 位置 p1 → 是否为 <span class="hljs-number">1</span>？<br>    ├── <span class="hljs-constructor">Hash2(<span class="hljs-params">x</span>)</span> → 位置 p2 → 是否为 <span class="hljs-number">1</span>？<br>    └── <span class="hljs-constructor">Hashk(<span class="hljs-params">x</span>)</span> → 位置 pk → 是否为 <span class="hljs-number">1</span>？<br>           │<br>    全部为 <span class="hljs-number">1</span> → 可能存在<br>    有 <span class="hljs-number">0</span> 出现 → 一定不存在<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs routeros">示例：<span class="hljs-attribute">m</span>=16, <span class="hljs-attribute">k</span>=3<br>          ↓--- 位数组 (<span class="hljs-attribute">m</span>=16) ---↓<br>初始：   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]<br>添加 A:  [0,1,0,0,1,0,0,0,0,0,0,0,1,0,0,0]  (A 映射到 1,4,12)<br>添加 B:  [0,1,1,0,1,0,1,0,0,0,0,1,1,0,0,0]  (B 映射到 2,6,11)<br>查询 C:  Hash(C)=1,6,13 → <span class="hljs-attribute">1</span>=✅, <span class="hljs-attribute">6</span>=✅, <span class="hljs-attribute">13</span>=❌ → C 一定不存在<br>查询 D:  Hash(D)=1,4,11 → <span class="hljs-attribute">1</span>=✅, <span class="hljs-attribute">4</span>=✅, <span class="hljs-attribute">11</span>=✅ → D 可能存在（可能误判）<br></code></pre></td></tr></table></figure>
+
+<h3 id="误判率"><a href="#误判率" class="headerlink" title="误判率"></a>误判率</h3><figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs nix">误判率公式：<span class="hljs-attr">P</span> = (<span class="hljs-number">1</span> - (<span class="hljs-number">1</span> - <span class="hljs-number">1</span>/m)^(k*n))^k<br><br>其中：<br>  <span class="hljs-attr">m</span> = 位数组长度<br>  <span class="hljs-attr">n</span> = 插入元素数量<br>  <span class="hljs-attr">k</span> = 哈希函数个数<br><br>最佳哈希函数个数：<span class="hljs-attr">k</span> = (m/n) * ln(<span class="hljs-number">2</span>)<br><br>常见配置：<br>├── m/<span class="hljs-attr">n</span> = <span class="hljs-number">10</span>, <span class="hljs-attr">k</span> = <span class="hljs-number">7</span> → 误判率 ≈ <span class="hljs-number">0.8</span>%<br>├── m/<span class="hljs-attr">n</span> = <span class="hljs-number">15</span>, <span class="hljs-attr">k</span> = <span class="hljs-number">10</span> → 误判率 ≈ <span class="hljs-number">0.3</span>%<br>├── m/<span class="hljs-attr">n</span> = <span class="hljs-number">20</span>, <span class="hljs-attr">k</span> = <span class="hljs-number">14</span> → 误判率 ≈ <span class="hljs-number">0.01</span>%<br>└── m/<span class="hljs-attr">n</span> = <span class="hljs-number">30</span>, <span class="hljs-attr">k</span> = <span class="hljs-number">21</span> → 误判率 ≈ <span class="hljs-number">0.0002</span>%<br></code></pre></td></tr></table></figure>
+
+<h2 id="二、Guava-BloomFilter"><a href="#二、Guava-BloomFilter" class="headerlink" title="二、Guava BloomFilter"></a>二、Guava BloomFilter</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Maven</span><br><span class="hljs-comment">// &lt;dependency&gt;</span><br><span class="hljs-comment">//     &lt;groupId&gt;com.google.guava&lt;/groupId&gt;</span><br><span class="hljs-comment">//     &lt;artifactId&gt;guava&lt;/artifactId&gt;</span><br><span class="hljs-comment">//     &lt;version&gt;33.0.0-jre&lt;/version&gt;</span><br><span class="hljs-comment">// &lt;/dependency&gt;</span><br><br><span class="hljs-comment">// 创建：预计 1000 个元素，误判率 1%</span><br>BloomFilter&lt;String&gt; filter = BloomFilter.create(<br>    Funnels.stringFunnel(CharsetUtil.UTF_8),<br>    <span class="hljs-number">1000</span>,<br>    <span class="hljs-number">0.01</span>);<br><br><span class="hljs-comment">// 添加元素</span><br>filter.put(<span class="hljs-string">&quot;hello&quot;</span>);<br>filter.put(<span class="hljs-string">&quot;world&quot;</span>);<br><br><span class="hljs-comment">// 查询</span><br>filter.mightContain(<span class="hljs-string">&quot;hello&quot;</span>);   <span class="hljs-comment">// true</span><br>filter.mightContain(<span class="hljs-string">&quot;foo&quot;</span>);     <span class="hljs-comment">// false（大概率）</span><br>filter.mightContain(<span class="hljs-string">&quot;bar&quot;</span>);     <span class="hljs-comment">// 可能误判 true</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="三、Redis-布隆过滤器"><a href="#三、Redis-布隆过滤器" class="headerlink" title="三、Redis 布隆过滤器"></a>三、Redis 布隆过滤器</h2><h3 id="原生-Redis-BitMap"><a href="#原生-Redis-BitMap" class="headerlink" title="原生 Redis BitMap"></a>原生 Redis BitMap</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 自己实现：使用 Redis BitMap</span><br><span class="hljs-comment">// SETBIT 和 GETBIT 操作</span><br><br><span class="hljs-comment">// 手动布隆过滤器示例</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RedisBloomFilter</span> </span>&#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Jedis jedis;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String key;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> bitSize;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> numHashFunctions;<br>    <br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">RedisBloomFilter</span><span class="hljs-params">(Jedis jedis, String key, </span></span><br><span class="hljs-params"><span class="hljs-function">                            <span class="hljs-keyword">int</span> expectedInsertions, <span class="hljs-keyword">double</span> fpp)</span> </span>&#123;<br>        <span class="hljs-keyword">this</span>.jedis = jedis;<br>        <span class="hljs-keyword">this</span>.key = key;<br>        <span class="hljs-keyword">this</span>.bitSize = (<span class="hljs-keyword">int</span>) (-expectedInsertions * Math.log(fpp) / <br>                              (Math.log(<span class="hljs-number">2</span>) * Math.log(<span class="hljs-number">2</span>)));<br>        <span class="hljs-keyword">this</span>.numHashFunctions = (<span class="hljs-keyword">int</span>) (bitSize / expectedInsertions * Math.log(<span class="hljs-number">2</span>));<br>    &#125;<br>    <br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">put</span><span class="hljs-params">(String value)</span> </span>&#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; numHashFunctions; i++) &#123;<br>            <span class="hljs-keyword">long</span> hash = hash(value, i);<br>            jedis.setbit(key, hash % bitSize, <span class="hljs-keyword">true</span>);<br>        &#125;<br>    &#125;<br>    <br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">mightContain</span><span class="hljs-params">(String value)</span> </span>&#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; numHashFunctions; i++) &#123;<br>            <span class="hljs-keyword">long</span> hash = hash(value, i);<br>            <span class="hljs-keyword">if</span> (!jedis.getbit(key, hash % bitSize)) &#123;<br>                <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;  <span class="hljs-comment">// 一定不存在</span><br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;  <span class="hljs-comment">// 可能存在</span><br>    &#125;<br>    <br>    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">long</span> <span class="hljs-title">hash</span><span class="hljs-params">(String value, <span class="hljs-keyword">int</span> i)</span> </span>&#123;<br>        <span class="hljs-comment">// 使用两个哈希函数模拟多个哈希</span><br>        <span class="hljs-keyword">long</span> h1 = murmur3_128(value);<br>        <span class="hljs-keyword">long</span> h2 = murmur3_128(value + <span class="hljs-string">&quot;salt&quot;</span>);<br>        <span class="hljs-keyword">return</span> h1 + i * h2;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="Redis-Stack（官方模块）"><a href="#Redis-Stack（官方模块）" class="headerlink" title="Redis Stack（官方模块）"></a>Redis Stack（官方模块）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># Redis Stack 内置布隆过滤器模块</span><br><span class="hljs-comment"># 使用 BF 命令</span><br><br>BF.ADD filter <span class="hljs-string">&quot;hello&quot;</span>           <span class="hljs-comment"># 添加</span><br>BF.EXISTS filter <span class="hljs-string">&quot;hello&quot;</span>        <span class="hljs-comment"># 检查是否存在</span><br>BF.MADD filter <span class="hljs-string">&quot;a&quot;</span> <span class="hljs-string">&quot;b&quot;</span> <span class="hljs-string">&quot;c&quot;</span>      <span class="hljs-comment"># 批量添加</span><br>BF.MEXISTS filter <span class="hljs-string">&quot;a&quot;</span> <span class="hljs-string">&quot;b&quot;</span> <span class="hljs-string">&quot;d&quot;</span>   <span class="hljs-comment"># 批量检查</span><br><br>BF.RESERVE filter 0.01 1000     <span class="hljs-comment"># 创建：误判率1%，容量1000</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="四、应用场景"><a href="#四、应用场景" class="headerlink" title="四、应用场景"></a>四、应用场景</h2><h3 id="缓存穿透保护"><a href="#缓存穿透保护" class="headerlink" title="缓存穿透保护"></a>缓存穿透保护</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 场景：恶意请求大量查询不存在的 key，穿透到数据库</span><br><span class="hljs-comment">// 解决方案：布隆过滤器拦截</span><br><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CacheService</span> </span>&#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> BloomFilter&lt;String&gt; bloomFilter;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RedisTemplate&lt;String, Object&gt; redis;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> JdbcTemplate jdbc;<br>    <br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">query</span><span class="hljs-params">(String key)</span> </span>&#123;<br>        <span class="hljs-comment">// 1. 布隆过滤器拦截（一定不存在的 key 直接返回）</span><br>        <span class="hljs-keyword">if</span> (!bloomFilter.mightContain(key)) &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;  <span class="hljs-comment">// 一定不存在，无需查询</span><br>        &#125;<br>        <br>        <span class="hljs-comment">// 2. 查缓存</span><br>        Object cache = redis.opsForValue().get(key);<br>        <span class="hljs-keyword">if</span> (cache != <span class="hljs-keyword">null</span>) <span class="hljs-keyword">return</span> cache;<br>        <br>        <span class="hljs-comment">// 3. 查数据库</span><br>        Object db = jdbc.queryForObject(...);<br>        <span class="hljs-keyword">if</span> (db != <span class="hljs-keyword">null</span>) &#123;<br>            redis.opsForValue().set(key, db);<br>        &#125;<br>        <span class="hljs-keyword">return</span> db;<br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// 初始化：加载所有合法 key</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">init</span><span class="hljs-params">()</span> </span>&#123;<br>    List&lt;String&gt; allKeys = jdbc.queryForList(<span class="hljs-string">&quot;SELECT id FROM user&quot;</span>, String.class);<br>    allKeys.forEach(bloomFilter::put);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="其他场景"><a href="#其他场景" class="headerlink" title="其他场景"></a>其他场景</h3><figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs gauss">├── 防止缓存穿透：过滤不存在的 <span class="hljs-built_in">key</span>（上面已讲）<br>├── 垃圾邮件过滤：<span class="hljs-number">10</span> 亿邮箱地址 → 布隆过滤器判黑<br>├── 爬虫 URL 去重：避免重复抓取<br>├── 推荐系统去重：过滤已推荐的内容<br>├── 比特币钱包校验：快速判断地址是否有效<br>└── 数据库防止重复插入：先检查布隆过滤器<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、Counting-Bloom-Filter"><a href="#五、Counting-Bloom-Filter" class="headerlink" title="五、Counting Bloom Filter"></a>五、Counting Bloom Filter</h2><h3 id="为什么需要？"><a href="#为什么需要？" class="headerlink" title="为什么需要？"></a>为什么需要？</h3><figure class="highlight arcade"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs arcade">普通布隆过滤器不能删除元素（多个元素哈希位置重叠）<br>Counting Bloom <span class="hljs-built_in">Filter</span>：用计数器数组替代位数组<br>删除时计数器减 <span class="hljs-number">1</span>，而不是直接置 <span class="hljs-number">0</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs coq">普通布隆：位数组 [<span class="hljs-number">0</span>|<span class="hljs-type">1</span>]<br>└── 碰撞问题：不能区分 <span class="hljs-number">2</span> 个元素映射到同一位置<br><br>Counting Bloom：计数器数组 [<span class="hljs-number">0</span>|<span class="hljs-type">1</span>|<span class="hljs-type">2</span>|<span class="hljs-type">3</span>]<br>├── 添加：计数器 +<span class="hljs-number">1</span><br>├── 删除：计数器 <span class="hljs-number">-1</span><br>├── 查询：计数器 &gt; <span class="hljs-number">0</span> 表示存在<br>└── 代价：每个计数器需要 <span class="hljs-number">4</span> bit（最大计数值 <span class="hljs-number">15</span>）<br></code></pre></td></tr></table></figure>
+
+<h3 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 允许删除元素的场景</span><br><span class="hljs-comment">// 如：缓存中的 key 过期时，从 Bloom Filter 中删除</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="六、Roaring-BitMap"><a href="#六、Roaring-BitMap" class="headerlink" title="六、Roaring BitMap"></a>六、Roaring BitMap</h2><h3 id="什么是-RoaringBitmap？"><a href="#什么是-RoaringBitmap？" class="headerlink" title="什么是 RoaringBitmap？"></a>什么是 RoaringBitmap？</h3><figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs tap">压缩位图，比普通 BitMap 更省内存<br>适用于：稀疏位图（大量连续<span class="hljs-number"> 0 </span>中间有少量 1）<br><br>原理：<br>├── 将<span class="hljs-number"> 32 </span>位整数拆分为高<span class="hljs-number"> 16 </span>位（桶）和低<span class="hljs-number"> 16 </span>位<br>├── 高<span class="hljs-number"> 16 </span>位：决定数据去哪个桶<br>├── 低<span class="hljs-number"> 16 </span>位：桶内使用<br>│     ├── 元素 &lt;<span class="hljs-number"> 4096 </span>→ Array Container（有序数组）<br>│     └── 元素 ≥<span class="hljs-number"> 4096 </span>→ Bitmap Container（位图）<br>└── 空间利用率极高<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 使用（Maven: org.roaringbitmap:RoaringBitmap）</span><br>RoaringBitmap bitmap = <span class="hljs-keyword">new</span> RoaringBitmap();<br>bitmap.add(<span class="hljs-number">1L</span>);<br>bitmap.add(<span class="hljs-number">100L</span>);<br>bitmap.add(<span class="hljs-number">100000L</span>);<br><br><span class="hljs-keyword">boolean</span> exists = bitmap.contains(<span class="hljs-number">100L</span>);  <span class="hljs-comment">// true</span><br><br><span class="hljs-comment">// 位运算</span><br>RoaringBitmap other = <span class="hljs-keyword">new</span> RoaringBitmap();<br>other.add(<span class="hljs-number">100L</span>);<br>RoaringBitmap and = RoaringBitmap.and(bitmap, other);<br></code></pre></td></tr></table></figure>
+
+<h2 id="七、面试题"><a href="#七、面试题" class="headerlink" title="七、面试题"></a>七、面试题</h2><h4 id="1-布隆过滤器的原理？"><a href="#1-布隆过滤器的原理？" class="headerlink" title="1. 布隆过滤器的原理？"></a>1. 布隆过滤器的原理？</h4><p>使用位数组 + 多个哈希函数。添加时将 k 个位置置为 1，查询时检查 k 个位置。全部为 1 表示可能存在，有 0 表示一定不存在。</p>
+<h4 id="2-布隆过滤器的误判率怎么控制？"><a href="#2-布隆过滤器的误判率怎么控制？" class="headerlink" title="2. 布隆过滤器的误判率怎么控制？"></a>2. 布隆过滤器的误判率怎么控制？</h4><p>通过 m/n（位数组大小/元素数量）和 k（哈希函数个数）控制。Guava 中直接传入预期元素数量和可接受误判率即可。</p>
+<h4 id="3-布隆过滤器能删除吗？"><a href="#3-布隆过滤器能删除吗？" class="headerlink" title="3. 布隆过滤器能删除吗？"></a>3. 布隆过滤器能删除吗？</h4><p>普通布隆过滤器不支持删除（哈希冲突无法分辨）。Counting Bloom Filter 用计数器替代位数组，支持删除。</p>
+<h4 id="4-如何用布隆过滤器解决缓存穿透？"><a href="#4-如何用布隆过滤器解决缓存穿透？" class="headerlink" title="4. 如何用布隆过滤器解决缓存穿透？"></a>4. 如何用布隆过滤器解决缓存穿透？</h4><p>预热时把所有合法 key 加载到布隆过滤器，查询时先检查布隆过滤器，不存在的 key 直接返回，不查数据库。</p>
+<h4 id="5-Redis-布隆过滤器怎么用？"><a href="#5-Redis-布隆过滤器怎么用？" class="headerlink" title="5. Redis 布隆过滤器怎么用？"></a>5. Redis 布隆过滤器怎么用？</h4><p>Redis Stack 支持 BF.ADD/BF.EXISTS 命令。也可以基于 Redis BitMap 自行实现。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Redis/">Redis</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/">布隆过滤器</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">数据结构</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/26/Sentinel%E9%99%90%E6%B5%81%E7%86%94%E6%96%AD%E9%99%8D%E7%BA%A7%E5%AE%9E%E6%88%98/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Sentinel 限流熔断降级实战</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/26/Java8-21%E6%96%B0%E7%89%B9%E6%80%A7%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">Java 8-21 新特性详解：Lambda到虚拟线程</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
