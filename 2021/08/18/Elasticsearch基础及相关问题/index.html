@@ -158,7 +158,7 @@
 </nav>
 
     <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
+         style="background: url('/img/elasticsearch-cover.png') no-repeat center center;
            background-size: cover;">
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
@@ -185,7 +185,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      0 字
+      788 字
     </span>
   
 
@@ -195,7 +195,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      1
+      9
        分钟
     </span>
   
@@ -237,12 +237,105 @@
             
               <p class="note note-info">
                 
-                  本文最后更新于：3 年前
+                  本文最后更新于：15 分钟前
                 
               </p>
             
             <div class="markdown-body">
-              
+              <h2 id="一、Elasticsearch-简介"><a href="#一、Elasticsearch-简介" class="headerlink" title="一、Elasticsearch 简介"></a>一、Elasticsearch 简介</h2><p>Elasticsearch（ES）是一个基于 <strong>Lucene</strong> 的分布式 RESTful 实时搜索和分析引擎。每个字段都被索引并可被搜索，可扩展至上百台服务器，处理 PB 级数据。具备<strong>近实时（NRT）</strong>特性：数据写入后约 1 秒即可检索。</p>
+<h3 id="核心概念（与关系型数据库对比）"><a href="#核心概念（与关系型数据库对比）" class="headerlink" title="核心概念（与关系型数据库对比）"></a>核心概念（与关系型数据库对比）</h3><table>
+<thead>
+<tr>
+<th align="center">Elasticsearch</th>
+<th align="center">关系型数据库</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">索引（Index）</td>
+<td align="center">数据库</td>
+</tr>
+<tr>
+<td align="center">文档（Document）</td>
+<td align="center">行</td>
+</tr>
+<tr>
+<td align="center">字段（Field）</td>
+<td align="center">列</td>
+</tr>
+<tr>
+<td align="center">映射（Mapping）</td>
+<td align="center">表结构</td>
+</tr>
+<tr>
+<td align="center">分片（Shard）</td>
+<td align="center">分区</td>
+</tr>
+</tbody></table>
+<h3 id="倒排索引（Inverted-Index）"><a href="#倒排索引（Inverted-Index）" class="headerlink" title="倒排索引（Inverted Index）"></a>倒排索引（Inverted Index）</h3><p>ES 的核心数据结构，将”关键词 → 文档 ID”建立映射，实现 O(1) 时间复杂度检索。底层基于 <strong>FST（Finite State Transducer）</strong> 实现，空间占用小、查询速度快。</p>
+<h3 id="text-与-keyword-类型区别"><a href="#text-与-keyword-类型区别" class="headerlink" title="text 与 keyword 类型区别"></a>text 与 keyword 类型区别</h3><ul>
+<li><strong>text</strong>：会分词，用于全文搜索，不用于排序/聚合</li>
+<li><strong>keyword</strong>：不分词，用于精确搜索、过滤、排序、聚合</li>
+</ul>
+<h2 id="二、工作原理"><a href="#二、工作原理" class="headerlink" title="二、工作原理"></a>二、工作原理</h2><h3 id="写入流程"><a href="#写入流程" class="headerlink" title="写入流程"></a>写入流程</h3><ol>
+<li>客户端请求 → <strong>协调节点（Coordinating Node）</strong></li>
+<li>协调节点通过路由算法计算目标分片：<code>shard = hash(document_id) % primary_shards</code></li>
+<li>请求转发到 <strong>Primary Shard</strong></li>
+<li>Primary Shard 写入 <strong>Memory Buffer</strong>，同时写入 <strong>Translog</strong></li>
+<li>默认每秒 <strong>refresh</strong>：Memory Buffer → Filesystem Cache（此时可被搜索）</li>
+<li>默认每 30 分钟或 Translog 超 512MB 触发 <strong>flush</strong>：数据持久化到磁盘</li>
+</ol>
+<h3 id="搜索流程（Query-Then-Fetch）"><a href="#搜索流程（Query-Then-Fetch）" class="headerlink" title="搜索流程（Query Then Fetch）"></a>搜索流程（Query Then Fetch）</h3><p><strong>Query 阶段：</strong></p>
+<ul>
+<li>协调节点将请求广播到所有分片（主分片或副本）</li>
+<li>每个分片本地搜索并构建优先队列（from + size）</li>
+<li>返回文档 ID 和排序值给协调节点</li>
+</ul>
+<p><strong>Fetch 阶段：</strong></p>
+<ul>
+<li>协调节点合并排序，确定最终结果</li>
+<li>根据 doc ID 拉取完整文档数据</li>
+<li>返回结果给客户端</li>
+</ul>
+<h3 id="更新与删除"><a href="#更新与删除" class="headerlink" title="更新与删除"></a>更新与删除</h3><ul>
+<li>文档不可变，<strong>删除</strong>是在 <code>.del</code> 文件中标记为 deleted</li>
+<li><strong>更新</strong> = 标记旧文档为 deleted + 创建新文档</li>
+<li>段合并时物理删除标记的文档</li>
+</ul>
+<h2 id="三、常见面试题"><a href="#三、常见面试题" class="headerlink" title="三、常见面试题"></a>三、常见面试题</h2><h4 id="1-ES-如何保证读写一致性？"><a href="#1-ES-如何保证读写一致性？" class="headerlink" title="1. ES 如何保证读写一致性？"></a>1. ES 如何保证读写一致性？</h4><ul>
+<li><strong>乐观并发控制</strong>：使用 <code>_version</code> 版本号</li>
+<li><strong>写一致性</strong>：支持 <code>one</code> / <code>quorum</code>（默认）/ <code>all</code></li>
+<li><strong>读一致性</strong>：可设置 <code>_preference=primary</code> 查询主分片</li>
+</ul>
+<h4 id="2-ES-集群如何调优？"><a href="#2-ES-集群如何调优？" class="headerlink" title="2. ES 集群如何调优？"></a>2. ES 集群如何调优？</h4><p><strong>索引层面：</strong></p>
+<ul>
+<li>批量写入（5-15MB/批）</li>
+<li>写入前关闭副本（<code>number_of_replicas: 0</code>）</li>
+<li>调整 <code>refresh_interval</code> 到 30s</li>
+<li>使用 SSD、冷热分离</li>
+</ul>
+<p><strong>查询层面：</strong></p>
+<ul>
+<li>避免深度分页（使用 <code>search_after</code> 或 <code>scroll</code>）</li>
+<li>多用 filter 上下文（可缓存）</li>
+<li>合理设置分片大小（20-40GB）</li>
+</ul>
+<h4 id="3-什么是深度分页？如何解决？"><a href="#3-什么是深度分页？如何解决？" class="headerlink" title="3. 什么是深度分页？如何解决？"></a>3. 什么是深度分页？如何解决？</h4><p>深度分页会导致性能问题，ES 默认不支持超过 10000 条分页。解决方案：</p>
+<ul>
+<li><strong>scroll</strong> 滚动搜索：基于快照，适合导出数据</li>
+<li><strong>search_after</strong>：基于游标，适合实时分页</li>
+</ul>
+<h4 id="4-DocValues-的作用？"><a href="#4-DocValues-的作用？" class="headerlink" title="4. DocValues 的作用？"></a>4. DocValues 的作用？</h4><p>在构建倒排索引的同时构建正排索引（docId → 字段值），用于排序、聚合等操作。存储在磁盘（堆外内存），避免 OOM。</p>
+<h4 id="5-query-和-filter-的区别？"><a href="#5-query-和-filter-的区别？" class="headerlink" title="5. query 和 filter 的区别？"></a>5. query 和 filter 的区别？</h4><ul>
+<li><strong>query</strong>：计算相关性评分（<code>_score</code>）</li>
+<li><strong>filter</strong>：仅判断是否匹配，不评分、结果可缓存（性能更好）</li>
+</ul>
+<h4 id="6-Master-选举与脑裂预防"><a href="#6-Master-选举与脑裂预防" class="headerlink" title="6. Master 选举与脑裂预防"></a>6. Master 选举与脑裂预防</h4><ul>
+<li>由 <strong>ZenDiscovery</strong> 模块负责</li>
+<li>候选节点根据 nodeId 字典排序</li>
+<li>得票数超过 <code>(n/2)+1</code> 且自己选自己即成为 Master</li>
+<li>脑裂预防：设置 <code>discovery.zen.minimum_master_nodes = (N/2)+1</code></li>
+</ul>
+
             </div>
             <hr>
             <div>
@@ -251,7 +344,7 @@
                   <div class="post-meta mr-3">
                     <i class="iconfont icon-category"></i>
                     
-                      <a class="hover-with-bg" href="/categories/java%E5%9F%BA%E7%A1%80/">java基础</a>
+                      <a class="hover-with-bg" href="/categories/NoSQL/">NoSQL</a>
                     
                   </div>
                 
@@ -259,9 +352,11 @@
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/java/">java</a>
-                    
                       <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Elasticsearch/">Elasticsearch</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%90%9C%E7%B4%A2%E5%BC%95%E6%93%8E/">搜索引擎</a>
                     
                   </div>
                 

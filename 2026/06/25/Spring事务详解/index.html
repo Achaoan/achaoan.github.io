@@ -1,0 +1,698 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>Spring事务详解：@Transactional原理、传播行为、隔离级别 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/spring-tx-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Spring事务详解：@Transactional原理、传播行为、隔离级别">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 12:30" pubdate>
+        2026年6月25日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      956 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      11
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Spring事务详解：@Transactional原理、传播行为、隔离级别</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：8 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、Spring-事务核心概念"><a href="#一、Spring-事务核心概念" class="headerlink" title="一、Spring 事务核心概念"></a>一、Spring 事务核心概念</h2><p>Spring 事务管理分为两种：</p>
+<ul>
+<li><strong>编程式事务</strong>：通过 <code>TransactionTemplate</code> 手动控制</li>
+<li><strong>声明式事务</strong>：通过 <code>@Transactional</code> 注解（推荐，最常用）</li>
+</ul>
+<p>声明式事务底层基于 <strong>AOP</strong>，本质是在目标方法前后进行拦截，在方法执行前开启事务，执行后根据结果提交或回滚。</p>
+<h2 id="二、-Transactional-原理"><a href="#二、-Transactional-原理" class="headerlink" title="二、@Transactional 原理"></a>二、@Transactional 原理</h2><h3 id="实现机制"><a href="#实现机制" class="headerlink" title="实现机制"></a>实现机制</h3><ol>
+<li>通过 <code>@EnableTransactionManagement</code> 启用事务管理</li>
+<li>Spring 为带有 <code>@Transactional</code> 的 Bean 创建<strong>代理对象</strong></li>
+<li>调用目标方法时，通过 <code>TransactionInterceptor</code> 拦截</li>
+<li>从 <code>PlatformTransactionManager</code> 获取事务</li>
+<li>执行目标方法 → 正常则提交，异常则回滚</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 伪代码：代理对象执行逻辑</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">invoke</span><span class="hljs-params">(MethodInvocation invocation)</span> </span>&#123;<br>    TransactionInfo txInfo = createTransactionIfNecessary();<br>    Object retVal;<br>    <span class="hljs-keyword">try</span> &#123;<br>        retVal = invocation.proceed();  <span class="hljs-comment">// 执行目标方法</span><br>    &#125; <span class="hljs-keyword">catch</span> (Exception ex) &#123;<br>        completeTransactionAfterThrowing(txInfo, ex);<br>        <span class="hljs-keyword">throw</span> ex;<br>    &#125;<br>    commitTransactionAfterReturning(txInfo);<br>    <span class="hljs-keyword">return</span> retVal;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="核心接口"><a href="#核心接口" class="headerlink" title="核心接口"></a>核心接口</h3><table>
+<thead>
+<tr>
+<th>接口</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>PlatformTransactionManager</code></td>
+<td>事务管理器（核心）</td>
+</tr>
+<tr>
+<td><code>TransactionDefinition</code></td>
+<td>事务定义（传播行为、隔离级别等）</td>
+</tr>
+<tr>
+<td><code>TransactionStatus</code></td>
+<td>事务状态</td>
+</tr>
+</tbody></table>
+<h3 id="常用事务管理器"><a href="#常用事务管理器" class="headerlink" title="常用事务管理器"></a>常用事务管理器</h3><table>
+<thead>
+<tr>
+<th>实现类</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>DataSourceTransactionManager</code></td>
+<td>单数据源 JDBC/MyBatis</td>
+</tr>
+<tr>
+<td><code>JpaTransactionManager</code></td>
+<td>JPA</td>
+</tr>
+<tr>
+<td><code>JtaTransactionManager</code></td>
+<td>分布式事务（多数据源）</td>
+</tr>
+</tbody></table>
+<h2 id="三、事务传播行为（Propagation）"><a href="#三、事务传播行为（Propagation）" class="headerlink" title="三、事务传播行为（Propagation）"></a>三、事务传播行为（Propagation）</h2><table>
+<thead>
+<tr>
+<th>传播行为</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>REQUIRED</code>（默认）</td>
+<td>支持当前事务，不存在则新建</td>
+</tr>
+<tr>
+<td><code>SUPPORTS</code></td>
+<td>支持当前事务，不存在则以非事务执行</td>
+</tr>
+<tr>
+<td><code>MANDATORY</code></td>
+<td>必须有事务，否则抛异常</td>
+</tr>
+<tr>
+<td><code>REQUIRES_NEW</code></td>
+<td>始终新建事务，挂起当前事务</td>
+</tr>
+<tr>
+<td><code>NOT_SUPPORTED</code></td>
+<td>以非事务方式执行，挂起当前事务</td>
+</tr>
+<tr>
+<td><code>NEVER</code></td>
+<td>以非事务方式执行，有事务则抛异常</td>
+</tr>
+<tr>
+<td><code>NESTED</code></td>
+<td>嵌套事务（Savepoint，部分回滚）</td>
+</tr>
+</tbody></table>
+<h3 id="REQUIRED-vs-REQUIRES-NEW"><a href="#REQUIRED-vs-REQUIRES-NEW" class="headerlink" title="REQUIRED vs REQUIRES_NEW"></a>REQUIRED vs REQUIRES_NEW</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// methodA 有事务，methodB REQUIRED</span><br>methodA() &#123;<br>    methodB(); <span class="hljs-comment">// 加入 methodA 的事务</span><br>    <span class="hljs-comment">// B 回滚会导致 A 回滚</span><br>&#125;<br><br><span class="hljs-comment">// methodA 有事务，methodB REQUIRES_NEW</span><br>methodA() &#123;<br>    methodB(); <span class="hljs-comment">// 挂起 A 的事务，B 独立事务</span><br>    <span class="hljs-comment">// B 回滚不影响 A 的提交</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、事务隔离级别"><a href="#四、事务隔离级别" class="headerlink" title="四、事务隔离级别"></a>四、事务隔离级别</h2><table>
+<thead>
+<tr>
+<th>隔离级别</th>
+<th align="center">脏读</th>
+<th align="center">不可重复读</th>
+<th align="center">幻读</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>DEFAULT</code></td>
+<td align="center">取决于数据库</td>
+<td align="center">取决于数据库</td>
+<td align="center">取决于数据库</td>
+</tr>
+<tr>
+<td><code>READ_UNCOMMITTED</code></td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td><code>READ_COMMITTED</code>（MySQL 默认）</td>
+<td align="center">❌</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td><code>REPEATABLE_READ</code>（MySQL 默认）</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td><code>SERIALIZABLE</code></td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+</tr>
+</tbody></table>
+<h2 id="五、事务失效场景（高频面试）"><a href="#五、事务失效场景（高频面试）" class="headerlink" title="五、事务失效场景（高频面试）"></a>五、事务失效场景（高频面试）</h2><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>原因</th>
+<th>解决方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>内部调用</strong> <code>this.method()</code></td>
+<td>代理对象不生效</td>
+<td>注入自己 Bean 或使用 AopContext</td>
+</tr>
+<tr>
+<td><strong>非 public 方法</strong></td>
+<td>CGLIB/JDK 代理限制</td>
+<td>改为 public</td>
+</tr>
+<tr>
+<td><strong>异常被 catch 吞掉</strong></td>
+<td>未抛异常</td>
+<td>手动抛出或设置回滚</td>
+</tr>
+<tr>
+<td><strong>异常类型不对</strong></td>
+<td>默认只回滚 RuntimeException</td>
+<td>设置 <code>rollbackFor = Exception.class</code></td>
+</tr>
+<tr>
+<td><strong>传播行为设置错误</strong></td>
+<td>SUPPORTS/NEVER 不支持事务</td>
+<td>改为 REQUIRED</td>
+</tr>
+<tr>
+<td><strong>数据库不支持事务</strong></td>
+<td>如 MyISAM</td>
+<td>改用 InnoDB</td>
+</tr>
+<tr>
+<td><strong>多数据源事务管理器配置错误</strong></td>
+<td>未指定正确的事务管理器</td>
+<td>显式指定 transactionManager</td>
+</tr>
+</tbody></table>
+<h3 id="内部调用问题示例"><a href="#内部调用问题示例" class="headerlink" title="内部调用问题示例"></a>内部调用问题示例</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Service</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserService</span> </span>&#123;<br>    <span class="hljs-meta">@Transactional</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">methodA</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-keyword">this</span>.methodB(); <span class="hljs-comment">// ❌ 内部调用，事务不生效</span><br>    &#125;<br>    <br>    <span class="hljs-meta">@Transactional</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">methodB</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-comment">// 事务操作</span><br>    &#125;<br>&#125;<br><br><span class="hljs-comment">// ✅ 解决方案</span><br><span class="hljs-meta">@Service</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserService</span> </span>&#123;<br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> UserService self;  <span class="hljs-comment">// 注入自己</span><br>    <br>    <span class="hljs-meta">@Transactional</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">methodA</span><span class="hljs-params">()</span> </span>&#123;<br>        self.methodB(); <span class="hljs-comment">// 通过代理对象调用</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="六、声明式事务的配置方式"><a href="#六、声明式事务的配置方式" class="headerlink" title="六、声明式事务的配置方式"></a>六、声明式事务的配置方式</h2><h3 id="最简配置（Spring-Boot）"><a href="#最简配置（Spring-Boot）" class="headerlink" title="最简配置（Spring Boot）"></a>最简配置（Spring Boot）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@SpringBootApplication</span><br><span class="hljs-meta">@EnableTransactionManagement</span>  <span class="hljs-comment">// 通常默认开启</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Application</span> </span>&#123;&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="回滚配置"><a href="#回滚配置" class="headerlink" title="回滚配置"></a>回滚配置</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 指定哪些异常回滚</span><br><span class="hljs-meta">@Transactional(rollbackFor = Exception.class, noRollbackFor = &#123;BizException.class&#125;)</span><br><br><span class="hljs-comment">// 超时控制</span><br><span class="hljs-meta">@Transactional(timeout = 30)</span><br><br><span class="hljs-comment">// 只读优化（适合查询，InnoDB 会优化）</span><br><span class="hljs-meta">@Transactional(readOnly = true)</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="七、面试题"><a href="#七、面试题" class="headerlink" title="七、面试题"></a>七、面试题</h2><h4 id="1-Transactional-原理？"><a href="#1-Transactional-原理？" class="headerlink" title="1. @Transactional 原理？"></a>1. @Transactional 原理？</h4><p>基于 AOP 动态代理，通过 TransactionInterceptor 拦截方法，在方法前后开启/提交/回滚事务。</p>
+<h4 id="2-Spring-事务传播行为有哪些？"><a href="#2-Spring-事务传播行为有哪些？" class="headerlink" title="2. Spring 事务传播行为有哪些？"></a>2. Spring 事务传播行为有哪些？</h4><p>7 种：REQUIRED、SUPPORTS、MANDATORY、REQUIRES_NEW、NOT_SUPPORTED、NEVER、NESTED</p>
+<h4 id="3-事务不生效的原因？"><a href="#3-事务不生效的原因？" class="headerlink" title="3. 事务不生效的原因？"></a>3. 事务不生效的原因？</h4><p>内部调用、非 public、异常被 catch、异常类型不对、传播行为不对</p>
+<h4 id="4-嵌套事务-NESTED-是什么？"><a href="#4-嵌套事务-NESTED-是什么？" class="headerlink" title="4. 嵌套事务 NESTED 是什么？"></a>4. 嵌套事务 NESTED 是什么？</h4><p>基于 Savepoint，内部事务回滚到 Savepoint 而非全部回滚，外层可决定是否整体提交。</p>
+<h4 id="5-Transactional-加到类上和方法上有什么区别？"><a href="#5-Transactional-加到类上和方法上有什么区别？" class="headerlink" title="5. @Transactional 加到类上和方法上有什么区别？"></a>5. <code>@Transactional</code> 加到类上和方法上有什么区别？</h4><p>类级别：类中所有方法都生效；方法级别：仅该方法生效，优先级高于类级别。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Spring/">Spring</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E4%BA%8B%E5%8A%A1/">事务</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Transactional/">Transactional</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/SpringMVC%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Spring MVC请求流程详解：DispatcherServlet、HandlerMapping、HandlerAdapter</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/JVM%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">JVM类加载机制详解：加载、连接、初始化、双亲委派</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

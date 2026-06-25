@@ -1,0 +1,684 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>Kafka深入详解：架构、分区、副本、消息可靠性 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/kafka-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Kafka深入详解：架构、分区、副本、消息可靠性">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 16:00" pubdate>
+        2026年6月25日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.4k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      17
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Kafka深入详解：架构、分区、副本、消息可靠性</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：5 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、Kafka-核心概念"><a href="#一、Kafka-核心概念" class="headerlink" title="一、Kafka 核心概念"></a>一、Kafka 核心概念</h2><h3 id="架构图"><a href="#架构图" class="headerlink" title="架构图"></a>架构图</h3><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">Producer（生产者）<br>    │<br>    ▼<br>┌─────────────────────┐<br>│     Kafka Cluster   │<br>│  ┌─────┐ ┌─────┐   │<br>│  │<span class="hljs-keyword">B0(P)│ </span>│<span class="hljs-keyword">B1(P)│ </span>  │  <span class="hljs-keyword">Broker（服务器节点）</span><br><span class="hljs-keyword"></span>│  │<span class="hljs-keyword">B0(F)│ </span>│<span class="hljs-keyword">B1(F)│ </span>  │  分区副本<br>│  └─────┘ └─────┘   │<br>│  Topic: <span class="hljs-keyword">orders </span>     │  主题<br>│   ├── Partition <span class="hljs-number">0</span>   │  分区（有序序列）<br>│   ├── Partition <span class="hljs-number">1</span>   │<br>│   └── Partition <span class="hljs-number">2</span>   │<br>└─────────┬───────────┘<br>          │<br>          ▼<br>Consumer Group（消费组）<br></code></pre></td></tr></table></figure>
+
+<h3 id="核心术语"><a href="#核心术语" class="headerlink" title="核心术语"></a>核心术语</h3><table>
+<thead>
+<tr>
+<th>术语</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Producer</strong></td>
+<td>消息生产者</td>
+</tr>
+<tr>
+<td><strong>Consumer</strong></td>
+<td>消息消费者</td>
+</tr>
+<tr>
+<td><strong>Broker</strong></td>
+<td>Kafka 集群中的每个节点</td>
+</tr>
+<tr>
+<td><strong>Topic</strong></td>
+<td>消息主题，消息分类</td>
+</tr>
+<tr>
+<td><strong>Partition</strong></td>
+<td>分区，Topic 的并行单位</td>
+</tr>
+<tr>
+<td><strong>Offset</strong></td>
+<td>分区内消息的偏移量，顺序递增</td>
+</tr>
+<tr>
+<td><strong>Consumer Group</strong></td>
+<td>消费组，组内消费者分摊分区消费</td>
+</tr>
+<tr>
+<td><strong>Replica</strong></td>
+<td>副本，保证高可用</td>
+</tr>
+<tr>
+<td><strong>Leader / Follower</strong></td>
+<td>分区的主副本和从副本</td>
+</tr>
+<tr>
+<td><strong>ISR</strong></td>
+<td>同步副本集合（In-Sync Replicas）</td>
+</tr>
+</tbody></table>
+<h2 id="二、Topic-和-Partition"><a href="#二、Topic-和-Partition" class="headerlink" title="二、Topic 和 Partition"></a>二、Topic 和 Partition</h2><h3 id="分区策略"><a href="#分区策略" class="headerlink" title="分区策略"></a>分区策略</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 1. 轮询（默认）：均匀分布</span><br><span class="hljs-comment">// 2. 按 key 哈希：相同 key 发到同一分区</span><br><span class="hljs-comment">// 3. 自定义分区器</span><br>props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, MyPartitioner.class);<br></code></pre></td></tr></table></figure>
+
+<h3 id="分区规则"><a href="#分区规则" class="headerlink" title="分区规则"></a>分区规则</h3><figure class="highlight maxima"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs maxima">按 <span class="hljs-built_in">key</span> 哈希：<br><span class="hljs-built_in">key</span>.hashCode() <span class="hljs-symbol">%</span> numPartitions → 确定分区<br><br>轮询：<br><span class="hljs-built_in">round</span>-robin 分配 → 均匀分布<br></code></pre></td></tr></table></figure>
+
+<h3 id="消息顺序性"><a href="#消息顺序性" class="headerlink" title="消息顺序性"></a>消息顺序性</h3><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">单个 <span class="hljs-built_in">Partition</span> 内：有序（追加写入）<br>跨 <span class="hljs-built_in">Partition</span>：无顺序保证<br><br>保证顺序的方案：<br>├── 同一业务消息发到同一分区（如按订单 <span class="hljs-variable">ID</span> 作为 <span class="hljs-variable">key</span>）<br>└── 每个 <span class="hljs-built_in">Partition</span> 由同一消费者线程处理<br></code></pre></td></tr></table></figure>
+
+<h2 id="三、副本机制（Replication）"><a href="#三、副本机制（Replication）" class="headerlink" title="三、副本机制（Replication）"></a>三、副本机制（Replication）</h2><h3 id="ISR-机制"><a href="#ISR-机制" class="headerlink" title="ISR 机制"></a>ISR 机制</h3><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">ISR = Leader + 与 Leader 保持同步的 Follower<br><br>Leader 维护 ISR 列表：<br>├── Follower 定期从 Leader 拉取消息<br>├── Follower 落后超过 <span class="hljs-keyword">replica</span>.lag.time.max.ms（默认 <span class="hljs-number">30</span>s）→ 移出 ISR<br>└── Follower 追上进度 → 重新加入 ISR<br></code></pre></td></tr></table></figure>
+
+<h3 id="ACK-确认机制"><a href="#ACK-确认机制" class="headerlink" title="ACK 确认机制"></a>ACK 确认机制</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// Producer 的 acks 参数</span><br>props.put(ProducerConfig.ACKS_CONFIG, <span class="hljs-string">&quot;1&quot;</span>);<br></code></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>acks</th>
+<th>说明</th>
+<th align="center">性能</th>
+<th align="center">可靠性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0</code></td>
+<td>不等待确认，发完即返回</td>
+<td align="center">★★★</td>
+<td align="center">可能丢数据</td>
+</tr>
+<tr>
+<td><code>1</code>（默认）</td>
+<td>Leader 写入即返回</td>
+<td align="center">★★☆</td>
+<td align="center">不丢（Leader 宕机可能丢）</td>
+</tr>
+<tr>
+<td><code>all</code>（-1）</td>
+<td>等待 ISR 全部确认</td>
+<td align="center">★☆☆</td>
+<td align="center">最可靠</td>
+</tr>
+</tbody></table>
+<h3 id="Leader-选举"><a href="#Leader-选举" class="headerlink" title="Leader 选举"></a>Leader 选举</h3><figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs sqf">首选 <span class="hljs-built_in">Leader</span>（Preferred <span class="hljs-built_in">Leader</span>）：<br>├── 分区创建时的第一个 <span class="hljs-built_in">Leader</span> 为 preferred <span class="hljs-built_in">leader</span><br>├── 定期将 preferred <span class="hljs-built_in">leader</span> 恢复为 <span class="hljs-built_in">Leader</span><br>└── 保证负载均衡<br><br><span class="hljs-built_in">Leader</span> 宕机时：<br>├── Controller 从 ISR 中选举新 <span class="hljs-built_in">Leader</span><br>└── 如果 ISR 为空（全部宕机），从干净副本（非 ISR）中选举<br></code></pre></td></tr></table></figure>
+
+<h2 id="四、消息可靠性"><a href="#四、消息可靠性" class="headerlink" title="四、消息可靠性"></a>四、消息可靠性</h2><h3 id="生产者端"><a href="#生产者端" class="headerlink" title="生产者端"></a>生产者端</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 可靠生产者配置</span><br>props.put(ProducerConfig.ACKS_CONFIG, <span class="hljs-string">&quot;all&quot;</span>);<br>props.put(ProducerConfig.RETRIES_CONFIG, <span class="hljs-number">3</span>);<br>props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, <span class="hljs-keyword">true</span>);  <span class="hljs-comment">// 幂等性</span><br><br><span class="hljs-comment">// 回调处理</span><br>producer.send(<span class="hljs-keyword">new</span> ProducerRecord&lt;&gt;(<span class="hljs-string">&quot;topic&quot;</span>, key, value), <br>    (metadata, exception) -&gt; &#123;<br>        <span class="hljs-keyword">if</span> (exception != <span class="hljs-keyword">null</span>) &#123;<br>            <span class="hljs-comment">// 发送失败，重试或记录</span><br>        &#125;<br>    &#125;);<br></code></pre></td></tr></table></figure>
+
+<h3 id="幂等性"><a href="#幂等性" class="headerlink" title="幂等性"></a>幂等性</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 开启幂等性（保证消息不重复）</span><br>props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, <span class="hljs-keyword">true</span>);<br><span class="hljs-comment">// 自动设置 acks=all + retries=Integer.MAX_VALUE</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>原理</strong>：每个 Producer 有唯一 PID，每条消息带序列号，Broker 根据序列号去重。</p>
+<h3 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 事务保证原子写入多个分区</span><br>producer.initTransactions();<br><span class="hljs-keyword">try</span> &#123;<br>    producer.beginTransaction();<br>    producer.send(<span class="hljs-keyword">new</span> ProducerRecord&lt;&gt;(<span class="hljs-string">&quot;topic1&quot;</span>, <span class="hljs-string">&quot;key1&quot;</span>, <span class="hljs-string">&quot;value1&quot;</span>));<br>    producer.send(<span class="hljs-keyword">new</span> ProducerRecord&lt;&gt;(<span class="hljs-string">&quot;topic2&quot;</span>, <span class="hljs-string">&quot;key2&quot;</span>, <span class="hljs-string">&quot;value2&quot;</span>));<br>    producer.commitTransaction();<br>&#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>    producer.abortTransaction();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="消费者端"><a href="#消费者端" class="headerlink" title="消费者端"></a>消费者端</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 手动提交 offset</span><br>props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, <span class="hljs-string">&quot;false&quot;</span>);<br><br><span class="hljs-keyword">while</span> (<span class="hljs-keyword">true</span>) &#123;<br>    ConsumerRecords&lt;String, String&gt; records = consumer.poll(Duration.ofMillis(<span class="hljs-number">1000</span>));<br>    <span class="hljs-keyword">for</span> (ConsumerRecord&lt;String, String&gt; record : records) &#123;<br>        process(record);  <span class="hljs-comment">// 先处理完业务</span><br>    &#125;<br>    consumer.commitSync();  <span class="hljs-comment">// 再提交 offset（至少一次语义）</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="三种语义"><a href="#三种语义" class="headerlink" title="三种语义"></a>三种语义</h3><table>
+<thead>
+<tr>
+<th>语义</th>
+<th>说明</th>
+<th>实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>至少一次</strong>（At Least Once）</td>
+<td>消息不丢失，可能重复</td>
+<td>acks=all + 手动提交</td>
+</tr>
+<tr>
+<td><strong>至多一次</strong>（At Most Once）</td>
+<td>消息不重复，可能丢失</td>
+<td>acks=0</td>
+</tr>
+<tr>
+<td><strong>恰好一次</strong>（Exactly Once）</td>
+<td>不丢不重</td>
+<td>幂等 + 事务 + 原子写入</td>
+</tr>
+</tbody></table>
+<h2 id="五、Kafka-高性能设计"><a href="#五、Kafka-高性能设计" class="headerlink" title="五、Kafka 高性能设计"></a>五、Kafka 高性能设计</h2><h3 id="零拷贝（Zero-Copy）"><a href="#零拷贝（Zero-Copy）" class="headerlink" title="零拷贝（Zero Copy）"></a>零拷贝（Zero Copy）</h3><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">传统读取：磁盘 → <span class="hljs-variable">OS</span> 内核 → 应用缓存 → <span class="hljs-built_in">Socket</span> 缓存 → 网卡<br>零拷贝：磁盘 → <span class="hljs-variable">OS</span> 内核 → 网卡（<span class="hljs-variable">sendfile</span> 系统调用）<br></code></pre></td></tr></table></figure>
+
+<h3 id="顺序写"><a href="#顺序写" class="headerlink" title="顺序写"></a>顺序写</h3><figure class="highlight julia"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs julia">Kafka 写入日志文件是追加操作，充分利用磁盘顺序 <span class="hljs-built_in">IO</span><br>├── 顺序写 ≈ 内存速度（<span class="hljs-number">600</span>MB/s）<br>└── 随机写 ≈ <span class="hljs-number">100</span>KB/s（差 <span class="hljs-number">6000</span> 倍）<br></code></pre></td></tr></table></figure>
+
+<h3 id="页缓存（Page-Cache）"><a href="#页缓存（Page-Cache）" class="headerlink" title="页缓存（Page Cache）"></a>页缓存（Page Cache）</h3><figure class="highlight lasso"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs lasso">Kafka 不维护自己的缓存，直接使用 OS 的 Page <span class="hljs-keyword">Cache</span><br>├── 利用 OS 缓存机制<br>└── 减少 GC 开销<br></code></pre></td></tr></table></figure>
+
+<h3 id="批量处理"><a href="#批量处理" class="headerlink" title="批量处理"></a>批量处理</h3><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">Producer</span> 批量发送：减少网络请求<br><span class="hljs-attribute">Broker</span> 批量写入：减少 IO 次数<br><span class="hljs-attribute">Consumer</span> 批量拉取：提高消费效率<br><br><span class="hljs-attribute">batch</span>.size = <span class="hljs-number">16384</span>（默认 <span class="hljs-number">16</span>KB）<br><span class="hljs-attribute">linger</span>.ms = <span class="hljs-number">0</span>（默认立即发送，可设为 <span class="hljs-number">5</span>-<span class="hljs-number">10</span>ms 增加批量）<br></code></pre></td></tr></table></figure>
+
+<h3 id="压缩"><a href="#压缩" class="headerlink" title="压缩"></a>压缩</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, <span class="hljs-string">&quot;snappy&quot;</span>);<br><span class="hljs-comment">// 支持：gzip、snappy、lz4、zstd（推荐 snappy 平衡压缩比和性能）</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="六、Kafka-应用场景"><a href="#六、Kafka-应用场景" class="headerlink" title="六、Kafka 应用场景"></a>六、Kafka 应用场景</h2><figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs excel">日志收集     → 集中式日志系统（ELK）<br>⽤户行为追踪  → <span class="hljs-built_in">PV</span>/UV、点击流<br>消息解耦     → 微服务间异步通信<br>流处理       → Kafka Streams / Flink<br>事件溯源     → Event Sourcing 架构<br>削峰填谷     → 秒杀系统的流量缓冲<br></code></pre></td></tr></table></figure>
+
+<h2 id="七、面试题"><a href="#七、面试题" class="headerlink" title="七、面试题"></a>七、面试题</h2><h4 id="1-Kafka-为什么这么快？"><a href="#1-Kafka-为什么这么快？" class="headerlink" title="1. Kafka 为什么这么快？"></a>1. Kafka 为什么这么快？</h4><p>零拷贝、顺序写、Page Cache、批量处理、压缩。</p>
+<h4 id="2-Kafka-怎么保证消息不丢失？"><a href="#2-Kafka-怎么保证消息不丢失？" class="headerlink" title="2. Kafka 怎么保证消息不丢失？"></a>2. Kafka 怎么保证消息不丢失？</h4><p>生产者：acks=all + 重试。Broker：副本机制 + ISR。消费者：手动提交 offset。</p>
+<h4 id="3-ISR-是什么？有什么用？"><a href="#3-ISR-是什么？有什么用？" class="headerlink" title="3. ISR 是什么？有什么用？"></a>3. ISR 是什么？有什么用？</h4><p>In-Sync Replicas，与 Leader 保持同步的副本集合。只有 ISR 中的副本才能参与 Leader 选举，保证数据不丢失。</p>
+<h4 id="4-Kafka-如何保证消息顺序？"><a href="#4-Kafka-如何保证消息顺序？" class="headerlink" title="4. Kafka 如何保证消息顺序？"></a>4. Kafka 如何保证消息顺序？</h4><p>同一分区内有序。将相关消息发到同一分区（按 key 哈希），每个分区同一消费者处理。</p>
+<h4 id="5-重平衡（Rebalance）是什么？有什么影响？"><a href="#5-重平衡（Rebalance）是什么？有什么影响？" class="headerlink" title="5. 重平衡（Rebalance）是什么？有什么影响？"></a>5. 重平衡（Rebalance）是什么？有什么影响？</h4><p>消费者组内成员变化时，重新分配分区。重平衡期间消费暂停。影响：STW（Stop-The-World）。优化：协调式重平衡（Cooperative Rebalance，逐步调整）。</p>
+<h4 id="6-Kafka-和-RabbitMQ-的区别？"><a href="#6-Kafka-和-RabbitMQ-的区别？" class="headerlink" title="6. Kafka 和 RabbitMQ 的区别？"></a>6. Kafka 和 RabbitMQ 的区别？</h4><table>
+<thead>
+<tr>
+<th>对比</th>
+<th>Kafka</th>
+<th>RabbitMQ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>设计目标</td>
+<td>高吞吐日志处理</td>
+<td>可靠消息投递</td>
+</tr>
+<tr>
+<td>存储</td>
+<td>磁盘持久化</td>
+<td>内存/磁盘</td>
+</tr>
+<tr>
+<td>顺序</td>
+<td>分区内有序</td>
+<td>队列有序</td>
+</tr>
+<tr>
+<td>消费模式</td>
+<td>拉模式（Pull）</td>
+<td>推模式（Push）</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>日志、流处理</td>
+<td>业务消息、任务分发</td>
+</tr>
+</tbody></table>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6/">消息中间件</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Kafka/">Kafka</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6/">消息中间件</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/Docker%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8%E4%B8%8E%E5%AE%9E%E6%88%98/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Docker基础入门与实战：核心概念、常用命令、Dockerfile</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/Redis%E9%AB%98%E7%BA%A7%E8%BF%9B%E9%98%B6/">
+                        <span class="hidden-mobile">Redis高级进阶：持久化、集群、哨兵、RedLock、缓存策略</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

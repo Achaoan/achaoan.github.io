@@ -185,7 +185,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      720 字
+      945 字
     </span>
   
 
@@ -195,7 +195,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      9
+      11
        分钟
     </span>
   
@@ -237,47 +237,198 @@
             
               <p class="note note-info">
                 
-                  本文最后更新于：3 年前
+                  本文最后更新于：31 分钟前
                 
               </p>
             
             <div class="markdown-body">
-              <p>数组基础/后续补充，暂时简单整理</p>
-<p><img src="/img/4-1.png" srcset="/img/loading.gif" lazyload></p>
-<p>对比</p>
-<p><img src="/img/4-2.png" srcset="/img/loading.gif" lazyload></p>
-<p>面试题</p>
+              <h2 id="数组基础"><a href="#数组基础" class="headerlink" title="数组基础"></a>数组基础</h2><p>数组是一种线性数据结构，用连续的内存空间存储相同类型的数据。Java 中数组是对象，直接继承自 Object。</p>
+<p><strong>特点：</strong></p>
+<ul>
+<li>长度固定，一旦创建不可变</li>
+<li>内存连续，支持随机访问 O(1)</li>
+<li>插入和删除需要移动元素 O(n)</li>
+</ul>
+<h2 id="集合框架对比"><a href="#集合框架对比" class="headerlink" title="集合框架对比"></a>集合框架对比</h2><h3 id="1-ArrayList-源码分析"><a href="#1-ArrayList-源码分析" class="headerlink" title="1. ArrayList 源码分析"></a>1. ArrayList 源码分析</h3><p><strong>底层结构：</strong> 动态数组 <code>Object[] elementData</code></p>
+<p><strong>核心特性：</strong></p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>初始容量</td>
+<td>10（懒加载，第一次 add 时初始化）</td>
+</tr>
+<tr>
+<td>扩容机制</td>
+<td><code>oldCapacity + (oldCapacity &gt;&gt; 1)</code> = 1.5 倍</td>
+</tr>
+<tr>
+<td>扩容实现</td>
+<td><code>Arrays.copyOf()</code> 拷贝到新数组</td>
+</tr>
+<tr>
+<td>随机访问</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>插入/删除</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>线程安全</td>
+<td>否</td>
+</tr>
+</tbody></table>
+<p><strong>扩容源码：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">grow</span><span class="hljs-params">(<span class="hljs-keyword">int</span> minCapacity)</span> </span>&#123;<br>    <span class="hljs-keyword">int</span> oldCapacity = elementData.length;<br>    <span class="hljs-keyword">int</span> newCapacity = oldCapacity + (oldCapacity &gt;&gt; <span class="hljs-number">1</span>);  <span class="hljs-comment">// 1.5倍</span><br>    elementData = Arrays.copyOf(elementData, newCapacity);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>ArrayList 三种构造方法：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 1. 指定初始容量</span><br>ArrayList(<span class="hljs-keyword">int</span> initialCapacity)<br><br><span class="hljs-comment">// 2. 空构造</span><br>ArrayList()<br><br><span class="hljs-comment">// 3. 从 Collection 构造</span><br>ArrayList(Collection&lt;? extends E&gt; c)<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-ArrayList-和-LinkedList-区别"><a href="#2-ArrayList-和-LinkedList-区别" class="headerlink" title="2. ArrayList 和 LinkedList 区别"></a>2. ArrayList 和 LinkedList 区别</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>ArrayList</th>
+<th>LinkedList</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>底层</td>
+<td>动态数组</td>
+<td>双向链表</td>
+</tr>
+<tr>
+<td>随机访问</td>
+<td>O(1)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>头部插入</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>尾部插入</td>
+<td>O(1) 均摊</td>
+<td>O(1)（有尾指针）</td>
+</tr>
+<tr>
+<td>内存</td>
+<td>连续紧凑</td>
+<td>分散，额外指针开销</td>
+</tr>
+<tr>
+<td>CPU 缓存</td>
+<td>友好</td>
+<td>不友好</td>
+</tr>
+</tbody></table>
+<p><strong>实战建议：</strong> 99% 场景用 ArrayList，仅在频繁头部增删时考虑 LinkedList。</p>
+<h3 id="3-HashMap-源码分析"><a href="#3-HashMap-源码分析" class="headerlink" title="3. HashMap 源码分析"></a>3. HashMap 源码分析</h3><p><strong>底层结构（JDK 1.8+）：</strong> 数组 + 链表 + 红黑树</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>初始容量</td>
+<td>16（懒加载）</td>
+</tr>
+<tr>
+<td>负载因子</td>
+<td>0.75</td>
+</tr>
+<tr>
+<td>扩容倍数</td>
+<td>2 倍</td>
+</tr>
+<tr>
+<td>树化阈值</td>
+<td>链表长度 ≥ 8 且数组长度 ≥ 64</td>
+</tr>
+<tr>
+<td>反树化阈值</td>
+<td>红黑树节点 ≤ 6</td>
+</tr>
+</tbody></table>
+<p><strong>HashMap 的 put 流程：</strong></p>
 <ol>
-<li><p>介绍一下ArrayList，扩容，1.5</p>
+<li>数组为空 → resize() 初始化</li>
+<li>计算 hash → <code>(h = key.hashCode()) ^ (h &gt;&gt;&gt; 16)</code> 扰动函数</li>
+<li>计算下标 → <code>(n - 1) &amp; hash</code></li>
+<li>若下标无元素 → 直接插入</li>
+<li>若有元素：<ul>
+<li>key 相同 → 覆盖 value</li>
+<li>红黑树 → 按红黑树规则插入</li>
+<li>链表 → 尾插法插入；长度 ≥ 8 且数组 ≥ 64 → 树化</li>
+</ul>
 </li>
-<li><p>构造方法</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//1、长度</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ArrayList</span><span class="hljs-params">(<span class="hljs-keyword">int</span> var1)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (var1 &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">this</span>.elementData = <span class="hljs-keyword">new</span> Object[var1];<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-keyword">if</span> (var1 != <span class="hljs-number">0</span>) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;Illegal Capacity: &quot;</span> + var1);<br>        &#125;<br><br>        <span class="hljs-keyword">this</span>.elementData = EMPTY_ELEMENTDATA;<br>    &#125;<br><br>&#125;<br><span class="hljs-comment">//2、空</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ArrayList</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">this</span>.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;<br>&#125;<br><span class="hljs-comment">//3、collection</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ArrayList</span><span class="hljs-params">(Collection&lt;? extends E&gt; var1)</span> </span>&#123;<br>    Object[] var2 = var1.toArray();<br>    <span class="hljs-keyword">if</span> ((<span class="hljs-keyword">this</span>.size = var2.length) != <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">if</span> (var1.getClass() == ArrayList.class) &#123;<br>            <span class="hljs-keyword">this</span>.elementData = var2;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-keyword">this</span>.elementData = Arrays.copyOf(var2, <span class="hljs-keyword">this</span>.size, Object[].class);<br>        &#125;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-keyword">this</span>.elementData = EMPTY_ELEMENTDATA;<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure></li>
-<li><p>ArrayList和LinkedList区别</p>
-</li>
-<li><p>介绍一下HashMap，0.75扩容2</p>
-</li>
-<li><p>构造方法</p>
-<p>​    </p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//1、var1 初始容量  var2 负载因子</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">HashMap</span><span class="hljs-params">(<span class="hljs-keyword">int</span> var1, <span class="hljs-keyword">float</span> var2)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (var1 &lt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;Illegal initial capacity: &quot;</span> + var1);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-keyword">if</span> (var1 &gt; <span class="hljs-number">1073741824</span>) &#123;<br>            var1 = <span class="hljs-number">1073741824</span>;<br>        &#125;<br><br>        <span class="hljs-keyword">if</span> (var2 &gt; <span class="hljs-number">0.0F</span> &amp;&amp; !Float.isNaN(var2)) &#123;<br>            <span class="hljs-keyword">this</span>.loadFactor = var2;<br>            <span class="hljs-keyword">this</span>.threshold = tableSizeFor(var1);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;Illegal load factor: &quot;</span> + var2);<br>        &#125;<br>    &#125;<br>&#125;<br><span class="hljs-comment">//2、var1 初始容量</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">HashMap</span><span class="hljs-params">(<span class="hljs-keyword">int</span> var1)</span> </span>&#123;<br>    <span class="hljs-keyword">this</span>(var1, <span class="hljs-number">0.75F</span>);<br>&#125;<br><span class="hljs-comment">//3、空</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">HashMap</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">this</span>.loadFactor = <span class="hljs-number">0.75F</span>;<br>&#125;<br><span class="hljs-comment">//4、map</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">HashMap</span><span class="hljs-params">(Map&lt;? extends K, ? extends V&gt; var1)</span> </span>&#123;<br>    <span class="hljs-keyword">this</span>.loadFactor = <span class="hljs-number">0.75F</span>;<br>    <span class="hljs-keyword">this</span>.putMapEntries(var1, <span class="hljs-keyword">false</span>);<br>&#125;<br></code></pre></td></tr></table></figure></li>
-<li><p>HashMap和CurrentHashMap的区别</p>
-</li>
-<li><p>HashMap存储结构</p>
-<p>​    <a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzAwNDA2OTM1Ng==&mid=2453141093&idx=2&sn=2784802c46f56c1fa1a1053c2c52ece0&scene=21#wechat_redirect">渣男吊打面试官</a></p>
-</li>
-<li><p>为什么用HahsMap？</p>
-<p>首先当我们需要存储数据的时候，动态数组虽然能够自动扩容，但是必须在初始时刻指定初始容量。而对于那些在编译时无法确定具体的数量即动态增长的数据，就需要用到Java集合类了。对于ArrayList 和 LinkedList，还有 Vector它们都有一些缺点，要么插入删除速度慢、要么就是遍历速度慢。那么有没有一种插入、删除、遍历都比较不错的集合类呢？于是 HashMap 就出现了。HashMap 是一个散列表，它存储的是一组键值对(key-value)的集合，并实现快速的查找。</p>
-<p>（1）为了实现快速查找，HashMap 选择了数组而不是链表。以利用数组的索引实现 O(1) 复杂度的查找效率。</p>
-<p>（2）为了利用索引查找，HashMap 引入 Hash 算法, 将 key 映射成数组下标: key -&gt; Index。</p>
-<p>（3）引入 Hash 算法又导致了 Hash 冲突。为了解决 Hash 冲突，HashMap 采用链地址法，在冲突位置转为使用链表存储。</p>
-<p>（4）链表存储过多的节点又导致了在链表上节点的查找性能的恶化。为了优化查找性能，HashMap 在链表长度超过 8 之后转而将链表转变成红黑树，以将 O(n) 复杂度的查找效率提升至 O(log n)。</p>
-<p>【综上】</p>
-<p>HashMap 存在的意义就是<strong>实现一种快速的查找并且插入、删除性能都不错的一种 K/V（key/value）数据结构</strong>。</p>
-</li>
-<li><p>HashMap是不是线程安全的？为什么？    </p>
-<p>不是</p>
-<p>多线程操作，扩容有可能造成循环链表</p>
-</li>
+<li>元素数量 &gt; threshold → resize() 扩容</li>
 </ol>
+<p><strong>HashMap 四种构造方法：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 1. 指定初始容量和负载因子</span><br>HashMap(<span class="hljs-keyword">int</span> initialCapacity, <span class="hljs-keyword">float</span> loadFactor)<br><br><span class="hljs-comment">// 2. 指定初始容量</span><br>HashMap(<span class="hljs-keyword">int</span> initialCapacity)<br><br><span class="hljs-comment">// 3. 空构造（默认 0.75 负载因子）</span><br>HashMap()<br><br><span class="hljs-comment">// 4. 从 Map 构造</span><br>HashMap(Map&lt;? extends K, ? extends V&gt; m)<br></code></pre></td></tr></table></figure>
+
+<p><strong>为什么容量必须是 2 的幂次方？</strong></p>
+<ul>
+<li><code>(n-1) &amp; hash</code> 等价于取模，位运算更快</li>
+<li>扩容时通过 <code>hash &amp; oldCap == 0</code> 判断元素位置</li>
+</ul>
+<p><strong>JDK 1.7 vs 1.8 区别：</strong></p>
+<ul>
+<li>1.7：数组 + 链表，<strong>头插法</strong>，多线程扩容可能<strong>死循环</strong></li>
+<li>1.8：数组 + 链表 + 红黑树，<strong>尾插法</strong>，解决死循环</li>
+</ul>
+<h3 id="4-HashMap-和-ConcurrentHashMap-的区别"><a href="#4-HashMap-和-ConcurrentHashMap-的区别" class="headerlink" title="4. HashMap 和 ConcurrentHashMap 的区别"></a>4. HashMap 和 ConcurrentHashMap 的区别</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>HashMap</th>
+<th>ConcurrentHashMap</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>线程安全</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>JDK 1.7 实现</td>
+<td>数组+链表</td>
+<td>分段锁（Segment）</td>
+</tr>
+<tr>
+<td>JDK 1.8 实现</td>
+<td>数组+链表+红黑树</td>
+<td>CAS + synchronized</td>
+</tr>
+<tr>
+<td>锁粒度</td>
+<td>-</td>
+<td>单个桶</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>高</td>
+<td>较高（锁竞争少）</td>
+</tr>
+<tr>
+<td>允许 null</td>
+<td>key/value 允许 null</td>
+<td>不允许 null</td>
+</tr>
+</tbody></table>
+<h3 id="面试题精选"><a href="#面试题精选" class="headerlink" title="面试题精选"></a>面试题精选</h3><h4 id="1-为什么用-HashMap？"><a href="#1-为什么用-HashMap？" class="headerlink" title="1. 为什么用 HashMap？"></a>1. 为什么用 HashMap？</h4><p>HashMap 实现了 O(1) 的插入、删除、查找的高性能 KV 存储。相比 ArrayList（查找快但增删慢）和 LinkedList（增删快但查找慢），HashMap 综合性能最均衡。</p>
+<h4 id="2-HashMap-是不是线程安全的？为什么？"><a href="#2-HashMap-是不是线程安全的？为什么？" class="headerlink" title="2. HashMap 是不是线程安全的？为什么？"></a>2. HashMap 是不是线程安全的？为什么？</h4><p>不是。多线程操作时，扩容可能造成循环链表（JDK 1.7），数据覆盖等问题。需改用 ConcurrentHashMap 或 Collections.synchronizedMap()。</p>
+<h4 id="3-为什么负载因子是-0-75？"><a href="#3-为什么负载因子是-0-75？" class="headerlink" title="3. 为什么负载因子是 0.75？"></a>3. 为什么负载因子是 0.75？</h4><p>空间与查询效率的平衡。基于泊松分布（Poisson Distribution），在合理哈希函数下冲突概率最低。</p>
+<h4 id="4-为什么链表转红黑树的阈值是-8？"><a href="#4-为什么链表转红黑树的阈值是-8？" class="headerlink" title="4. 为什么链表转红黑树的阈值是 8？"></a>4. 为什么链表转红黑树的阈值是 8？</h4><p>根据泊松分布，链表长度达到 8 的概率仅为 0.00000006（亿分之六），红黑树作为<strong>保险机制</strong>防止极端情况性能崩塌。</p>
+<h4 id="5-HashSet-与-HashMap-的关系？"><a href="#5-HashSet-与-HashMap-的关系？" class="headerlink" title="5. HashSet 与 HashMap 的关系？"></a>5. HashSet 与 HashMap 的关系？</h4><p>HashSet 底层基于 HashMap 实现，元素作为 HashMap 的 key，value 统一为 <code>PRESENT</code> 占位对象。</p>
 
             </div>
             <hr>
@@ -295,9 +446,9 @@
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/java/">java</a>
-                    
                       <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/java/">java</a>
                     
                   </div>
                 

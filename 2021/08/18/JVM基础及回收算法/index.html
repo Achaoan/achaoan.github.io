@@ -158,7 +158,7 @@
 </nav>
 
     <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
+         style="background: url('/img/jvm-cover.png') no-repeat center center;
            background-size: cover;">
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
@@ -185,7 +185,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      10 字
+      1.1k 字
     </span>
   
 
@@ -195,7 +195,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      1
+      11
        分钟
     </span>
   
@@ -237,15 +237,179 @@
             
               <p class="note note-info">
                 
-                  本文最后更新于：3 年前
+                  本文最后更新于：31 分钟前
                 
               </p>
             
             <div class="markdown-body">
-              <h6 id="JVM简介"><a href="#JVM简介" class="headerlink" title="JVM简介"></a>JVM简介</h6><p><img src="/img/jvm-1.png" srcset="/img/loading.gif" lazyload></p>
-<h5 id="JVM回收算法"><a href="#JVM回收算法" class="headerlink" title="JVM回收算法"></a>JVM回收算法</h5><p><img src="/img/jvm-2.png" srcset="/img/loading.gif" lazyload></p>
-<p><img src="/img/jvm-3.png" srcset="/img/loading.gif" lazyload></p>
-<h5 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h5><p><img src="/img/jvm-4.png" srcset="/img/loading.gif" lazyload></p>
+              <h2 id="一、JVM-内存区域"><a href="#一、JVM-内存区域" class="headerlink" title="一、JVM 内存区域"></a>一、JVM 内存区域</h2><h3 id="线程私有区域"><a href="#线程私有区域" class="headerlink" title="线程私有区域"></a>线程私有区域</h3><ul>
+<li><strong>程序计数器</strong>：当前线程所执行的字节码行号指示器，记录下一条要执行的指令地址</li>
+<li><strong>虚拟机栈</strong>：每个方法执行时创建栈帧，存储局部变量表、操作数栈、动态链接、方法出口</li>
+<li><strong>本地方法栈</strong>：为虚拟机使用到的 Native 方法服务</li>
+</ul>
+<h3 id="线程共享区域"><a href="#线程共享区域" class="headerlink" title="线程共享区域"></a>线程共享区域</h3><ul>
+<li><strong>堆（Heap）</strong>：存放对象实例，GC 管理的主要区域，可细分为新生代（Eden/S0/S1）+ 老年代</li>
+<li><strong>方法区</strong>：存储类信息、常量、静态变量。JDK8 后改为<strong>元空间（Metaspace）</strong>，使用本地内存</li>
+</ul>
+<h3 id="JDK8-永久代-→-元空间的变化"><a href="#JDK8-永久代-→-元空间的变化" class="headerlink" title="JDK8 永久代 → 元空间的变化"></a>JDK8 永久代 → 元空间的变化</h3><p>元空间使用本地内存，不再受 JVM 堆大小限制，避免 OOM。</p>
+<h2 id="二、对象存活判断"><a href="#二、对象存活判断" class="headerlink" title="二、对象存活判断"></a>二、对象存活判断</h2><h3 id="可达性分析（Java-使用）"><a href="#可达性分析（Java-使用）" class="headerlink" title="可达性分析（Java 使用）"></a>可达性分析（Java 使用）</h3><p>从 <strong>GC Roots</strong> 开始向下搜索，不可达的对象判定为可回收。</p>
+<p><strong>可作为 GC Roots 的对象</strong>：</p>
+<ul>
+<li>虚拟机栈中引用的对象</li>
+<li>方法区静态属性引用的对象</li>
+<li>方法区常量池引用的对象</li>
+<li>本地方法栈 JNI 引用的对象</li>
+</ul>
+<h3 id="四种引用类型"><a href="#四种引用类型" class="headerlink" title="四种引用类型"></a>四种引用类型</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>回收时机</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>强引用</strong></td>
+<td>永不回收，OOM 也不回收</td>
+<td>普通 new 对象</td>
+</tr>
+<tr>
+<td><strong>软引用</strong></td>
+<td>内存不足时回收</td>
+<td>缓存（内存敏感场景）</td>
+</tr>
+<tr>
+<td><strong>弱引用</strong></td>
+<td>下次 GC 即回收</td>
+<td>WeakHashMap、ThreadLocal</td>
+</tr>
+<tr>
+<td><strong>虚引用</strong></td>
+<td>任何时候都可能被回收</td>
+<td>跟踪对象回收状态</td>
+</tr>
+</tbody></table>
+<h2 id="三、垃圾回收算法"><a href="#三、垃圾回收算法" class="headerlink" title="三、垃圾回收算法"></a>三、垃圾回收算法</h2><table>
+<thead>
+<tr>
+<th>算法</th>
+<th>原理</th>
+<th>优点</th>
+<th>缺点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>标记-清除</strong></td>
+<td>标记存活对象 → 清除未标记对象</td>
+<td>实现简单</td>
+<td>效率低、内存碎片</td>
+<td>老年代（配合 CMS）</td>
+</tr>
+<tr>
+<td><strong>复制算法</strong></td>
+<td>将内存分为两块，存活对象复制到另一块</td>
+<td>无碎片、高效</td>
+<td>内存利用率低</td>
+<td>新生代</td>
+</tr>
+<tr>
+<td><strong>标记-整理</strong></td>
+<td>标记存活对象 → 向一端移动 → 清理边界外</td>
+<td>无碎片</td>
+<td>移动对象有开销</td>
+<td>老年代</td>
+</tr>
+<tr>
+<td><strong>分代收集</strong></td>
+<td>新生代用复制，老年代用标记-整理/清除</td>
+<td>综合最优</td>
+<td>实现复杂</td>
+<td>主流 JVM 策略</td>
+</tr>
+</tbody></table>
+<h2 id="四、触发机制"><a href="#四、触发机制" class="headerlink" title="四、触发机制"></a>四、触发机制</h2><h3 id="Minor-GC（新生代-GC）"><a href="#Minor-GC（新生代-GC）" class="headerlink" title="Minor GC（新生代 GC）"></a>Minor GC（新生代 GC）</h3><ul>
+<li><strong>触发条件</strong>：Eden 区满</li>
+<li>特点：非常频繁，回收速度快</li>
+</ul>
+<h3 id="Full-GC（老年代-GC）"><a href="#Full-GC（老年代-GC）" class="headerlink" title="Full GC（老年代 GC）"></a>Full GC（老年代 GC）</h3><ul>
+<li><strong>触发条件</strong>：<ol>
+<li>老年代空间不足</li>
+<li>元空间空间不足</li>
+<li>调用 <code>System.gc()</code></li>
+<li>Minor GC 后晋升对象大小 &gt; 老年代可用空间</li>
+</ol>
+</li>
+<li>特点：速度慢（是 Minor GC 的 10 倍以上），STW 时间长</li>
+</ul>
+<h3 id="对象晋升老年代的条件"><a href="#对象晋升老年代的条件" class="headerlink" title="对象晋升老年代的条件"></a>对象晋升老年代的条件</h3><ol>
+<li><strong>年龄阈值</strong>：默认 15 岁（<code>-XX:MaxTenuringThreshold</code>）</li>
+<li><strong>动态年龄判定</strong>：Survivor 中相同年龄对象大小总和 &gt; Survivor 空间的一半</li>
+<li><strong>大对象直接进入</strong>：通过 <code>-XX:PretenureSizeThreshold</code> 设置阈值</li>
+</ol>
+<h2 id="五、垃圾收集器"><a href="#五、垃圾收集器" class="headerlink" title="五、垃圾收集器"></a>五、垃圾收集器</h2><table>
+<thead>
+<tr>
+<th>收集器</th>
+<th>作用位置</th>
+<th>算法</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Serial</strong></td>
+<td>新生代</td>
+<td>复制</td>
+<td>单线程，简单高效</td>
+</tr>
+<tr>
+<td><strong>ParNew</strong></td>
+<td>新生代</td>
+<td>复制</td>
+<td>多线程，配合 CMS</td>
+</tr>
+<tr>
+<td><strong>Parallel Scavenge</strong></td>
+<td>新生代</td>
+<td>复制</td>
+<td>吞吐量优先</td>
+</tr>
+<tr>
+<td><strong>CMS</strong></td>
+<td>老年代</td>
+<td>标记-清除</td>
+<td>低停顿</td>
+</tr>
+<tr>
+<td><strong>G1</strong></td>
+<td>全堆</td>
+<td>标记-整理+复制</td>
+<td>可预测停顿，大内存推荐</td>
+</tr>
+<tr>
+<td><strong>ZGC</strong></td>
+<td>全堆</td>
+<td>并发</td>
+<td>毫秒级停顿</td>
+</tr>
+</tbody></table>
+<h3 id="CMS-流程"><a href="#CMS-流程" class="headerlink" title="CMS 流程"></a>CMS 流程</h3><ol>
+<li><strong>初始标记</strong>（STW）：标记 GC Roots 直接关联对象</li>
+<li><strong>并发标记</strong>：与用户线程并发，遍历对象图</li>
+<li><strong>重新标记</strong>（STW）：修正变动的对象</li>
+<li><strong>并发清除</strong>：与用户线程并发清除垃圾</li>
+</ol>
+<h3 id="G1-特点"><a href="#G1-特点" class="headerlink" title="G1 特点"></a>G1 特点</h3><ul>
+<li>将堆划分为多个 <strong>Region</strong>（1-32MB），逻辑上分代</li>
+<li>维护优先列表，优先回收价值最大的 Region</li>
+<li>可设置期望 STW 时间（<code>-XX:MaxGCPauseMillis</code>）</li>
+<li>整体基于标记-整理，局部基于复制，无碎片</li>
+</ul>
+<h2 id="六、高频面试题"><a href="#六、高频面试题" class="headerlink" title="六、高频面试题"></a>六、高频面试题</h2><h4 id="1-Minor-GC-和-Full-GC-区别？"><a href="#1-Minor-GC-和-Full-GC-区别？" class="headerlink" title="1. Minor GC 和 Full GC 区别？"></a>1. Minor GC 和 Full GC 区别？</h4><p>Minor GC 在新生代频繁执行，速度快；Full GC 在老年代执行，速度慢，STW 时间长。</p>
+<h4 id="2-新生代为什么用复制算法？"><a href="#2-新生代为什么用复制算法？" class="headerlink" title="2. 新生代为什么用复制算法？"></a>2. 新生代为什么用复制算法？</h4><p>对象存活率低（约 98% 朝生夕死），复制成本低，不会产生内存碎片。</p>
+<h4 id="3-什么是-Stop-The-World？"><a href="#3-什么是-Stop-The-World？" class="headerlink" title="3. 什么是 Stop-The-World？"></a>3. 什么是 Stop-The-World？</h4><p>GC 时暂停所有应用线程，保证一致性快照。CMS 和 G1 通过并发设计尽量缩短 STW 时间。</p>
+<h4 id="4-类加载过程？"><a href="#4-类加载过程？" class="headerlink" title="4. 类加载过程？"></a>4. 类加载过程？</h4><p>加载 → 验证 → 准备 → 解析 → 初始化</p>
+<h4 id="5-双亲委派模型？"><a href="#5-双亲委派模型？" class="headerlink" title="5. 双亲委派模型？"></a>5. 双亲委派模型？</h4><p>先委派父加载器，父无法加载才自加载，保证核心类安全（不会出现多个版本的 java.lang.Object）。</p>
 
             </div>
             <hr>
@@ -263,11 +427,11 @@
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/java/">java</a>
-                    
                       <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
                     
                       <a class="hover-with-bg" href="/tags/JVM/">JVM</a>
+                    
+                      <a class="hover-with-bg" href="/tags/java/">java</a>
                     
                   </div>
                 

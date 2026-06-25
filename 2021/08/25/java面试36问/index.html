@@ -158,7 +158,7 @@
 </nav>
 
     <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
+         style="background: url('/img/java-interview-cover.png') no-repeat center center;
            background-size: cover;">
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
@@ -185,7 +185,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      2.9k 字
+      1.8k 字
     </span>
   
 
@@ -195,7 +195,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      31
+      20
        分钟
     </span>
   
@@ -237,47 +237,180 @@
             
               <p class="note note-info">
                 
-                  本文最后更新于：3 年前
+                  本文最后更新于：30 分钟前
                 
               </p>
             
             <div class="markdown-body">
-              <h2 id="谈谈你对-Java-平台的理解？“Java-是解释执行”，这句话正确吗？"><a href="#谈谈你对-Java-平台的理解？“Java-是解释执行”，这句话正确吗？" class="headerlink" title="谈谈你对 Java 平台的理解？“Java 是解释执行”，这句话正确吗？"></a>谈谈你对 Java 平台的理解？“Java 是解释执行”，这句话正确吗？</h2><p>Java 本身是一种面向对象的语言，最显著的特性有两个方面，一是所谓的“<strong>书写一次，到处运行</strong>”（Write once, run anywhere），能够非常容易地获得跨平台能力；另外就是<strong>垃圾收集</strong>（GC, Garbage Collection），Java 通过垃圾收集器（Garbage Collector）回收分配内存，大部分情况下，程序员不需要自己操心内存的分配和回收。</p>
-<p>我们日常会接触到 JRE（Java Runtime Environment）或者 JDK（Java Development Kit）。 JRE，也就是 Java 运行环境，包含了 JVM 和 Java 类库，以及一些模块等。而 JDK 可以看作是 JRE 的一个超集，提供了更多工具，比如编译器、各种诊断工具等。</p>
-<p>对于“Java 是解释执行”这句话，这个说法不太准确。我们开发的 Java 的源代码，首先通过 Javac 编译成为字节码（bytecode），然后，在运行时，通过 Java 虚拟机（JVM）内嵌的解释器将字节码转换成为最终的机器码。但是常见的 JVM，比如我们大多数情况使用的 Oracle JDK 提供的 Hotspot JVM，都提供了 JIT（Just-In-Time）编译器，也就是通常所说的动态编译器，JIT 能够在运行时将热点代码编译成机器码，这种情况下部分热点代码就属于<strong>编译执行</strong>，而不是解释执行了。</p>
-<h2 id="请对比-Exception-和-Error，另外，运行时异常与一般异常有什么区别？"><a href="#请对比-Exception-和-Error，另外，运行时异常与一般异常有什么区别？" class="headerlink" title="请对比 Exception 和 Error，另外，运行时异常与一般异常有什么区别？"></a>请对比 Exception 和 Error，另外，运行时异常与一般异常有什么区别？</h2><p>Exception 和 Error 都是继承了 Throwable 类，在 Java 中只有 Throwable 类型的实例才可以被抛出（throw）或者捕获（catch），它是异常处理机制的基本组成类型。</p>
-<p>Exception 和 Error 体现了 Java 平台设计者对不同异常情况的分类。Exception 是程序正常运行中，可以预料的意外情况，可能并且应该被捕获，进行相应处理。</p>
-<p>Error 是指在正常情况下，不大可能出现的情况，绝大部分的 Error 都会导致程序（比如 JVM 自身）处于非正常的、不可恢复状态。既然是非正常情况，所以不便于也不需要捕获，常见的比如 OutOfMemoryError 之类，都是 Error 的子类。</p>
-<p>Exception 又分为<strong>可检查</strong>（checked）异常和<strong>不检查</strong>（unchecked）异常，可检查异常在源代码里必须显式地进行捕获处理，这是编译期检查的一部分。前面我介绍的不可查的 Error，是 Throwable 不是 Exception。</p>
-<p>不检查异常就是所谓的运行时异常，类似 NullPointerException、ArrayIndexOutOfBoundsException 之类，通常是可以编码避免的逻辑错误，具体根据需要来判断是否需要捕获，并不会在编译期强制要求。</p>
-<h2 id="谈谈-final、finally、-finalize-有什么不同？"><a href="#谈谈-final、finally、-finalize-有什么不同？" class="headerlink" title="谈谈 final、finally、 finalize 有什么不同？"></a>谈谈 final、finally、 finalize 有什么不同？</h2><p>final 可以用来修饰类、方法、变量，分别有不同的意义，final 修饰的 class 代表不可以继承扩展，final 的变量是不可以修改的，而 final 的方法也是不可以重写的（override）。</p>
-<p>finally 则是 Java 保证重点代码一定要被执行的一种机制。我们可以使用 try-finally 或者 try-catch-finally 来进行类似关闭 JDBC 连接、保证 unlock 锁等动作。</p>
-<p>finalize 是基础类 java.lang.Object 的一个方法，它的设计目的是保证对象在被垃圾收集前完成特定资源的回收。finalize 机制现在已经不推荐使用，并且在 JDK 9 开始被标记为 deprecated。</p>
-<h2 id="强引用、软引用、弱引用、幻象引用有什么区别？具体使用场景是什么？"><a href="#强引用、软引用、弱引用、幻象引用有什么区别？具体使用场景是什么？" class="headerlink" title="强引用、软引用、弱引用、幻象引用有什么区别？具体使用场景是什么？"></a>强引用、软引用、弱引用、幻象引用有什么区别？具体使用场景是什么？</h2><p>不同的引用类型，主要体现的是<strong>对象不同的可达性（reachable）状态和对垃圾收集的影响</strong>。</p>
-<p>所谓强引用（“Strong” Reference），就是我们最常见的普通对象引用，只要还有强引用指向一个对象，就能表明对象还“活着”，垃圾收集器不会碰这种对象。对于一个普通的对象，如果没有其他的引用关系，只要超过了引用的作用域或者显式地将相应（强）引用赋值为 null，就是可以被垃圾收集的了，当然具体回收时机还是要看垃圾收集策略。</p>
-<p>软引用（SoftReference），是一种相对强引用弱化一些的引用，可以让对象豁免一些垃圾收集，只有当 JVM 认为内存不足时，才会去试图回收软引用指向的对象。JVM 会确保在抛出 OutOfMemoryError 之前，清理软引用指向的对象。软引用通常用来实现内存敏感的缓存，如果还有空闲内存，就可以暂时保留缓存，当内存不足时清理掉，这样就保证了使用缓存的同时，不会耗尽内存。</p>
-<p>弱引用（WeakReference）并不能使对象豁免垃圾收集，仅仅是提供一种访问在弱引用状态下对象的途径。这就可以用来构建一种没有特定约束的关系，比如，维护一种非强制性的映射关系，如果试图获取时对象还在，就使用它，否则重现实例化。它同样是很多缓存实现的选择。</p>
-<p>对于幻象引用，有时候也翻译成虚引用，你不能通过它访问对象。幻象引用仅仅是提供了一种确保对象被 finalize 以后，做某些事情的机制，比如，通常用来做所谓的 Post-Mortem 清理机制，我在专栏上一讲中介绍的 Java 平台自身 Cleaner 机制等，也有人利用幻象引用监控对象的创建和销毁。</p>
-<h2 id="理解-Java-的字符串，String、StringBuffer、StringBuilder-有什么区别？"><a href="#理解-Java-的字符串，String、StringBuffer、StringBuilder-有什么区别？" class="headerlink" title="理解 Java 的字符串，String、StringBuffer、StringBuilder 有什么区别？"></a>理解 Java 的字符串，String、StringBuffer、StringBuilder 有什么区别？</h2><p>String 是 Java 语言非常基础和重要的类，提供了构造和管理字符串的各种基本逻辑。它是典型的 Immutable 类，被声明成为 final class，所有属性也都是 final 的。也由于它的不可变性，类似拼接、裁剪字符串等动作，都会产生新的 String 对象。由于字符串操作的普遍性，所以相关操作的效率往往对应用性能有明显影响。</p>
-<p>StringBuffer 是为解决上面提到拼接产生太多中间对象的问题而提供的一个类，我们可以用 append 或者 add 方法，把字符串添加到已有序列的末尾或者指定位置。StringBuffer 本质是一个线程安全的可修改字符序列，它保证了线程安全，也随之带来了额外的性能开销，所以除非有线程安全的需要，不然还是推荐使用它的后继者，也就是 StringBuilder。</p>
-<p>StringBuilder 是 Java 1.5 中新增的，在能力上和 StringBuffer 没有本质区别，但是它去掉了线程安全的部分，有效减小了开销，是绝大部分情况下进行字符串拼接的首选。</p>
-<h2 id="谈谈-Java-反射机制，动态代理是基于什么原理？"><a href="#谈谈-Java-反射机制，动态代理是基于什么原理？" class="headerlink" title="谈谈 Java 反射机制，动态代理是基于什么原理？"></a>谈谈 Java 反射机制，动态代理是基于什么原理？</h2><p>反射机制是 Java 语言提供的一种基础功能，赋予程序在运行时<strong>自省</strong>（introspect，官方用语）的能力。通过反射我们可以直接操作类或者对象，比如获取某个对象的类定义，获取类声明的属性和方法，调用方法或者构造对象，甚至可以运行时修改类定义。</p>
-<p>动态代理是一种方便运行时动态构建代理、动态处理代理方法调用的机制，很多场景都是利用类似机制做到的，比如用来包装 RPC 调用、面向切面的编程（AOP）。</p>
-<p>实现动态代理的方式很多，比如 JDK 自身提供的动态代理，就是主要利用了上面提到的反射机制。还有其他的实现方式，比如利用传说中更高性能的字节码操作机制，类似 ASM、cglib（基于 ASM）、Javassist 等。</p>
-<h2 id="int-和-Integer-有什么区别？谈谈-Integer-的值缓存范围。"><a href="#int-和-Integer-有什么区别？谈谈-Integer-的值缓存范围。" class="headerlink" title="int 和 Integer 有什么区别？谈谈 Integer 的值缓存范围。"></a>int 和 Integer 有什么区别？谈谈 Integer 的值缓存范围。</h2><p> int 是我们常说的整形数字，是 Java 的 8 个原始数据类型（Primitive Types，boolean、 byte 、short、char、int、float、double、long）之一。Java 语言虽然号称一切都是对 象，但原始数据类型是例外。</p>
-<p>Integer 是 int 对应的包装类，它有一个 int 类型的字段存储数据，并且提供了基本操作， 比如数学运算、int 和字符串之间转换等。在 Java 5 中，引入了自动装箱和自动拆箱功能 （boxing/unboxing），Java 可以根据上下文，自动进行转换，极大地简化了相关编程。 关于 Integer 的值缓存，这涉及 Java 5 中另一个改进。构建 Integer 对象的传统方式是直 接调用构造器，直接 new 一个对象。但是根据实践，我们发现大部分数据操作都是集中在 有限的、较小的数值范围，因而，在 Java 5 中新增了静态工厂方法 valueOf，在调用它的 时候会利用一个缓存机制，带来了明显的性能改进。按照 Javadoc，这个值默认缓存是 -128 到 127 之间。</p>
-<h1 id="对比-Vector、ArrayList、LinkedList-有何区别？"><a href="#对比-Vector、ArrayList、LinkedList-有何区别？" class="headerlink" title="对比 Vector、ArrayList、LinkedList 有何区别？"></a>对比 Vector、ArrayList、LinkedList 有何区别？</h1><p>这三者都是实现集合框架中的 List，也就是所谓的有序集合，因此具体功能也比较近似，比如都提供按照位置进行定位、添加或者删除的操作，都提供迭代器以遍历其内容等。但因为具体的设计区别，在行为、性能、线程安全等方面，表现又有很大不同。</p>
-<p>Vector 是 Java 早期提供的<strong>线程安全的动态数组</strong>，如果不需要线程安全，并不建议选择，毕竟同步是有额外开销的。Vector 内部是使用对象数组来保存数据，可以根据需要自动的增加容量，当数组已满时，会创建新的数组，并拷贝原有数组数据。</p>
-<p>ArrayList 是应用更加广泛的<strong>动态数组</strong>实现，它本身不是线程安全的，所以性能要好很多。与 Vector 近似，ArrayList 也是可以根据需要调整容量，不过两者的调整逻辑有所区别，Vector 在扩容时会提高 1 倍，而 ArrayList 则是增加 50%。</p>
-<p>LinkedList 顾名思义是 Java 提供的<strong>双向链表</strong>，所以它不需要像上面两种那样调整容量，它也不是线程安全的。</p>
-<h1 id="如何保证容器是线程安全的？ConcurrentHashMap-如何实现高效地线程安全？"><a href="#如何保证容器是线程安全的？ConcurrentHashMap-如何实现高效地线程安全？" class="headerlink" title="如何保证容器是线程安全的？ConcurrentHashMap 如何实现高效地线程安全？"></a>如何保证容器是线程安全的？ConcurrentHashMap 如何实现高效地线程安全？</h1><p>Java 提供了不同层面的线程安全支持。在传统集合框架内部，除了 Hashtable 等同步容器，还提供了所谓的同步包装器（Synchronized Wrapper），我们可以调用 Collections 工具类提供的包装方法，来获取一个同步的包装容器（如 Collections.synchronizedMap），但是它们都是利用非常粗粒度的同步方式，在高并发情况下，性能比较低下。</p>
-<p>另外，更加普遍的选择是利用并发包提供的线程安全容器类，它提供了：</p>
+              <h2 id="1-谈谈你对-Java-平台的理解？”Java-是解释执行”，这句话正确吗？"><a href="#1-谈谈你对-Java-平台的理解？”Java-是解释执行”，这句话正确吗？" class="headerlink" title="1. 谈谈你对 Java 平台的理解？”Java 是解释执行”，这句话正确吗？"></a>1. 谈谈你对 Java 平台的理解？”Java 是解释执行”，这句话正确吗？</h2><p>Java 是一种面向对象的编程语言，具备跨平台能力（Write Once, Run Anywhere）。Java 源码首先被编译为字节码（bytecode），然后在 JVM 上解释执行或 JIT 编译执行。</p>
+<p>“Java 是解释执行”<strong>不完全正确</strong>：</p>
 <ul>
-<li>各种并发容器，比如 ConcurrentHashMap、CopyOnWriteArrayList。</li>
-<li>各种线程安全队列（Queue/Deque），如 ArrayBlockingQueue、SynchronousQueue。</li>
-<li>各种有序容器的线程安全版本等。</li>
+<li>Java 源码经过 javac 编译成字节码（<code>.class</code> 文件）</li>
+<li>JVM 启动时，热点代码通过 <strong>JIT（Just-In-Time）编译器</strong> 编译为本地机器码直接执行</li>
+<li>非热点代码通过解释器逐行解释执行</li>
+<li>所以 Java 是 <strong>编译 + 解释</strong> 混合执行模式</li>
 </ul>
-<p>具体保证线程安全的方式，包括有从简单的 synchronize 方式，到基于更加精细化的，比如基于分离锁实现的 ConcurrentHashMap 等并发实现等。具体选择要看开发的场景需求，总体来说，并发包内提供的容器通用场景，远优于早期的简单同步实现。</p>
+<h2 id="2-Exception-和-Error-的区别？"><a href="#2-Exception-和-Error-的区别？" class="headerlink" title="2. Exception 和 Error 的区别？"></a>2. Exception 和 Error 的区别？</h2><ul>
+<li><strong>Exception</strong>：程序可处理的异常，如 IOException、SQLException</li>
+<li><strong>Error</strong>：程序无法处理的严重问题，如 OutOfMemoryError、StackOverflowError</li>
+<li>Exception 分为 Checked Exception（编译时异常，必须处理）和 Unchecked Exception（运行时异常，可不用处理）</li>
+</ul>
+<h2 id="3-final、finally、finalize-的区别？"><a href="#3-final、finally、finalize-的区别？" class="headerlink" title="3. final、finally、finalize 的区别？"></a>3. final、finally、finalize 的区别？</h2><table>
+<thead>
+<tr>
+<th>关键字</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>final</strong></td>
+<td>修饰类（不可继承）、方法（不可重写）、变量（不可变）</td>
+</tr>
+<tr>
+<td><strong>finally</strong></td>
+<td>try-catch 中保证一定执行的代码块（释放资源）</td>
+</tr>
+<tr>
+<td><strong>finalize</strong></td>
+<td>Object 的方法，GC 回收前调用（不推荐使用，Java 9 已弃用）</td>
+</tr>
+</tbody></table>
+<h2 id="4-强引用、软引用、弱引用、虚引用的区别？"><a href="#4-强引用、软引用、弱引用、虚引用的区别？" class="headerlink" title="4. 强引用、软引用、弱引用、虚引用的区别？"></a>4. 强引用、软引用、弱引用、虚引用的区别？</h2><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>回收时机</th>
+<th>使用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>强引用</td>
+<td>OOM 也不回收</td>
+<td>普通 new 对象</td>
+</tr>
+<tr>
+<td>软引用</td>
+<td>内存不足时回收</td>
+<td>内存敏感缓存</td>
+</tr>
+<tr>
+<td>弱引用</td>
+<td>下次 GC 即回收</td>
+<td>WeakHashMap、ThreadLocal</td>
+</tr>
+<tr>
+<td>虚引用</td>
+<td>随时可能回收</td>
+<td>跟踪对象回收</td>
+</tr>
+</tbody></table>
+<h2 id="5-String、StringBuilder、StringBuffer-的区别？"><a href="#5-String、StringBuilder、StringBuffer-的区别？" class="headerlink" title="5. String、StringBuilder、StringBuffer 的区别？"></a>5. String、StringBuilder、StringBuffer 的区别？</h2><table>
+<thead>
+<tr>
+<th>类</th>
+<th>可变性</th>
+<th>线程安全</th>
+<th>性能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>String</td>
+<td>不可变</td>
+<td>安全</td>
+<td>拼接时产生新对象</td>
+</tr>
+<tr>
+<td>StringBuilder</td>
+<td>可变</td>
+<td>不安全</td>
+<td>最快</td>
+</tr>
+<tr>
+<td>StringBuffer</td>
+<td>可变</td>
+<td>安全（synchronized）</td>
+<td>较慢</td>
+</tr>
+</tbody></table>
+<p><strong>使用原则：</strong> 少量字符串拼接用 <code>+</code>；单线程循环拼接用 StringBuilder；多线程用 StringBuffer。</p>
+<h2 id="6-重载（Overload）和重写（Override）的区别？"><a href="#6-重载（Overload）和重写（Override）的区别？" class="headerlink" title="6. 重载（Overload）和重写（Override）的区别？"></a>6. 重载（Overload）和重写（Override）的区别？</h2><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>重载</th>
+<th>重写</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>位置</td>
+<td>同类中</td>
+<td>子类中</td>
+</tr>
+<tr>
+<td>参数</td>
+<td>必须不同</td>
+<td>必须相同</td>
+</tr>
+<tr>
+<td>返回类型</td>
+<td>可不同</td>
+<td>必须相同</td>
+</tr>
+<tr>
+<td>访问权限</td>
+<td>不限</td>
+<td>不能更严格</td>
+</tr>
+<tr>
+<td>绑定时机</td>
+<td>编译期</td>
+<td>运行期</td>
+</tr>
+</tbody></table>
+<h2 id="7-接口和抽象类的区别？"><a href="#7-接口和抽象类的区别？" class="headerlink" title="7. 接口和抽象类的区别？"></a>7. 接口和抽象类的区别？</h2><ul>
+<li><strong>抽象类</strong>：is-a 关系，代码复用，单继承，有构造方法，可有任意成员变量</li>
+<li><strong>接口</strong>：like-a 关系，行为契约，多实现，无构造方法，变量默认 public static final</li>
+</ul>
+<h2 id="8-和-equals-的区别？"><a href="#8-和-equals-的区别？" class="headerlink" title="8. == 和 equals 的区别？"></a>8. == 和 equals 的区别？</h2><ul>
+<li><code>==</code>：基本类型比较值，引用类型比较内存地址</li>
+<li><code>equals()</code>：Object 中默认同 <code>==</code>，String、Integer 等类已重写为比较内容</li>
+</ul>
+<h2 id="9-hashCode-和-equals-的约定？"><a href="#9-hashCode-和-equals-的约定？" class="headerlink" title="9. hashCode() 和 equals() 的约定？"></a>9. hashCode() 和 equals() 的约定？</h2><ul>
+<li>两个对象 equals 相等 → hashCode <strong>必须</strong>相等</li>
+<li>两个对象 hashCode 相等 → equals <strong>不一定</strong>相等（哈希冲突）</li>
+<li>重写 equals <strong>必须</strong>重写 hashCode，否则 HashMap 等集合会出问题</li>
+</ul>
+<h2 id="10-ArrayList-和-LinkedList-的区别？"><a href="#10-ArrayList-和-LinkedList-的区别？" class="headerlink" title="10. ArrayList 和 LinkedList 的区别？"></a>10. ArrayList 和 LinkedList 的区别？</h2><p>ArrayList 基于数组（连续内存，查询快 O(1)），LinkedList 基于双向链表（增删快 O(1)）。99% 场景用 ArrayList。</p>
+<h2 id="11-HashMap-的实现原理？"><a href="#11-HashMap-的实现原理？" class="headerlink" title="11. HashMap 的实现原理？"></a>11. HashMap 的实现原理？</h2><p>JDK 1.8：数组 + 链表 + 红黑树。通过 <code>(n-1) &amp; hash</code> 计算下标。当链表长度 ≥ 8 且数组 ≥ 64 时树化。初始容量 16，负载因子 0.75，扩容 2 倍。</p>
+<h2 id="12-ConcurrentHashMap-如何保证线程安全？"><a href="#12-ConcurrentHashMap-如何保证线程安全？" class="headerlink" title="12. ConcurrentHashMap 如何保证线程安全？"></a>12. ConcurrentHashMap 如何保证线程安全？</h2><p>JDK 1.8：<strong>CAS + synchronized</strong>，锁粒度细化到单个桶，性能大幅提升。</p>
+<h2 id="13-什么是线程安全？"><a href="#13-什么是线程安全？" class="headerlink" title="13. 什么是线程安全？"></a>13. 什么是线程安全？</h2><p>多个线程同时访问共享资源时，无论执行顺序如何，结果都正确。可通过 synchronized、Lock、原子类、volatile、ThreadLocal 等实现。</p>
+<h2 id="14-synchronized-的实现原理？"><a href="#14-synchronized-的实现原理？" class="headerlink" title="14. synchronized 的实现原理？"></a>14. synchronized 的实现原理？</h2><p>基于 JVM 的内置锁（Monitor），JDK 1.6 后引入了<strong>偏向锁 → 轻量级锁 → 重量级锁</strong>的升级过程，减少了锁竞争的开销。</p>
+<h2 id="15-volatile-关键字的作用？"><a href="#15-volatile-关键字的作用？" class="headerlink" title="15. volatile 关键字的作用？"></a>15. volatile 关键字的作用？</h2><p>保证可见性（修改立即写主存）和禁止指令重排序（内存屏障），但不保证原子性。</p>
+<h2 id="16-ThreadLocal-的原理和内存泄漏？"><a href="#16-ThreadLocal-的原理和内存泄漏？" class="headerlink" title="16. ThreadLocal 的原理和内存泄漏？"></a>16. ThreadLocal 的原理和内存泄漏？</h2><p>每个线程维护一个 ThreadLocalMap，key 是 ThreadLocal 弱引用。内存泄漏原因：key 被回收后 value 还存在。解决方案：用完调用 <code>remove()</code>。</p>
+<h2 id="17-线程池的核心参数有哪些？"><a href="#17-线程池的核心参数有哪些？" class="headerlink" title="17. 线程池的核心参数有哪些？"></a>17. 线程池的核心参数有哪些？</h2><p>corePoolSize、maximumPoolSize、keepAliveTime、unit、workQueue、threadFactory、handler。</p>
+<h2 id="18-线程池的拒绝策略有哪些？"><a href="#18-线程池的拒绝策略有哪些？" class="headerlink" title="18. 线程池的拒绝策略有哪些？"></a>18. 线程池的拒绝策略有哪些？</h2><p>AbortPolicy（抛异常）、CallerRunsPolicy（调用者执行）、DiscardPolicy（丢弃）、DiscardOldestPolicy（丢弃最老任务）。</p>
+<h2 id="19-JVM-内存区域有哪些？"><a href="#19-JVM-内存区域有哪些？" class="headerlink" title="19. JVM 内存区域有哪些？"></a>19. JVM 内存区域有哪些？</h2><p>堆、方法区（元空间）、虚拟机栈、本地方法栈、程序计数器。其中堆和方法区是线程共享，其他是线程私有。</p>
+<h2 id="20-垃圾回收算法有哪些？"><a href="#20-垃圾回收算法有哪些？" class="headerlink" title="20. 垃圾回收算法有哪些？"></a>20. 垃圾回收算法有哪些？</h2><p>标记-清除、复制算法、标记-整理、分代收集。新生代用复制算法，老年代用标记-整理/清除。</p>
+<h2 id="21-CMS-和-G1-的区别？"><a href="#21-CMS-和-G1-的区别？" class="headerlink" title="21. CMS 和 G1 的区别？"></a>21. CMS 和 G1 的区别？</h2><p>CMS 基于标记-清除，有内存碎片；G1 分区管理，可预测停顿时间，推荐大内存场景（&gt;4G）。</p>
+<h2 id="22-什么是类加载的双亲委派模型？"><a href="#22-什么是类加载的双亲委派模型？" class="headerlink" title="22. 什么是类加载的双亲委派模型？"></a>22. 什么是类加载的双亲委派模型？</h2><p>一个类加载器收到加载请求后，先委派给父加载器，父加载器无法加载时再自己加载。保证核心类库不会被替换。</p>
+<h2 id="23-什么是代理模式？JDK-动态代理和-CGLIB-的区别？"><a href="#23-什么是代理模式？JDK-动态代理和-CGLIB-的区别？" class="headerlink" title="23. 什么是代理模式？JDK 动态代理和 CGLIB 的区别？"></a>23. 什么是代理模式？JDK 动态代理和 CGLIB 的区别？</h2><p>代理模式提供了对目标对象的间接访问。JDK 动态代理基于接口（反射），CGLIB 基于继承（字节码）。参见《动态代理的实现两种方式和区别》。</p>
+<h2 id="24-什么是反射？有什么应用场景？"><a href="#24-什么是反射？有什么应用场景？" class="headerlink" title="24. 什么是反射？有什么应用场景？"></a>24. 什么是反射？有什么应用场景？</h2><p>反射是运行时动态获取类的信息并操作的能力。应用：Spring IoC、动态代理、ORM 框架、注解解析。</p>
+<h2 id="25-什么是序列化？什么时候需要？"><a href="#25-什么是序列化？什么时候需要？" class="headerlink" title="25. 什么是序列化？什么时候需要？"></a>25. 什么是序列化？什么时候需要？</h2><p>将 Java 对象转为字节流便于存储或传输。需要时：RPC 通信、Redis 存储对象、文件持久化。实现 Serializable 接口。</p>
+<h2 id="26-try-catch-finally-中，finally-一定会执行吗？"><a href="#26-try-catch-finally-中，finally-一定会执行吗？" class="headerlink" title="26. try-catch-finally 中，finally 一定会执行吗？"></a>26. try-catch-finally 中，finally 一定会执行吗？</h2><p>不一定：System.exit() 时、JVM 崩溃时、无限循环时不会执行。</p>
+<h2 id="27-常见的运行时异常有哪些？"><a href="#27-常见的运行时异常有哪些？" class="headerlink" title="27. 常见的运行时异常有哪些？"></a>27. 常见的运行时异常有哪些？</h2><p>NullPointerException、ArrayIndexOutOfBoundsException、ClassCastException、IllegalArgumentException、ArithmeticException。</p>
+<h2 id="28-BIO、NIO、AIO-的区别？"><a href="#28-BIO、NIO、AIO-的区别？" class="headerlink" title="28. BIO、NIO、AIO 的区别？"></a>28. BIO、NIO、AIO 的区别？</h2><ul>
+<li><strong>BIO</strong>：阻塞 IO，一个连接一个线程</li>
+<li><strong>NIO</strong>：非阻塞 IO，多路复用，一个线程管理多个连接</li>
+<li><strong>AIO</strong>：异步 IO，回调机制</li>
+</ul>
+<h2 id="29-什么是泛型？有什么作用？"><a href="#29-什么是泛型？有什么作用？" class="headerlink" title="29. 什么是泛型？有什么作用？"></a>29. 什么是泛型？有什么作用？</h2><p>泛型提供了编译时类型安全检测机制。作用：类型安全、消除强制类型转换、代码复用。</p>
+<h2 id="30-什么是注解？"><a href="#30-什么是注解？" class="headerlink" title="30. 什么是注解？"></a>30. 什么是注解？</h2><p>注解是代码中的元数据，可以被编译时或运行时解析。如 <code>@Override</code>、<code>@Transactional</code>。</p>
+<h2 id="31-什么是-Lambda-表达式？"><a href="#31-什么是-Lambda-表达式？" class="headerlink" title="31. 什么是 Lambda 表达式？"></a>31. 什么是 Lambda 表达式？</h2><p>Java 8 引入的函数式编程特性，简化匿名内部类的写法。<code>(参数) -&gt; &#123; 方法体 &#125;</code>。</p>
+<h2 id="32-Stream-API-了解吗？"><a href="#32-Stream-API-了解吗？" class="headerlink" title="32. Stream API 了解吗？"></a>32. Stream API 了解吗？</h2><p>Java 8 引入的流式处理 API，支持链式操作：filter、map、reduce、collect、sorted 等。</p>
+<h2 id="33-Optional-是什么？"><a href="#33-Optional-是什么？" class="headerlink" title="33. Optional 是什么？"></a>33. Optional 是什么？</h2><p>Java 8 引入的容器类，用于解决 NullPointerException 问题。常用方法：ofNullable、orElse、ifPresent。</p>
+<h2 id="34-什么是-SPI-机制？"><a href="#34-什么是-SPI-机制？" class="headerlink" title="34. 什么是 SPI 机制？"></a>34. 什么是 SPI 机制？</h2><p>SPI（Service Provider Interface）是 JDK 内置的服务发现机制，允许第三方提供接口的实现。应用：JDBC 驱动加载。</p>
+<h2 id="35-什么是零拷贝？"><a href="#35-什么是零拷贝？" class="headerlink" title="35. 什么是零拷贝？"></a>35. 什么是零拷贝？</h2><p>减少或避免数据在内核空间和用户空间之间的拷贝。如 Kafka、Netty 利用 FileChannel.transferTo() 实现零拷贝。</p>
+<h2 id="36-你了解哪些-Java-设计模式？"><a href="#36-你了解哪些-Java-设计模式？" class="headerlink" title="36. 你了解哪些 Java 设计模式？"></a>36. 你了解哪些 Java 设计模式？</h2><p>单例（Double Check Lock）、工厂（BeanFactory）、代理（AOP）、观察者（事件监听）、模板（JdbcTemplate）、策略（Comparator）、责任链（Filter）。</p>
 
             </div>
             <hr>
@@ -295,9 +428,9 @@
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/java/">java</a>
-                    
                       <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/java/">java</a>
                     
                   </div>
                 

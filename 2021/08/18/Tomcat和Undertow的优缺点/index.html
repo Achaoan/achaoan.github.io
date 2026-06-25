@@ -158,7 +158,7 @@
 </nav>
 
     <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
+         style="background: url('/img/tomcat-undertow-cover.png') no-repeat center center;
            background-size: cover;">
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
@@ -185,7 +185,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      0 字
+      909 字
     </span>
   
 
@@ -195,7 +195,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      1
+      10
        分钟
     </span>
   
@@ -237,12 +237,110 @@
             
               <p class="note note-info">
                 
-                  本文最后更新于：3 年前
+                  本文最后更新于：15 分钟前
                 
               </p>
             
             <div class="markdown-body">
-              
+              <h2 id="一、概述"><a href="#一、概述" class="headerlink" title="一、概述"></a>一、概述</h2><p><strong>Tomcat</strong> 是 Apache 软件基金会下的开源 Servlet 容器，历史悠久、生态成熟，是 Spring Boot 默认的内嵌 Web 容器。</p>
+<p><strong>Undertow</strong> 是 Red Hat（JBoss）开发的高性能 Web 服务器，设计目标为轻量、高并发、可嵌入，是 WildFly 应用服务器的默认容器。</p>
+<h2 id="二、Tomcat-优缺点"><a href="#二、Tomcat-优缺点" class="headerlink" title="二、Tomcat 优缺点"></a>二、Tomcat 优缺点</h2><h3 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h3><ul>
+<li><strong>生态成熟</strong>：文档丰富、社区活跃，问题排查成本低，拥有大量第三方工具和插件支持</li>
+<li><strong>稳定可靠</strong>：经过 20+ 年企业级验证，金融、政府等核心系统广泛使用</li>
+<li><strong>兼容性极佳</strong>：完整支持 Servlet、JSP、WebSocket 等 Java EE 规范，对遗留系统兼容最好</li>
+<li><strong>功能全面</strong>：内置管理后台（Manager App）、集群支持、会话复制、JNDI 资源等企业级功能</li>
+<li><strong>配置灵活</strong>：支持 server.xml 细粒度调优，提供 JMX 监控接口</li>
+<li><strong>团队熟悉度高</strong>：运维经验丰富，学习成本低</li>
+</ul>
+<h3 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h3><ul>
+<li><strong>性能一般</strong>：默认 NIO 模式下吞吐量约 20k–25k QPS，高并发场景下弱于 Undertow</li>
+<li><strong>内存占用高</strong>：启动后初始堆内存约 60–80 MB，Metaspace 占用较高</li>
+<li><strong>并发能力有限</strong>：默认并发能力约 5,000 连接，连接数超过 2,000 时性能下降明显</li>
+<li><strong>I/O 模型局限</strong>：虽然支持 NIO，但相比 Undertow 的纯异步非阻塞模型仍有差距</li>
+<li><strong>启动速度较慢</strong>：组件多、类加载多，启动时间相对较长</li>
+</ul>
+<h2 id="三、Undertow-优缺点"><a href="#三、Undertow-优缺点" class="headerlink" title="三、Undertow 优缺点"></a>三、Undertow 优缺点</h2><h3 id="优点-1"><a href="#优点-1" class="headerlink" title="优点"></a>优点</h3><ul>
+<li><strong>高性能</strong>：基于 NIO 的非阻塞事件驱动架构，吞吐量可达 30k–35k QPS，约为 Tomcat 的 1.5–2 倍</li>
+<li><strong>内存占用极低</strong>：启动后初始堆内存约 40–60 MB，比 Tomcat 低 20–30%</li>
+<li><strong>高并发能力强</strong>：默认并发能力约 10,000 连接，在 5,000 并发下仍保持 99% 请求成功率</li>
+<li><strong>低延迟</strong>：平均响应时间优于 Tomcat（如 87ms vs 125ms）</li>
+<li><strong>轻量灵活</strong>：核心 JAR &lt; 1MB，支持编程式 Handler 链配置</li>
+<li><strong>原生支持 HTTP/2、WebSocket</strong>：无需额外配置</li>
+<li><strong>嵌入式友好</strong>：设计初衷即为嵌入式场景，启动快，适合微服务、容器化部署</li>
+<li><strong>资源效率高</strong>：动态线程池，空闲时自动释放资源</li>
+</ul>
+<h3 id="缺点-1"><a href="#缺点-1" class="headerlink" title="缺点"></a>缺点</h3><ul>
+<li><strong>生态较弱</strong>：文档和社区资源相对较少，第三方工具支持不如 Tomcat 广泛</li>
+<li><strong>学习成本较高</strong>：配置方式与 Tomcat 差异大，非常规需求需理解 XNIO API</li>
+<li><strong>企业级功能有限</strong>：对 AJP 协议、JSP 引擎（Jasper）等支持不如 Tomcat 全面</li>
+<li><strong>稳定性风险</strong>：极端高并发下可能触发 XNIO 已知问题</li>
+</ul>
+<h2 id="四、关键指标对比"><a href="#四、关键指标对比" class="headerlink" title="四、关键指标对比"></a>四、关键指标对比</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Tomcat</th>
+<th>Undertow</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>I/O 模型</td>
+<td>NIO（需配置）</td>
+<td>默认 NIO2（纯异步非阻塞）</td>
+</tr>
+<tr>
+<td>并发能力</td>
+<td>~5,000</td>
+<td>~10,000</td>
+</tr>
+<tr>
+<td>吞吐量（QPS）</td>
+<td>20k–25k</td>
+<td>30k–35k</td>
+</tr>
+<tr>
+<td>内存基线</td>
+<td>较高（~80–100 MB）</td>
+<td>低（~40–60 MB）</td>
+</tr>
+<tr>
+<td>启动速度</td>
+<td>较慢（2–3秒）</td>
+<td>快（1秒内）</td>
+</tr>
+<tr>
+<td>HTTP/2</td>
+<td>需 ALPN 配置</td>
+<td>原生支持</td>
+</tr>
+<tr>
+<td>WebSocket</td>
+<td>中等（依赖线程池）</td>
+<td>优秀（事件驱动）</td>
+</tr>
+<tr>
+<td>静态文件处理</td>
+<td>一般</td>
+<td>高效（零拷贝优化）</td>
+</tr>
+</tbody></table>
+<h2 id="五、选型建议"><a href="#五、选型建议" class="headerlink" title="五、选型建议"></a>五、选型建议</h2><h3 id="选择-Tomcat-的场景"><a href="#选择-Tomcat-的场景" class="headerlink" title="选择 Tomcat 的场景"></a>选择 Tomcat 的场景</h3><ul>
+<li>传统企业级 Web 应用（依赖 JSP、Servlet）</li>
+<li>需要完整的 Java EE 规范支持</li>
+<li>团队已有成熟的 Tomcat 运维经验</li>
+<li>对稳定性要求极高（如金融、政府核心系统）</li>
+</ul>
+<h3 id="选择-Undertow-的场景"><a href="#选择-Undertow-的场景" class="headerlink" title="选择 Undertow 的场景"></a>选择 Undertow 的场景</h3><ul>
+<li>高并发 API 服务（如每秒万级请求）</li>
+<li>微服务架构（Spring Boot / Spring Cloud）</li>
+<li>云原生容器化部署（Docker/Kubernetes，资源受限环境）</li>
+<li>低延迟要求（如实时交易系统、游戏后端）</li>
+<li>HTTP/2 或 WebSocket 密集型应用</li>
+</ul>
+<blockquote>
+<p>一句话总结：稳定兼容选 Tomcat，极致性能上 Undertow。</p>
+</blockquote>
+
             </div>
             <hr>
             <div>
@@ -251,7 +349,7 @@
                   <div class="post-meta mr-3">
                     <i class="iconfont icon-category"></i>
                     
-                      <a class="hover-with-bg" href="/categories/java%E5%9F%BA%E7%A1%80/">java基础</a>
+                      <a class="hover-with-bg" href="/categories/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/">开发工具</a>
                     
                   </div>
                 
@@ -259,13 +357,13 @@
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/java/">java</a>
-                    
                       <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
                     
                       <a class="hover-with-bg" href="/tags/Tomcat/">Tomcat</a>
                     
                       <a class="hover-with-bg" href="/tags/Undertow/">Undertow</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Web%E5%AE%B9%E5%99%A8/">Web容器</a>
                     
                   </div>
                 

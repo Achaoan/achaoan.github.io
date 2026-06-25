@@ -185,7 +185,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.6k 字
+      997 字
     </span>
   
 
@@ -195,7 +195,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      16
+      12
        分钟
     </span>
   
@@ -237,104 +237,181 @@
             
               <p class="note note-info">
                 
-                  本文最后更新于：3 年前
+                  本文最后更新于：31 分钟前
                 
               </p>
             
             <div class="markdown-body">
-              <h3 id="面向对象是什么"><a href="#面向对象是什么" class="headerlink" title="面向对象是什么"></a>面向对象是什么</h3><p>​        面向对象简称 OO（Object Oriented），20 世纪 80 年代以后，有了面向对象分析（OOA）、 面向对象设计（OOD）、面向对象程序设计（OOP）等新的系统开发方式模型的研究。</p>
-<p>​        Java 是面向对象的编程语言，对象就是面向对象程序设计的核心。<strong>所谓对象就是真实世界中的实体，对象与实体是一一对应的，也就是说现实世界中每一个实体都是一个对象，它是一种具体的概念</strong>。对象有以下特点：</p>
+              <h2 id="一、面向对象的三大特性"><a href="#一、面向对象的三大特性" class="headerlink" title="一、面向对象的三大特性"></a>一、面向对象的三大特性</h2><h3 id="1-封装（Encapsulation）"><a href="#1-封装（Encapsulation）" class="headerlink" title="1. 封装（Encapsulation）"></a>1. 封装（Encapsulation）</h3><p>把数据和操作数据的方法绑定起来，对数据的访问只能通过已定义的接口。通过访问权限修饰符控制访问级别。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Student</span> </span>&#123;<br>    <span class="hljs-keyword">private</span> String name;  <span class="hljs-comment">// 私有属性，外部不能直接访问</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> age;<br>    <br>    <span class="hljs-comment">// 通过公有的 getter/setter 暴露可控的访问入口</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getName</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> name;<br>    &#125;<br>    <br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setName</span><span class="hljs-params">(String name)</span> </span>&#123;<br>        <span class="hljs-keyword">this</span>.name = name;<br>    &#125;<br>    <br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">getAge</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> age;<br>    &#125;<br>    <br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setAge</span><span class="hljs-params">(<span class="hljs-keyword">int</span> age)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (age &gt; <span class="hljs-number">0</span> &amp;&amp; age &lt; <span class="hljs-number">150</span>) &#123;  <span class="hljs-comment">// 可以在 setter 中加入校验逻辑</span><br>            <span class="hljs-keyword">this</span>.age = age;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>目的</strong>：隐藏实现细节，对外提供简单的接口，提高安全性、可维护性。</p>
+</blockquote>
+<h3 id="2-继承（Inheritance）"><a href="#2-继承（Inheritance）" class="headerlink" title="2. 继承（Inheritance）"></a>2. 继承（Inheritance）</h3><p>子类继承父类的属性和方法，实现代码复用。Java 只支持 <strong>单继承</strong>（一个类只能有一个直接父类），但可以通过接口实现多继承。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Animal</span> </span>&#123;<br>    <span class="hljs-keyword">protected</span> String name;<br>    <br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">eat</span><span class="hljs-params">()</span> </span>&#123;<br>        System.out.println(name + <span class="hljs-string">&quot; is eating&quot;</span>);<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Dog</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Animal</span> </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">bark</span><span class="hljs-params">()</span> </span>&#123;<br>        System.out.println(name + <span class="hljs-string">&quot; is barking&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意：优先使用组合而非继承（Composition over Inheritance），因为继承破坏封装性，父类变更可能影响所有子类。</p>
+</blockquote>
+<h3 id="3-多态（Polymorphism）"><a href="#3-多态（Polymorphism）" class="headerlink" title="3. 多态（Polymorphism）"></a>3. 多态（Polymorphism）</h3><p>同一方法在不同对象上表现出不同行为。分为两类：</p>
 <ul>
-<li>对象具有属性和行为。</li>
-<li>对象具有变化的状态。</li>
-<li>对象具有唯一性。</li>
-<li>对象都是某个类别的实例。</li>
-<li> 一切皆为对象，真实世界中的所有事物都可以视为对象。</li>
+<li><strong>编译时多态</strong>：方法重载（Overload）</li>
+<li><strong>运行时多态</strong>：方法重写（Override）+ 父类引用指向子类对象（向上转型）</li>
 </ul>
-<h4 id="对比："><a href="#对比：" class="headerlink" title="对比："></a>对比：</h4><p>面向过程：面向过程是一种以事件为中心的编程思想，编程的时候把解决问题的步骤分析出来，然后用函数把这些步骤实现，在一步一步的具体步骤中再按顺序调用函数。</p>
-<h5 id="优缺点比较"><a href="#优缺点比较" class="headerlink" title="优缺点比较"></a>优缺点比较</h5><h6 id="面向过程"><a href="#面向过程" class="headerlink" title="面向过程"></a>面向过程</h6><p>优点：</p>
-<p>流程化使得编程任务明确，在开发之前基本考虑了实现方式和最终结果，具体步骤清楚，便于节点分析。</p>
-<p>效率高，面向过程强调代码的短小精悍，善于结合数据结构来开发高效率的程序。</p>
-<p>缺点：</p>
-<p>需要深入的思考，耗费精力，代码重用性低，扩展能力差，后期维护难度比较大。</p>
-<h6 id="面向对象"><a href="#面向对象" class="headerlink" title="面向对象"></a>面向对象</h6><p>优点:</p>
-<p>结构清晰，程序是模块化和结构化，更加符合人类的思维方式；</p>
-<p>易扩展，代码重用率高，可继承，可覆盖，可以设计出低耦合的系统；</p>
-<p>易维护，系统低耦合的特点有利于减少程序的后期维护工作量。</p>
-<p>缺点：</p>
-<p>开销大，当要修改对象内部时，对象的属性不允许外部直接存取，所以要增加许多没有其他意义、只负责读或写的行为。这会为编程工作增加负担，增加运行开销，并且使程序显得臃肿。</p>
-<p>性能低，由于面向更高的逻辑抽象层，使得面向对象在实现的时候，不得不做出性能上面的牺牲，计算时间和空间存储大小都开销很大。</p>
-<h2 id="java面向对象的核心特性"><a href="#java面向对象的核心特性" class="headerlink" title="java面向对象的核心特性"></a>java面向对象的核心特性</h2><h3 id="封装"><a href="#封装" class="headerlink" title="封装"></a>封装</h3><p>封装是把客观事物封装成为对象，并且类可以把自己的数据和方法只让可信类或者对象操作，不可信对象不可用。</p>
-<ul>
-<li>根据需要提供setter和getter方法来访问属性</li>
-<li>隐藏具体属性和实现细节，仅对外开放接口</li>
-<li>控制程序中属性的访问级别</li>
-</ul>
-<p><strong>目的</strong>：增强数据安全性，不能让其他用户随意访问和修改数据，简化编程，使用者不必在意具体实现细节，而只是通过外部接口即可访问类的成员</p>
-<h4 id="java访问控制符作用范围表："><a href="#java访问控制符作用范围表：" class="headerlink" title="java访问控制符作用范围表："></a>java访问控制符作用范围表：</h4><table>
+<p><strong>三个必要条件</strong>：</p>
+<ol>
+<li>继承（或接口实现）</li>
+<li>方法重写</li>
+<li>父类引用指向子类对象</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">Animal a = <span class="hljs-keyword">new</span> Dog();  <span class="hljs-comment">// 向上转型</span><br>a.eat();               <span class="hljs-comment">// 调用的是 Dog 重写后的 eat() 方法</span><br></code></pre></td></tr></table></figure>
+
+<p>多态的底层是 <strong>动态绑定</strong>（运行时确定实际类型的方法），通过虚方法表（vtable）实现。</p>
+<h2 id="二、访问权限修饰符"><a href="#二、访问权限修饰符" class="headerlink" title="二、访问权限修饰符"></a>二、访问权限修饰符</h2><table>
 <thead>
 <tr>
-<th></th>
-<th>本类</th>
-<th>本包</th>
+<th>修饰符</th>
+<th>当前类</th>
+<th>同包</th>
 <th>子类</th>
-<th>外部包</th>
+<th>其他包</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>public</td>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
+<td><code>public</code></td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
 </tr>
 <tr>
-<td>protected</td>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
-<td>X</td>
+<td><code>protected</code></td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
 </tr>
 <tr>
-<td>default</td>
-<td>✓</td>
-<td>✓</td>
-<td>X</td>
-<td>X</td>
+<td>默认（缺省）</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
 </tr>
 <tr>
-<td>private</td>
-<td>✓</td>
-<td>X</td>
-<td>X</td>
-<td>X</td>
+<td><code>private</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
 </tr>
 </tbody></table>
-<h3 id="继承"><a href="#继承" class="headerlink" title="继承"></a>继承</h3><p>继承是指将多个相同的属性和方法提取出来，新建一个父类</p>
-<ul>
-<li>java中一个类只能继承一个父类，且只能继承访问权限非private属性和方法</li>
-<li>子类可以重写父类中的方法，命名与父类中同名的属性</li>
+<h2 id="三、常见面试题"><a href="#三、常见面试题" class="headerlink" title="三、常见面试题"></a>三、常见面试题</h2><h4 id="1-重写（Override）和重载（Overload）的区别？"><a href="#1-重写（Override）和重载（Overload）的区别？" class="headerlink" title="1. 重写（Override）和重载（Overload）的区别？"></a>1. 重写（Override）和重载（Overload）的区别？</h4><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>重载（Overload）</th>
+<th>重写（Override）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>发生位置</td>
+<td>同一个类中</td>
+<td>子类中</td>
+</tr>
+<tr>
+<td>参数列表</td>
+<td>必须不同</td>
+<td>必须相同</td>
+</tr>
+<tr>
+<td>返回类型</td>
+<td>可以不同</td>
+<td>必须相同（或协变返回类型）</td>
+</tr>
+<tr>
+<td>权限修饰符</td>
+<td>不限</td>
+<td>不能更严格</td>
+</tr>
+<tr>
+<td>绑定时机</td>
+<td>编译期（静态多态）</td>
+<td>运行期（动态多态）</td>
+</tr>
+</tbody></table>
+<h4 id="2-抽象类和接口的区别？"><a href="#2-抽象类和接口的区别？" class="headerlink" title="2. 抽象类和接口的区别？"></a>2. 抽象类和接口的区别？</h4><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>抽象类</th>
+<th>接口</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>构造方法</td>
+<td>有</td>
+<td>无</td>
+</tr>
+<tr>
+<td>成员变量</td>
+<td>任意类型</td>
+<td>public static final 常量</td>
+</tr>
+<tr>
+<td>方法</td>
+<td>抽象方法 + 普通方法</td>
+<td>抽象方法 + default/static 方法（Java 8+）</td>
+</tr>
+<tr>
+<td>继承方式</td>
+<td>单继承</td>
+<td>多实现</td>
+</tr>
+<tr>
+<td>设计思想</td>
+<td>is-a 关系，代码复用</td>
+<td>like-a 关系，行为契约</td>
+</tr>
+</tbody></table>
+<h4 id="3-构造方法可以被重写吗？"><a href="#3-构造方法可以被重写吗？" class="headerlink" title="3. 构造方法可以被重写吗？"></a>3. 构造方法可以被重写吗？</h4><p><strong>不能</strong>。构造方法名必须与类名相同，子类构造方法名与子类类名相同，所以不存在重写概念。但构造方法<strong>可以重载</strong>。</p>
+<h4 id="4-equals-和-的区别？"><a href="#4-equals-和-的区别？" class="headerlink" title="4. equals() 和 == 的区别？"></a>4. equals() 和 == 的区别？</h4><table>
+<thead>
+<tr>
+<th>比较方式</th>
+<th>基本数据类型</th>
+<th>引用数据类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>==</code></td>
+<td>比较值是否相等</td>
+<td>比较内存地址是否相同</td>
+</tr>
+<tr>
+<td><code>equals()</code>（未重写）</td>
+<td>不适用</td>
+<td>等同于 <code>==</code></td>
+</tr>
+<tr>
+<td><code>equals()</code>（已重写，如 String）</td>
+<td>不适用</td>
+<td>比较内容是否相等</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>重要约定：重写 <code>equals()</code> 必须重写 <code>hashCode()</code>。</p>
+</blockquote>
+<h4 id="5-静态方法能被重写吗？"><a href="#5-静态方法能被重写吗？" class="headerlink" title="5. 静态方法能被重写吗？"></a>5. 静态方法能被重写吗？</h4><p><strong>不能</strong>。静态方法属于类，不属于实例，没有多态性。在子类中定义同名静态方法称为 <strong>隐藏（Hide）</strong>，而非重写。</p>
+<h4 id="6-浅拷贝和深拷贝的区别？"><a href="#6-浅拷贝和深拷贝的区别？" class="headerlink" title="6. 浅拷贝和深拷贝的区别？"></a>6. 浅拷贝和深拷贝的区别？</h4><ul>
+<li><strong>浅拷贝</strong>：基本类型传值，引用类型传引用（新旧对象共享引用对象）</li>
+<li><strong>深拷贝</strong>：基本类型传值，引用类型创建新对象</li>
 </ul>
-<p><strong>目的</strong>：代码复用 </p>
-<h5 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h5><ol>
-<li>子类通过继承父类可以使用父类所有非private的属性和方法。</li>
-<li>类可以实现多个接口，只能继承一个类。</li>
-<li>接口可以继承接口。</li>
-<li>抽象类可以继承实体类，不可以继承接口，只能实现接口。</li>
-</ol>
-<h3 id="多态"><a href="#多态" class="headerlink" title="多态"></a>多态</h3><p>多态（Polymiorph）可以分为两种：设计时多态（重载）、运行时多态（重写）</p>
-<p>设计（编译）时多态：即重载（Overload），是指java允许方法名相同而参数不同（返回值可以相同也可以不同），同一个类中允许存在一个或多个以上的同名函数，只要参数类型或参数个数不同即可</p>
-<p>运行时多态：即重写（Override）必须是在继承体系中，子类重写父类方法，JVM运行时根据调用该方法的类型决定调用那个方法</p>
-<p>目的：增加代码的灵活度</p>
-<h3 id="抽象"><a href="#抽象" class="headerlink" title="抽象"></a>抽象</h3><h4 id="抽象的定义"><a href="#抽象的定义" class="headerlink" title="抽象的定义"></a>抽象的定义</h4><p>抽象是把多个事物的共性的内容抽取出来，本质就是把我们关注的内容抽取出来。（比如：宝马、奔驰都属于汽车，汽车是我们抽象出的概念）</p>
-<h4 id="抽象类"><a href="#抽象类" class="headerlink" title="抽象类"></a>抽象类</h4><p>java中可以定义没有方法体的方法，该方法由其子类具体的实现，该没有方法体的方法我们称之为抽象方法，含有抽象方法的类我们称之为抽象类</p>
-<h4 id="抽象方法特点"><a href="#抽象方法特点" class="headerlink" title="抽象方法特点"></a>抽象方法特点</h4><p>只有方法的头没有方法体<br>抽象方法用abstract来修饰<br>抽象方法代表一种不确定的操作或行为<br>抽象方法不能被调用</p>
-<h4 id="抽象类的特点"><a href="#抽象类的特点" class="headerlink" title="抽象类的特点"></a>抽象类的特点</h4><p>定义中含有抽象方法的类叫抽象类<br>抽象类用abstract来修饰<br>抽象类代表一种抽象的对象类型<br>抽象类不能实例化<br>抽象类中可以由具体方法，可以没有抽象方法</p>
-<h2 id="java面向对象的五大原则"><a href="#java面向对象的五大原则" class="headerlink" title="java面向对象的五大原则"></a>java面向对象的五大原则</h2><p>单一职责原则：一个类，最好只做一件事，只有一个引起它变化。每个类应该实现单一的职责，如果不是，那就把类拆分</p>
-<p>开放封闭原则：对扩展开放，对修改封闭</p>
-<p>里氏替换原则：子类必须能够替换其基类，里氏替换原则中说，任何基类可以出现的地方，子类一定可以出现</p>
-<p>依赖倒置原则：依赖于抽象接口，不要依赖于具体实现，简单来说就是要求对抽象进行编程，不要对实现进行编程，这样就降低了客户于与实现模块间的耦合</p>
-<p>接口隔离原则：使用多个小的专门接口，而不是使用一个大的接口</p>
+<h4 id="7-以下代码输出什么？"><a href="#7-以下代码输出什么？" class="headerlink" title="7. 以下代码输出什么？"></a>7. 以下代码输出什么？</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">A</span> </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">show</span><span class="hljs-params">()</span> </span>&#123; System.out.println(<span class="hljs-string">&quot;A show&quot;</span>); &#125;<br>&#125;<br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">B</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">A</span> </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">show</span><span class="hljs-params">()</span> </span>&#123; System.out.println(<span class="hljs-string">&quot;B show&quot;</span>); &#125;<br>&#125;<br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Test</span> </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;<br>        A a = <span class="hljs-keyword">new</span> B();<br>        a.show();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<blockquote>
+<p><strong>输出</strong>：<code>B show</code>。体现了运行时多态，父类引用指向子类对象，调用的是子类重写的方法。</p>
+</blockquote>
 
             </div>
             <hr>
@@ -352,9 +429,9 @@
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/java/">java</a>
-                    
                       <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/java/">java</a>
                     
                   </div>
                 

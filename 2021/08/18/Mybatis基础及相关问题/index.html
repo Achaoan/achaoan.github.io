@@ -158,7 +158,7 @@
 </nav>
 
     <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
+         style="background: url('/img/mybatis-cover.png') no-repeat center center;
            background-size: cover;">
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
@@ -185,7 +185,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      390 字
+      892 字
     </span>
   
 
@@ -195,7 +195,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      5
+      11
        分钟
     </span>
   
@@ -237,19 +237,151 @@
             
               <p class="note note-info">
                 
-                  本文最后更新于：3 年前
+                  本文最后更新于：15 分钟前
                 
               </p>
             
             <div class="markdown-body">
-              <ol>
-<li><p>常用的标签</p>
-</li>
-<li><p>resultType和resultMap区别</p>
-</li>
-<li><p>怎么实现pojo的一个字段接收list？</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-comment">&lt;!--column不做限制，可以为任意表的字段，而property须为type 定义的pojo属性--&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">resultMap</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;唯一的标识&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;映射的pojo对象&quot;</span>&gt;</span><br>  <span class="hljs-tag">&lt;<span class="hljs-name">id</span> <span class="hljs-attr">column</span>=<span class="hljs-string">&quot;表的主键字段，或者可以为查询语句中的别名字段&quot;</span> <span class="hljs-attr">jdbcType</span>=<span class="hljs-string">&quot;字段类型&quot;</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;映射pojo对象的主键属性&quot;</span> /&gt;</span><br>  <span class="hljs-tag">&lt;<span class="hljs-name">result</span> <span class="hljs-attr">column</span>=<span class="hljs-string">&quot;表的一个字段（可以为任意表的一个字段）&quot;</span> <span class="hljs-attr">jdbcType</span>=<span class="hljs-string">&quot;字段类型&quot;</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;映射到pojo对象的一个属性（须为type定义的pojo对象中的一个属性）&quot;</span>/&gt;</span><br>  <span class="hljs-tag">&lt;<span class="hljs-name">association</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;pojo的一个对象属性&quot;</span> <span class="hljs-attr">javaType</span>=<span class="hljs-string">&quot;pojo关联的pojo对象&quot;</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">id</span> <span class="hljs-attr">column</span>=<span class="hljs-string">&quot;关联pojo对象对应表的主键字段&quot;</span> <span class="hljs-attr">jdbcType</span>=<span class="hljs-string">&quot;字段类型&quot;</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;关联pojo对象的主席属性&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">result</span>  <span class="hljs-attr">column</span>=<span class="hljs-string">&quot;任意表的字段&quot;</span> <span class="hljs-attr">jdbcType</span>=<span class="hljs-string">&quot;字段类型&quot;</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;关联pojo对象的属性&quot;</span>/&gt;</span><br>  <span class="hljs-tag">&lt;/<span class="hljs-name">association</span>&gt;</span><br>  <span class="hljs-comment">&lt;!-- 集合中的property须为oftype定义的pojo对象的属性--&gt;</span><br>  <span class="hljs-tag">&lt;<span class="hljs-name">collection</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;pojo的集合属性&quot;</span> <span class="hljs-attr">ofType</span>=<span class="hljs-string">&quot;集合中的pojo对象&quot;</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">id</span> <span class="hljs-attr">column</span>=<span class="hljs-string">&quot;集合中pojo对象对应的表的主键字段&quot;</span> <span class="hljs-attr">jdbcType</span>=<span class="hljs-string">&quot;字段类型&quot;</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;集合中pojo对象的主键属性&quot;</span> /&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">result</span> <span class="hljs-attr">column</span>=<span class="hljs-string">&quot;可以为任意表的字段&quot;</span> <span class="hljs-attr">jdbcType</span>=<span class="hljs-string">&quot;字段类型&quot;</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;集合中的pojo对象的属性&quot;</span> /&gt;</span>  <br>  <span class="hljs-tag">&lt;/<span class="hljs-name">collection</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">resultMap</span>&gt;</span><br><br></code></pre></td></tr></table></figure></li>
+              <h2 id="一、MyBatis-简介"><a href="#一、MyBatis-简介" class="headerlink" title="一、MyBatis 简介"></a>一、MyBatis 简介</h2><p>MyBatis 是一款基于 Java 的<strong>半自动化 ORM（对象关系映射）持久层框架</strong>，前身是 iBatis。它内部封装了 JDBC，使开发者只需要关注 SQL 语句本身。</p>
+<p><strong>核心优势：</strong></p>
+<ul>
+<li><strong>半自动化 ORM</strong>：SQL 需手动编写，灵活可控</li>
+<li><strong>动态 SQL</strong>：通过标签灵活拼接 SQL</li>
+<li><strong>缓存机制</strong>：内置一级缓存和二级缓存</li>
+<li><strong>易于整合</strong>：无缝集成 Spring、Spring Boot</li>
+</ul>
+<p><strong>与 Hibernate 的区别：</strong></p>
+<table>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>MyBatis</th>
+<th>Hibernate</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ORM 类型</td>
+<td>半自动（SQL 手动编写）</td>
+<td>全自动（SQL 自动生成）</td>
+</tr>
+<tr>
+<td>SQL 控制度</td>
+<td>高</td>
+<td>低</td>
+</tr>
+<tr>
+<td>学习成本</td>
+<td>低（专注 SQL 映射）</td>
+<td>高（需掌握 HQL、缓存等）</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>复杂 SQL、互联网项目</td>
+<td>简单 CRUD、企业级应用</td>
+</tr>
+</tbody></table>
+<h2 id="二、核心组件"><a href="#二、核心组件" class="headerlink" title="二、核心组件"></a>二、核心组件</h2><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SqlSessionFactoryBuilder</strong></td>
+<td>读取配置文件创建 SqlSessionFactory</td>
+</tr>
+<tr>
+<td><strong>SqlSessionFactory</strong></td>
+<td>创建 SqlSession，应用级单例</td>
+</tr>
+<tr>
+<td><strong>SqlSession</strong></td>
+<td>会话对象，提供 CRUD 操作 API</td>
+</tr>
+<tr>
+<td><strong>Mapper 接口</strong></td>
+<td>无需实现类，MyBatis 通过动态代理生成</td>
+</tr>
+<tr>
+<td><strong>Mapper.xml</strong></td>
+<td>SQL 映射文件</td>
+</tr>
+<tr>
+<td><strong>Executor</strong></td>
+<td>核心执行引擎</td>
+</tr>
+</tbody></table>
+<h2 id="三、工作原理"><a href="#三、工作原理" class="headerlink" title="三、工作原理"></a>三、工作原理</h2><ol>
+<li>加载配置（mybatis-config.xml + Mapper.xml）→ Configuration 对象</li>
+<li>构建 SqlSessionFactory</li>
+<li>创建 SqlSession</li>
+<li>getMapper() 通过 JDK 动态代理生成 Mapper 接口的代理对象</li>
+<li>代理对象触发 Executor 执行 SQL</li>
+<li>Executor 通过 StatementHandler 处理 JDBC 操作</li>
+<li>ParameterHandler 绑定参数</li>
+<li>ResultSetHandler 将结果集映射为 Java 对象</li>
+<li>关闭 SqlSession</li>
 </ol>
+<h2 id="四、常用标签"><a href="#四、常用标签" class="headerlink" title="四、常用标签"></a>四、常用标签</h2><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">select</span>&gt;</span>、<span class="hljs-tag">&lt;<span class="hljs-name">insert</span>&gt;</span>、<span class="hljs-tag">&lt;<span class="hljs-name">update</span>&gt;</span>、<span class="hljs-tag">&lt;<span class="hljs-name">delete</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">if</span>&gt;</span>、<span class="hljs-tag">&lt;<span class="hljs-name">where</span>&gt;</span>、<span class="hljs-tag">&lt;<span class="hljs-name">set</span>&gt;</span>、<span class="hljs-tag">&lt;<span class="hljs-name">foreach</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">choose</span>&gt;</span>、<span class="hljs-tag">&lt;<span class="hljs-name">when</span>&gt;</span>、<span class="hljs-tag">&lt;<span class="hljs-name">otherwise</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">resultMap</span>&gt;</span>、<span class="hljs-tag">&lt;<span class="hljs-name">sql</span>&gt;</span>、<span class="hljs-tag">&lt;<span class="hljs-name">include</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="五、常见面试题"><a href="#五、常见面试题" class="headerlink" title="五、常见面试题"></a>五、常见面试题</h2><h4 id="1-和-的区别？"><a href="#1-和-的区别？" class="headerlink" title="1. #{} 和 ${} 的区别？"></a>1. <code>#&#123;&#125;</code> 和 <code>$&#123;&#125;</code> 的区别？</h4><table>
+<thead>
+<tr>
+<th>对比</th>
+<th><code>#&#123;&#125;</code></th>
+<th><code>$&#123;&#125;</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>本质</td>
+<td>预编译参数占位符（?）</td>
+<td>字符串拼接</td>
+</tr>
+<tr>
+<td>安全性</td>
+<td>防 SQL 注入</td>
+<td>存在 SQL 注入风险</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>传递参数</td>
+<td>动态表名、列名</td>
+</tr>
+</tbody></table>
+<p><strong>结论：优先用 <code>#&#123;&#125;</code>，仅动态表名/列名时用 <code>$&#123;&#125;</code>。</strong></p>
+<h4 id="2-resultType-和-resultMap-区别？"><a href="#2-resultType-和-resultMap-区别？" class="headerlink" title="2. resultType 和 resultMap 区别？"></a>2. resultType 和 resultMap 区别？</h4><ul>
+<li><strong>resultType</strong>：直接映射到 Java 对象（字段名需与列名一致）</li>
+<li><strong>resultMap</strong>：通过 <code>&lt;resultMap&gt;</code> 标签定义字段映射关系，更灵活</li>
+</ul>
+<h4 id="3-怎么实现-pojo-的一个字段接收-list？"><a href="#3-怎么实现-pojo-的一个字段接收-list？" class="headerlink" title="3. 怎么实现 pojo 的一个字段接收 list？"></a>3. 怎么实现 pojo 的一个字段接收 list？</h4><p>使用 <code>&lt;collection&gt;</code> 标签实现一对多映射：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">resultMap</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;orderMap&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;Order&quot;</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">id</span> <span class="hljs-attr">column</span>=<span class="hljs-string">&quot;order_id&quot;</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;orderId&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">result</span> <span class="hljs-attr">column</span>=<span class="hljs-string">&quot;order_name&quot;</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;orderName&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">collection</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;itemList&quot;</span> <span class="hljs-attr">ofType</span>=<span class="hljs-string">&quot;Item&quot;</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">id</span> <span class="hljs-attr">column</span>=<span class="hljs-string">&quot;item_id&quot;</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;itemId&quot;</span>/&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">result</span> <span class="hljs-attr">column</span>=<span class="hljs-string">&quot;item_name&quot;</span> <span class="hljs-attr">property</span>=<span class="hljs-string">&quot;itemName&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">collection</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">resultMap</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="4-MyBatis-如何传递多个参数？"><a href="#4-MyBatis-如何传递多个参数？" class="headerlink" title="4. MyBatis 如何传递多个参数？"></a>4. MyBatis 如何传递多个参数？</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 推荐：@Param 注解</span><br><span class="hljs-function">User <span class="hljs-title">selectByUsernameAndAge</span><span class="hljs-params">(<span class="hljs-meta">@Param(&quot;username&quot;)</span> String username, </span></span><br><span class="hljs-params"><span class="hljs-function">                            <span class="hljs-meta">@Param(&quot;age&quot;)</span> <span class="hljs-keyword">int</span> age)</span></span>;<br></code></pre></td></tr></table></figure>
+
+<h4 id="5-Mapper-接口为什么不需要实现类？"><a href="#5-Mapper-接口为什么不需要实现类？" class="headerlink" title="5. Mapper 接口为什么不需要实现类？"></a>5. Mapper 接口为什么不需要实现类？</h4><p>MyBatis 使用 <strong>JDK 动态代理</strong> 为 Mapper 接口生成代理对象：</p>
+<ul>
+<li>接口全限定名 → namespace</li>
+<li>接口方法名 → SQL 的 id</li>
+<li>方法参数 → SQL 参数</li>
+</ul>
+<p>注意：Mapper 接口中的方法不能重载。</p>
+<h4 id="6-MyBatis-的一级缓存和二级缓存？"><a href="#6-MyBatis-的一级缓存和二级缓存？" class="headerlink" title="6. MyBatis 的一级缓存和二级缓存？"></a>6. MyBatis 的一级缓存和二级缓存？</h4><ul>
+<li><strong>一级缓存</strong>（SqlSession 级别）：默认开启，同一个 SqlSession 内重复查询直接返回缓存</li>
+<li><strong>二级缓存</strong>（Mapper 级别）：默认关闭，需手动配置 <code>&lt;cache&gt;</code>，跨 SqlSession 共享</li>
+<li>查询顺序：先查二级缓存 → 再查一级缓存 → 最后查数据库</li>
+</ul>
+<h4 id="7-分页如何实现？"><a href="#7-分页如何实现？" class="headerlink" title="7. 分页如何实现？"></a>7. 分页如何实现？</h4><ul>
+<li><strong>逻辑分页</strong>：RowBounds（不推荐，全部查出后内存分页）</li>
+<li><strong>物理分页</strong>：手动写 LIMIT，或使用 PageHelper 插件（原理：通过 MyBatis 插件机制拦截 SQL，重写添加分页语句）</li>
+</ul>
+<h4 id="8-MyBatis-涉及的设计模式？"><a href="#8-MyBatis-涉及的设计模式？" class="headerlink" title="8. MyBatis 涉及的设计模式？"></a>8. MyBatis 涉及的设计模式？</h4><ul>
+<li>建造者模式（SqlSessionFactoryBuilder）</li>
+<li>工厂模式（SqlSessionFactory）</li>
+<li>代理模式（Mapper 接口、延迟加载）</li>
+<li>模板方法模式（Executor）</li>
+<li>责任链模式（插件拦截器）</li>
+</ul>
 
             </div>
             <hr>
@@ -259,7 +391,7 @@
                   <div class="post-meta mr-3">
                     <i class="iconfont icon-category"></i>
                     
-                      <a class="hover-with-bg" href="/categories/java%E5%9F%BA%E7%A1%80/">java基础</a>
+                      <a class="hover-with-bg" href="/categories/MyBatis/">MyBatis</a>
                     
                   </div>
                 
@@ -267,11 +399,11 @@
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/java/">java</a>
-                    
                       <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
                     
                       <a class="hover-with-bg" href="/tags/MyBatis/">MyBatis</a>
+                    
+                      <a class="hover-with-bg" href="/tags/ORM/">ORM</a>
                     
                   </div>
                 

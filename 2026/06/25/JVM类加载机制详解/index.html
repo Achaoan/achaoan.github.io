@@ -1,0 +1,656 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>JVM类加载机制详解：加载、连接、初始化、双亲委派 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/classloader-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="JVM类加载机制详解：加载、连接、初始化、双亲委派">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-25 12:00" pubdate>
+        2026年6月25日 中午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.3k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      14
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">JVM类加载机制详解：加载、连接、初始化、双亲委派</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：8 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、类加载全过程"><a href="#一、类加载全过程" class="headerlink" title="一、类加载全过程"></a>一、类加载全过程</h2><p>一个类从被加载到 JVM 内存开始，到卸载出内存为止，整个生命周期包括七个阶段：</p>
+<blockquote>
+<p><strong>加载 → 验证 → 准备 → 解析 → 初始化 → 使用 → 卸载</strong></p>
+</blockquote>
+<p>其中<strong>验证、准备、解析</strong>统称为<strong>连接</strong>。</p>
+<h2 id="二、加载（Loading）"><a href="#二、加载（Loading）" class="headerlink" title="二、加载（Loading）"></a>二、加载（Loading）</h2><h3 id="做什么？"><a href="#做什么？" class="headerlink" title="做什么？"></a>做什么？</h3><ol>
+<li>通过类的全限定名获取定义此类的二进制字节流</li>
+<li>将字节流所代表的静态存储结构转化为方法区的运行时数据结构</li>
+<li>在内存中生成代表这个类的 <code>java.lang.Class</code> 对象，作为方法区这个类的各种数据的访问入口</li>
+</ol>
+<h3 id="获取二进制字节流的方式"><a href="#获取二进制字节流的方式" class="headerlink" title="获取二进制字节流的方式"></a>获取二进制字节流的方式</h3><ul>
+<li>从 ZIP/JAR 包读取（最常用）</li>
+<li>从网络获取（Applet）</li>
+<li>运行时计算生成（动态代理）</li>
+<li>由其他文件生成（JSP 转 Servlet）</li>
+<li>从数据库读取</li>
+</ul>
+<h2 id="三、验证（Verification）"><a href="#三、验证（Verification）" class="headerlink" title="三、验证（Verification）"></a>三、验证（Verification）</h2><p>确保 Class 文件的字节流中包含的信息符合 JVM 规范。</p>
+<table>
+<thead>
+<tr>
+<th>验证阶段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>文件格式验证</td>
+<td>魔数 0xCAFEBABE、主次版本号、常量池常量类型</td>
+</tr>
+<tr>
+<td>元数据验证</td>
+<td>是否有父类、是否继承了 final 类、是否实现了所有方法</td>
+</tr>
+<tr>
+<td>字节码验证</td>
+<td>通过数据流分析确保语义合法</td>
+</tr>
+<tr>
+<td>符号引用验证</td>
+<td>是否能通过符号引用找到对应的类/方法/字段</td>
+</tr>
+</tbody></table>
+<h2 id="四、准备（Preparation）"><a href="#四、准备（Preparation）" class="headerlink" title="四、准备（Preparation）"></a>四、准备（Preparation）</h2><p>正式为<strong>类变量（static 变量）</strong>分配内存并设置<strong>零值</strong>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> value = <span class="hljs-number">123</span>;<br><span class="hljs-comment">// 准备阶段后：value = 0（不是 123）</span><br><span class="hljs-comment">// 初始化阶段才执行 putstatic 指令赋值为 123</span><br></code></pre></td></tr></table></figure>
+
+<p>特殊：<code>static final</code> 修饰的常量在准备阶段直接赋值：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> value = <span class="hljs-number">123</span>;<br><span class="hljs-comment">// 准备阶段后：value = 123（ConstantValue 属性）</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="五、解析（Resolution）"><a href="#五、解析（Resolution）" class="headerlink" title="五、解析（Resolution）"></a>五、解析（Resolution）</h2><p>将常量池内的<strong>符号引用</strong>替换为<strong>直接引用</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>解析类型</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>类/接口解析</td>
+<td>将 CONSTANT_Class_info 解析为类指针</td>
+</tr>
+<tr>
+<td>字段解析</td>
+<td>将 CONSTANT_Fieldref_info 解析为字段偏移量</td>
+</tr>
+<tr>
+<td>方法解析</td>
+<td>将 CONSTANT_Methodref_info 解析为方法指针</td>
+</tr>
+</tbody></table>
+<p><strong>符号引用</strong>：以字面量形式描述目标，与内存布局无关<br><strong>直接引用</strong>：指向目标的指针、相对偏移量或句柄</p>
+<h2 id="六、初始化（Initialization）"><a href="#六、初始化（Initialization）" class="headerlink" title="六、初始化（Initialization）"></a>六、初始化（Initialization）</h2><p>执行类构造器 <code>&lt;clinit&gt;()</code> 方法的过程。</p>
+<h3 id="方法"><a href="#方法" class="headerlink" title="() 方法"></a><clinit>() 方法</h3><ul>
+<li>由编译器自动收集类中所有<strong>类变量赋值</strong>和<strong>静态语句块</strong>合并产生</li>
+<li>执行顺序按源文件中出现的顺序</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Test</span> </span>&#123;<br>    <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> i = <span class="hljs-number">1</span>;           <span class="hljs-comment">// → 收集到 &lt;clinit&gt;()</span><br>    <span class="hljs-keyword">static</span> &#123; i = <span class="hljs-number">2</span>; &#125;           <span class="hljs-comment">// → 收集到 &lt;clinit&gt;()</span><br>    <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> j = <span class="hljs-number">3</span>;           <span class="hljs-comment">// → 收集到 &lt;clinit&gt;()</span><br>&#125;<br><span class="hljs-comment">// &lt;clinit&gt;() 执行顺序：i=1 → i=2 → j=3</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="何时触发初始化？（主动引用-6-种情况）"><a href="#何时触发初始化？（主动引用-6-种情况）" class="headerlink" title="何时触发初始化？（主动引用 6 种情况）"></a>何时触发初始化？（主动引用 6 种情况）</h3><table>
+<thead>
+<tr>
+<th>触发场景</th>
+<th>代码示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>new 对象、访问静态字段、调用静态方法</td>
+<td><code>new Foo()</code>, <code>Foo.bar</code>, <code>Foo.baz()</code></td>
+</tr>
+<tr>
+<td>反射调用</td>
+<td><code>Class.forName(&quot;Foo&quot;)</code></td>
+</tr>
+<tr>
+<td>子类初始化触发父类</td>
+<td><code>new SubClass()</code> → 先初始化父类</td>
+</tr>
+<tr>
+<td>main 方法所在类</td>
+<td>JVM 启动时先初始化</td>
+</tr>
+<tr>
+<td>MethodHandle 调用</td>
+<td>解析结果 REF_getStatic 等</td>
+</tr>
+<tr>
+<td>接口 default 方法</td>
+<td>接口有 default 方法时实现类初始化会触发接口初始化</td>
+</tr>
+</tbody></table>
+<h3 id="不会触发初始化（被动引用）"><a href="#不会触发初始化（被动引用）" class="headerlink" title="不会触发初始化（被动引用）"></a>不会触发初始化（被动引用）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 1. 通过子类引用父类静态字段</span><br>System.out.println(SubClass.value);  <span class="hljs-comment">// 只有父类初始化</span><br><br><span class="hljs-comment">// 2. 通过数组定义引用类</span><br>SuperClass[] arr = <span class="hljs-keyword">new</span> SuperClass[<span class="hljs-number">10</span>];  <span class="hljs-comment">// 不触发</span><br><br><span class="hljs-comment">// 3. 访问常量（编译期常量传播）</span><br>System.out.println(SubClass.CONSTANT);  <span class="hljs-comment">// 不触发</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="七、类加载器"><a href="#七、类加载器" class="headerlink" title="七、类加载器"></a>七、类加载器</h2><h3 id="三层类加载器（JDK-9-）"><a href="#三层类加载器（JDK-9-）" class="headerlink" title="三层类加载器（JDK 9+）"></a>三层类加载器（JDK 9+）</h3><table>
+<thead>
+<tr>
+<th>加载器</th>
+<th>加载路径</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>启动类加载器</strong>（Bootstrap）</td>
+<td><code>&lt;JAVA_HOME&gt;/lib</code> 核心类库（rt.jar、java.base 模块）</td>
+</tr>
+<tr>
+<td><strong>平台类加载器</strong>（Platform，原 Extension）</td>
+<td><code>&lt;JAVA_HOME&gt;/lib/ext</code> 或 <code>java.ext.dirs</code></td>
+</tr>
+<tr>
+<td><strong>应用类加载器</strong>（Application / System）</td>
+<td><code>classpath</code> 或 <code>-cp</code> 指定的类</td>
+</tr>
+</tbody></table>
+<h3 id="双亲委派模型"><a href="#双亲委派模型" class="headerlink" title="双亲委派模型"></a>双亲委派模型</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs">加载请求 → 应用类加载器 → 平台类加载器 → 启动类加载器<br>                                                         ↓<br>                找到就返回 ← 启动类找不到 ← 平台类找不到 ←<br>                                                  ↓<br>                                       应用类加载器自己加载<br></code></pre></td></tr></table></figure>
+
+<h3 id="为什么需要双亲委派？"><a href="#为什么需要双亲委派？" class="headerlink" title="为什么需要双亲委派？"></a>为什么需要双亲委派？</h3><ol>
+<li><strong>安全</strong>：保证核心 API 不被篡改（不会出现多个版本的 <code>java.lang.Object</code>）</li>
+<li><strong>避免重复加载</strong>：父加载器已加载的类不会被子加载器重复加载</li>
+</ol>
+<h3 id="如何打破双亲委派？"><a href="#如何打破双亲委派？" class="headerlink" title="如何打破双亲委派？"></a>如何打破双亲委派？</h3><ul>
+<li><strong>重写 <code>loadClass()</code> 方法</strong>（而不是 <code>findClass()</code>）</li>
+<li>典型场景：Tomcat 为每个 WebApp 提供独立类加载器；SPI 机制（JDBC 驱动加载）</li>
+</ul>
+<h2 id="八、常见面试题"><a href="#八、常见面试题" class="headerlink" title="八、常见面试题"></a>八、常见面试题</h2><h4 id="1-类加载和”双亲委派”的执行过程？"><a href="#1-类加载和”双亲委派”的执行过程？" class="headerlink" title="1. 类加载和”双亲委派”的执行过程？"></a>1. 类加载和”双亲委派”的执行过程？</h4><p>见上。先委派父加载器，父无法加载才自加载。</p>
+<h4 id="2-一个类是如何被加载到-JVM-的？"><a href="#2-一个类是如何被加载到-JVM-的？" class="headerlink" title="2. 一个类是如何被加载到 JVM 的？"></a>2. 一个类是如何被加载到 JVM 的？</h4><p>经过加载→验证→准备→解析→初始化 五个阶段。</p>
+<h4 id="3-能否自己写一个-java-lang-String-并替换？"><a href="#3-能否自己写一个-java-lang-String-并替换？" class="headerlink" title="3. 能否自己写一个 java.lang.String 并替换？"></a>3. 能否自己写一个 <code>java.lang.String</code> 并替换？</h4><p>不能。双亲委派模型保证核心库由启动类加载器加载，自定义的 <code>java.lang.String</code> 不会被加载。</p>
+<h4 id="4-两个相同类名但由不同类加载器加载的类是否相等？"><a href="#4-两个相同类名但由不同类加载器加载的类是否相等？" class="headerlink" title="4. 两个相同类名但由不同类加载器加载的类是否相等？"></a>4. 两个相同类名但由不同类加载器加载的类是否相等？</h4><p>不相等。<code>instanceof</code> 结果为 false。</p>
+<h4 id="5-什么是-SPI？如何打破双亲委派？"><a href="#5-什么是-SPI？如何打破双亲委派？" class="headerlink" title="5. 什么是 SPI？如何打破双亲委派？"></a>5. 什么是 SPI？如何打破双亲委派？</h4><p>SPI（Service Provider Interface）如 JDBC，由启动类加载器加载接口但需要调用应用类加载器的实现类。使用<strong>线程上下文类加载器（Thread Context ClassLoader）</strong>打破双亲委派。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/JVM/">JVM</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Java/">Java</a>
+                    
+                      <a class="hover-with-bg" href="/tags/JVM/">JVM</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E7%B1%BB%E5%8A%A0%E8%BD%BD/">类加载</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/25/Spring%E4%BA%8B%E5%8A%A1%E8%AF%A6%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Spring事务详解：@Transactional原理、传播行为、隔离级别</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/25/synchronized%E9%94%81%E5%8D%87%E7%BA%A7%E5%8E%9F%E7%90%86/">
+                        <span class="hidden-mobile">synchronized锁升级原理：偏向锁、轻量级锁、重量级锁</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
