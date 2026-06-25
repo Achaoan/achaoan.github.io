@@ -1,0 +1,606 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>上下文窗口与长文本处理：RoPE、长上下文技术演进 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/context-window-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="上下文窗口与长文本处理：RoPE、长上下文技术演进">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-26 04:00" pubdate>
+        2026年6月26日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.8k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      21
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">上下文窗口与长文本处理：RoPE、长上下文技术演进</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：1 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、什么是上下文窗口"><a href="#一、什么是上下文窗口" class="headerlink" title="一、什么是上下文窗口"></a>一、什么是上下文窗口</h2><p>上下文窗口（Context Window）是 LLM 一次能”看到”的最大 Token 数量。超出窗口的内容会被截断，模型无法感知。</p>
+<figure class="highlight fix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs fix"><span class="hljs-attr">上下文窗口 </span>=<span class="hljs-string"> 模型能同时处理的 Token 数量上限</span><br><span class="hljs-string">超出窗口 = 信息丢失</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>关键数据点：</strong></p>
+<ul>
+<li>GPT-3 (2020)：4K Token</li>
+<li>GPT-4 (2023)：8K → 32K → 128K</li>
+<li>Claude 3 (2024)：200K</li>
+<li>Gemini 1.5 Pro (2024)：2M Token</li>
+<li>GPT-4o (2025)：128K</li>
+</ul>
+<p>主流模型已从几千 Token 增长到数十万乃至百万级别。但长上下文并不意味着长上下文<strong>有效</strong>——模型在窗口中间段的”迷失”是另一个问题。</p>
+<h2 id="二、位置编码的演进"><a href="#二、位置编码的演进" class="headerlink" title="二、位置编码的演进"></a>二、位置编码的演进</h2><p>Transformer 的 Attention 是<strong>置换不变</strong>的——如果没有位置信息，”我打你”和”你打我”的 Attention 计算完全相同。位置编码就是给模型注入 Token 的位置信息。</p>
+<h3 id="绝对位置编码（原始-Transformer）"><a href="#绝对位置编码（原始-Transformer）" class="headerlink" title="绝对位置编码（原始 Transformer）"></a>绝对位置编码（原始 Transformer）</h3><p>每个位置 i 对应一个固定的正弦余弦位置向量。</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">PE</span>(pos, <span class="hljs-number">2</span>i) = sin(pos / <span class="hljs-number">10000</span>^(<span class="hljs-number">2</span>i/d_model))<br><span class="hljs-attribute">PE</span>(pos, <span class="hljs-number">2</span>i+<span class="hljs-number">1</span>) = cos(pos / <span class="hljs-number">10000</span>^(<span class="hljs-number">2</span>i/d_model))<br></code></pre></td></tr></table></figure>
+
+<p><strong>局限：</strong></p>
+<ul>
+<li>训练时固定最大长度（超出无法处理）</li>
+<li>位置向量与 Token 向量相加，可能干扰语义</li>
+<li>无法外推到更长的序列</li>
+</ul>
+<h3 id="RoPE（Rotary-Position-Embedding）"><a href="#RoPE（Rotary-Position-Embedding）" class="headerlink" title="RoPE（Rotary Position Embedding）"></a>RoPE（Rotary Position Embedding）</h3><p>RoPE 是目前主流模型（GPT-4、Llama、Mistral、Gemma）使用的方案。它通过旋转矩阵将位置信息注入 Q 和 K 向量。</p>
+<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs stata">基本原理：<br>Q 和 K 在计算注意力时，按位置 θ 旋转<br>位置 i 的 <span class="hljs-keyword">Token</span> 与位置 j 的 <span class="hljs-keyword">Token</span> 的注意力 = <span class="hljs-built_in">f</span>(q_i, k_j, i-j)<br>即只依赖于相对位置差（i-j）<br><br>RoPE 性质：<br>├── 相对位置编码：两个 <span class="hljs-keyword">Token</span> 的距离越远，注意力自然衰减<br>├── 可外推：理论上可以外推到训练时未见的长度<br>├── 与 Attention 融合：直接改 Q、K 的旋转角度，不影响 V<br>└── 远程衰减：距离远的 <span class="hljs-keyword">Token</span> 注意力权重自然下降<br></code></pre></td></tr></table></figure>
+
+<p><strong>外推（Extrapolation）：</strong> 模型训练时只在 8K 窗口上训练，但推理时可以用到 32K——这就是 RoPE 的外推能力。实际效果会逐渐衰减，但比绝对位置编码好得多。</p>
+<h3 id="ALiBi（Attention-with-Linear-Biases）"><a href="#ALiBi（Attention-with-Linear-Biases）" class="headerlink" title="ALiBi（Attention with Linear Biases）"></a>ALiBi（Attention with Linear Biases）</h3><p>在 Attention 得分上加一个与距离成正比的偏置（惩罚），越远的 Token 偏置越大。</p>
+<figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs gherkin">Attention(Q, K, V) = softmax(Q×K^T / √d_k + bias) × V<br>bias = -m × |<span class="hljs-string">i - j</span>|<span class="hljs-string">    ← 距离越远，偏置越负</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>优势：</strong> 训练时只需短序列，推理时可直接外推超长序列——因为偏置只依赖距离，不依赖绝对位置。Bloomberg GPT 和某些 MosaicML 模型使用。</p>
+<h3 id="方案对比"><a href="#方案对比" class="headerlink" title="方案对比"></a>方案对比</h3><table>
+<thead>
+<tr>
+<th>方案</th>
+<th align="center">可外推</th>
+<th align="center">相对位置</th>
+<th>代表模型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>绝对位置编码</td>
+<td align="center">否</td>
+<td align="center">否</td>
+<td>原始 Transformer</td>
+</tr>
+<tr>
+<td>RoPE</td>
+<td align="center">是</td>
+<td align="center">是</td>
+<td>GPT-4, Llama, Mistral, Gemma</td>
+</tr>
+<tr>
+<td>ALiBi</td>
+<td align="center">是</td>
+<td align="center">是</td>
+<td>MPT, BLOOM</td>
+</tr>
+<tr>
+<td>XL Position</td>
+<td align="center">是</td>
+<td align="center">是</td>
+<td>Transformer-XL</td>
+</tr>
+</tbody></table>
+<h2 id="三、长上下文技术演进"><a href="#三、长上下文技术演进" class="headerlink" title="三、长上下文技术演进"></a>三、长上下文技术演进</h2><h3 id="窗口缩放（Scaling）"><a href="#窗口缩放（Scaling）" class="headerlink" title="窗口缩放（Scaling）"></a>窗口缩放（Scaling）</h3><p>最简单的方案——直接扩大上下文窗口。代价是 Attention 的计算量 O(N²) 和 KV Cache 占用 O(N) 都增长。</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">Sequence</span> Length (N)     <span class="hljs-number">4</span>K      <span class="hljs-number">32</span>K      <span class="hljs-number">128</span>K      <span class="hljs-number">1</span>M<br><span class="hljs-attribute">Attention</span> (N²)           <span class="hljs-number">16</span>M     <span class="hljs-number">1</span>B       <span class="hljs-number">16</span>B       <span class="hljs-number">1</span>T<br><span class="hljs-attribute">KV</span> Cache (每层)          <span class="hljs-number">4</span>M      <span class="hljs-number">32</span>M      <span class="hljs-number">128</span>M      <span class="hljs-number">1</span>GB<br></code></pre></td></tr></table></figure>
+
+<h3 id="位置编码插值（Position-Interpolation）"><a href="#位置编码插值（Position-Interpolation）" class="headerlink" title="位置编码插值（Position Interpolation）"></a>位置编码插值（Position Interpolation）</h3><p>在已有 RoPE 模型上扩展窗口的方法。训练 4K 的模型要扩展到 32K：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-string">原本：位置</span> <span class="hljs-number">0</span><span class="hljs-string">,</span> <span class="hljs-number">1</span><span class="hljs-string">,</span> <span class="hljs-number">2</span><span class="hljs-string">,</span> <span class="hljs-string">...,</span> <span class="hljs-number">4095</span><br><span class="hljs-string">插值后：位置</span> <span class="hljs-number">0</span><span class="hljs-string">,</span> <span class="hljs-number">0.5</span><span class="hljs-string">,</span> <span class="hljs-number">1</span><span class="hljs-string">,</span> <span class="hljs-number">1.5</span><span class="hljs-string">,</span> <span class="hljs-string">...,</span> <span class="hljs-number">4095.5</span>  <span class="hljs-string">(128</span> <span class="hljs-string">个位置间插值)</span><br><span class="hljs-string">NeurIPS</span> <span class="hljs-number">2023</span><span class="hljs-string">,</span> <span class="hljs-string">Meta</span> <span class="hljs-string">提出：只需微调</span> <span class="hljs-number">1000</span> <span class="hljs-string">步就能扩展</span> <span class="hljs-number">4</span> <span class="hljs-string">倍</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>NTK-Aware Scaled RoPE</strong> 进一步改进：在插值时保持高频分量不变（保留细节区分能力），只缩放低频分量。</p>
+<h3 id="YaRN（Yet-another-RoPE-extensioN）"><a href="#YaRN（Yet-another-RoPE-extensioN）" class="headerlink" title="YaRN（Yet another RoPE extensioN）"></a>YaRN（Yet another RoPE extensioN）</h3><p>改进 RoPE 外推的方法，结合插值和 NTK-aware 缩放，在 Llama 等模型上实现 2-4 倍窗口扩展，无需额外微调。</p>
+<h3 id="Ring-Attention-分布式注意力"><a href="#Ring-Attention-分布式注意力" class="headerlink" title="Ring Attention / 分布式注意力"></a>Ring Attention / 分布式注意力</h3><p>将超长序列切分到多个 GPU 上，每个 GPU 负责一段序列的 Attention 计算，通过通信传递 KV。理论上可以扩展到任意长度——只要 GPU 够多。</p>
+<h3 id="内存压缩"><a href="#内存压缩" class="headerlink" title="内存压缩"></a>内存压缩</h3><p>在 Attention 计算中，将历史 Token 的 KV 压缩成更紧凑的形式：</p>
+<figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">原始：保留所有 <span class="hljs-variable">Token</span> 的 <span class="hljs-variable">KV</span> → <span class="hljs-built_in">O</span><span class="hljs-punctuation">(</span><span class="hljs-built_in">N</span><span class="hljs-punctuation">)</span> 显存<br>压缩：将旧 <span class="hljs-variable">Token</span> 的 <span class="hljs-variable">KV</span> 合并成<span class="hljs-string">&quot;摘要&quot;</span> → <span class="hljs-built_in">O</span><span class="hljs-punctuation">(</span><span class="hljs-variable">k</span><span class="hljs-punctuation">)</span> 显存，<span class="hljs-variable">k</span> <span class="hljs-operator">&lt;&lt;</span> <span class="hljs-built_in">N</span><br>方法：<span class="hljs-variable">Landmark</span> <span class="hljs-variable">Attention</span><span class="hljs-operator">,</span> <span class="hljs-variable">ICAE</span><span class="hljs-operator">,</span> <span class="hljs-variable">AutoCompressors</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="四、”迷失在中间”问题"><a href="#四、”迷失在中间”问题" class="headerlink" title="四、”迷失在中间”问题"></a>四、”迷失在中间”问题</h2><p>即使模型有 128K 窗口，位于窗口<strong>中间的</strong>信息最容易被模型忽略。</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs angelscript"><span class="hljs-string">[开头 ──────────────────── 中间 ────────────────────── 结尾]</span><br>  召回率高                   召回率低（谷底）         召回率高<br></code></pre></td></tr></table></figure>
+
+<p><strong>Lost in the Middle（Liu et al., 2023）的研究发现：</strong></p>
+<ul>
+<li>开头和结尾的文档召回率 &gt; 90%</li>
+<li>中间文档的召回率 &lt; 50%</li>
+<li>这是一个位置偏差——模型天然倾向关注开头和结尾</li>
+</ul>
+<p><strong>缓解策略：</strong></p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-bullet">1.</span> 重要的文档放开头或结尾<br><span class="hljs-bullet">2.</span> 减少检索文档数量（Top-K 不宜过大）<br><span class="hljs-bullet">3.</span> 用 Reranker 排序，最相关的放最前<br><span class="hljs-bullet">4.</span> 分块 + 多点检索，覆盖中间段落<br><span class="hljs-bullet">5.</span> Streaming LLM：保留开头 + 结尾，压缩中间<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、Streaming-LLM-与无限上下文"><a href="#五、Streaming-LLM-与无限上下文" class="headerlink" title="五、Streaming LLM 与无限上下文"></a>五、Streaming LLM 与无限上下文</h2><p>Streaming LLM（2023）提出了一种方案：在生成过程中只保留<strong>开头 Token</strong> 和<strong>最近的 Token</strong>，丢弃中间部分，让模型理论上可以无限生成。</p>
+<figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs gauss">初始窗口：[SOS] [<span class="hljs-built_in">Token</span>₁] [<span class="hljs-built_in">Token</span>₂] ... [<span class="hljs-built_in">Token</span>ₙ]<br>                                          ↓ 生成新 <span class="hljs-built_in">Token</span><br>丢弃中间：[SOS] ... [<span class="hljs-built_in">Token</span>ₙ₋ₖ ... <span class="hljs-built_in">Token</span>ₙ <span class="hljs-built_in">Token</span>ₙ₊₁]<br>            开头        最近窗口<br></code></pre></td></tr></table></figure>
+
+<p><strong>Attention Sink 现象：</strong> 模型会把大量注意力分配给第一个 Token（SOS），即使它与当前内容无关。保留第一个 Token 能稳定注意力分布。</p>
+<h2 id="六、实际应用建议"><a href="#六、实际应用建议" class="headerlink" title="六、实际应用建议"></a>六、实际应用建议</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># 管理上下文窗口的最佳实践</span><br><br><span class="hljs-comment"># 1. 了解输入长度</span><br><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">estimate_tokens</span>(<span class="hljs-params">text</span>):</span><br>    <span class="hljs-string">&quot;&quot;&quot;中文按 ~1.75 字/Token，英文按 ~4 字符/Token&quot;&quot;&quot;</span><br>    <span class="hljs-keyword">pass</span><br><br><span class="hljs-comment"># 2. 滑动窗口历史</span><br>messages = []<br><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">add_message</span>(<span class="hljs-params">msg, max_context=<span class="hljs-number">32000</span></span>):</span><br>    messages.append(msg)<br>    <span class="hljs-keyword">while</span> total_tokens(messages) &gt; max_context:<br>        messages.pop(<span class="hljs-number">0</span>)  <span class="hljs-comment"># 移除最早的消息</span><br><br><span class="hljs-comment"># 3. 分段策略（RAG 场景）</span><br><span class="hljs-comment"># 文档块大小建议：与检索返回数量匹配</span><br><span class="hljs-comment"># 例如：每块 512 Token，返回 Top-10 → 5K ≈ 文章摘要</span><br><br><span class="hljs-comment"># 4. 关键信息放两端</span><br>prompt = (<br>    <span class="hljs-string">f&quot;[系统指令]...&quot;</span>       <span class="hljs-comment"># 开头（高关注）</span><br>    <span class="hljs-string">f&quot;[示例和数据]...&quot;</span>     <span class="hljs-comment"># 中间</span><br>    <span class="hljs-string">f&quot;[任务要求]...&quot;</span>       <span class="hljs-comment"># 结尾（高关注）</span><br>)<br></code></pre></td></tr></table></figure>
+
+<h2 id="七、面试题"><a href="#七、面试题" class="headerlink" title="七、面试题"></a>七、面试题</h2><h4 id="1-RoPE-位置编码的原理和优点？"><a href="#1-RoPE-位置编码的原理和优点？" class="headerlink" title="1. RoPE 位置编码的原理和优点？"></a>1. RoPE 位置编码的原理和优点？</h4><p>RoPE 通过旋转矩阵将位置信息编码到 Q 和 K 向量中，使注意力只依赖于相对位置差。优点是可外推（训练短窗口、推理长窗口）、与 Attention 自然融合、有远程衰减。</p>
+<h4 id="2-什么是”Lost-in-the-Middle”问题？"><a href="#2-什么是”Lost-in-the-Middle”问题？" class="headerlink" title="2. 什么是”Lost in the Middle”问题？"></a>2. 什么是”Lost in the Middle”问题？</h4><p>长上下文模型中，处于窗口中间的信息召回率显著低于开头和结尾。原因是模型的位置偏差导致中间段注意力不足。缓解方法：关键信息放两端、控制检索数量。</p>
+<h4 id="3-长上下文和-RAG-的关系？"><a href="#3-长上下文和-RAG-的关系？" class="headerlink" title="3. 长上下文和 RAG 的关系？"></a>3. 长上下文和 RAG 的关系？</h4><p>两者是互补方案。长上下文允许一次性放入大量信息但存在”迷失在中间”问题和高计算成本。RAG 有选择性地只检索相关文档效率更高。实际系统通常结合：RAG 筛选出关键文档 + 放入有限的上下文窗口。</p>
+<h4 id="4-上下文窗口从-4K-扩展到-128K-面临哪些挑战？"><a href="#4-上下文窗口从-4K-扩展到-128K-面临哪些挑战？" class="headerlink" title="4. 上下文窗口从 4K 扩展到 128K 面临哪些挑战？"></a>4. 上下文窗口从 4K 扩展到 128K 面临哪些挑战？</h4><p>计算量 O(N²) 爆炸、KV Cache 显存 O(N) 增长、注意力分布稀疏化（很多注意力分数趋近于 0）、模型在中间段丢失焦点。解决方案包括 RoPE 外推、Flash Attention、GQA/MQA 减少 KV 缓存。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/AI-Spring-AI/">AI / Spring AI</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/AI/">AI</a>
+                    
+                      <a class="hover-with-bg" href="/tags/LLM%E5%9F%BA%E7%A1%80/">LLM基础</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3/">上下文窗口</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%95%BF%E6%96%87%E6%9C%AC/">长文本</a>
+                    
+                      <a class="hover-with-bg" href="/tags/RoPE/">RoPE</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E4%BD%8D%E7%BD%AE%E7%BC%96%E7%A0%81/">位置编码</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/26/OAuth2%E4%B8%8ESSO%E5%8D%95%E7%82%B9%E7%99%BB%E5%BD%95%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">OAuth2 与 SSO 单点登录：授权码流程、JWT、Spring Security 集成</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

@@ -1,0 +1,678 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>分词器（Tokenizer）详解：BPE、WordPiece、Token 与成本 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/tokenizer-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="分词器（Tokenizer）详解：BPE、WordPiece、Token 与成本">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-26 02:00" pubdate>
+        2026年6月26日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      20
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">分词器（Tokenizer）详解：BPE、WordPiece、Token 与成本</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：3 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、什么是-Tokenizer"><a href="#一、什么是-Tokenizer" class="headerlink" title="一、什么是 Tokenizer"></a>一、什么是 Tokenizer</h2><p>Tokenizer（分词器）是 LLM 的第一道关卡——将原始文本转换为模型能理解的 Token 序列。用户输入的每一句话，都要经过分词器拆成 Token，再交给模型。模型的输出同样要从 Token 序列解码回文本。</p>
+<figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs gauss">用户输入 ──→ Tokenizer ──→ <span class="hljs-built_in">Token</span> IDs ──→ LLM ──→ <span class="hljs-built_in">Token</span> IDs ──→ Detokenizer ──→ 回复<br></code></pre></td></tr></table></figure>
+
+<p>Token 是 LLM 计费、上下文窗口、性能的核心单位。理解分词器对高效使用 AI API 至关重要。</p>
+<h2 id="二、主流分词算法"><a href="#二、主流分词算法" class="headerlink" title="二、主流分词算法"></a>二、主流分词算法</h2><h3 id="BPE（Byte-Pair-Encoding）"><a href="#BPE（Byte-Pair-Encoding）" class="headerlink" title="BPE（Byte Pair Encoding）"></a>BPE（Byte Pair Encoding）</h3><p>BPE 是最广泛使用的分词算法，GPT、Claude、Llama 等主流模型都使用它或其变体。BPE 从单字符级别开始，逐步合并最常出现的相邻 Token 对。</p>
+<p><strong>训练步骤：</strong></p>
+<ol>
+<li>将语料拆成单字符序列（含词尾标记）</li>
+<li>统计所有相邻 Token 对的频率</li>
+<li>合并频率最高的 Token 对为新 Token</li>
+<li>重复 2-3 步，直到词表达到目标大小</li>
+</ol>
+<p><strong>分词示例（以 GPT-4 的分词器为例）：</strong></p>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs gcode"><span class="hljs-string">&quot;hello world&quot;</span><br>→ [<span class="hljs-string">&quot;hello&quot;</span>, <span class="hljs-string">&quot; world&quot;</span>]  <span class="hljs-comment">(2 tokens)</span><br><br><span class="hljs-string">&quot;我是程序员&quot;</span><br>→ [<span class="hljs-string">&quot;我是&quot;</span>, <span class="hljs-string">&quot;程序&quot;</span>, <span class="hljs-string">&quot;员&quot;</span>]  <span class="hljs-comment">(3 tokens)</span><br><br><span class="hljs-string">&quot;我不喜欢吃苹果&quot;</span><br>→ [<span class="hljs-string">&quot;我不&quot;</span>, <span class="hljs-string">&quot;喜欢&quot;</span>, <span class="hljs-string">&quot;吃苹&quot;</span>, <span class="hljs-string">&quot;果&quot;</span>]  <span class="hljs-comment">(4 tokens)</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>特点：</strong></p>
+<ul>
+<li>数据驱动：合并频率基于训练语料统计</li>
+<li>词表大小可控（典型值 32K-128K）</li>
+<li>任意输入都能分词（不会出现 UNK）</li>
+</ul>
+<h3 id="WordPiece"><a href="#WordPiece" class="headerlink" title="WordPiece"></a>WordPiece</h3><p>WordPiece 由 Google 提出，用于 BERT 系列模型。与 BPE 的区别在于合并标准：BPE 按频率合并，WordPiece 按似然增益（互信息）合并。</p>
+<figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs perl">合并标准对比：<br>BPE:       argmax(fre<span class="hljs-string">q(a,b)</span>)          — 最常出现的对<br>WordPiece: argmax(score(a,b))         — 互信息最大的对<br>           score(a,b) = fre<span class="hljs-string">q(a,b)</span> / (fre<span class="hljs-string">q(a)</span> * fre<span class="hljs-string">q(b)</span>)<br></code></pre></td></tr></table></figure>
+
+<p><strong>特点：</strong></p>
+<ul>
+<li>更注重语义组合性</li>
+<li>BERT 系列模型使用</li>
+<li>对罕见词拆分为子词</li>
+</ul>
+<h3 id="SentencePiece"><a href="#SentencePiece" class="headerlink" title="SentencePiece"></a>SentencePiece</h3><p>Google 推出的分词框架，将字节序列视为统一编码，不预先假设语言边界。支持 BPE 和 Unigram 两种算法。</p>
+<p><strong>关键区别：</strong> 传统分词器需要先做空格分词（英文天然优势），SentencePiece 将整个句子作为原始输入，对中文等连续文字更友好。</p>
+<p><strong>Unigram 算法的特点：</strong></p>
+<ul>
+<li>基于概率模型</li>
+<li>每次移除”最不重要”的 Token（按损失期望）</li>
+<li>可根据需要生成不同粒度的分词结果</li>
+</ul>
+<h3 id="算法对比"><a href="#算法对比" class="headerlink" title="算法对比"></a>算法对比</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th align="center">BPE</th>
+<th align="center">WordPiece</th>
+<th align="center">SentencePiece (Unigram)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>代表模型</td>
+<td align="center">GPT, Claude, Llama</td>
+<td align="center">BERT</td>
+<td align="center">T5, Gemma, ALBERT</td>
+</tr>
+<tr>
+<td>合并策略</td>
+<td align="center">最高频</td>
+<td align="center">最大互信息</td>
+<td align="center">最小概率损失</td>
+</tr>
+<tr>
+<td>预分词</td>
+<td align="center">需要</td>
+<td align="center">需要</td>
+<td align="center">不需要</td>
+</tr>
+<tr>
+<td>词表大小</td>
+<td align="center">可控</td>
+<td align="center">可控</td>
+<td align="center">可控</td>
+</tr>
+<tr>
+<td>中文友好</td>
+<td align="center">中等</td>
+<td align="center">中等</td>
+<td align="center">较好</td>
+</tr>
+</tbody></table>
+<h2 id="三、特殊-Token"><a href="#三、特殊-Token" class="headerlink" title="三、特殊 Token"></a>三、特殊 Token</h2><p>每个 Tokenizer 都包含一组特殊 Token，它们不表示具体文本内容，而是携带结构信息。</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs angelscript"><span class="hljs-string">[BOS]</span> / &lt;s&gt;        句子开始/结束<br><span class="hljs-string">[EOS]</span> / &lt;/s&gt;       句子结束<br><span class="hljs-string">[SEP]</span>              分隔句子<br><span class="hljs-string">[CLS]</span>              分类标记（BERT）<br><span class="hljs-string">[PAD]</span>              填充（对齐序列长度）<br><span class="hljs-string">[MASK]</span>             掩码标记（BERT 预训练）<br><span class="hljs-string">[UNK]</span>              未知字符<br>\n                 换行（是独立 Token）<br></code></pre></td></tr></table></figure>
+
+<p>不同模型的处理方式不同：</p>
+<ul>
+<li><strong>GPT/Claude</strong> 不使用 <code>[SEP]</code>、<code>[CLS]</code>，依赖格式换行和角色标记（如 <code>&lt;|im_start|&gt;</code>）</li>
+<li><strong>BERT</strong> 依赖 <code>[CLS]</code> 和 <code>[SEP]</code> 完成分类和句对输入</li>
+<li><strong>Llama</strong> 使用 <code>&lt;s&gt;</code> 和 <code>&lt;/s&gt;</code></li>
+</ul>
+<h2 id="四、中文分词的特殊性"><a href="#四、中文分词的特殊性" class="headerlink" title="四、中文分词的特殊性"></a>四、中文分词的特殊性</h2><p>中文没有空格分隔，分词方式与英文有本质区别。</p>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs gcode">英文：<span class="hljs-string">&quot;I love programming&quot;</span> → [<span class="hljs-string">&quot;I&quot;</span>, <span class="hljs-string">&quot; love&quot;</span>, <span class="hljs-string">&quot; programming&quot;</span>] <span class="hljs-comment">(3 tokens)</span><br>中文：<span class="hljs-string">&quot;我爱编程&quot;</span> → [<span class="hljs-string">&quot;我爱&quot;</span>, <span class="hljs-string">&quot;编程&quot;</span>] <span class="hljs-comment">(2 tokens，GPT-4)</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>字节级方案（主流趋势）：</strong></p>
+<ul>
+<li>GPT-4、Claude 3+ 等在字节级别运行 BPE</li>
+<li>一个中文字通常编码为 1-2 个 Token</li>
+<li>不依赖语言的预分词规则</li>
+<li>统一处理所有语言和特殊字符</li>
+</ul>
+<p><strong>Token 数量对比（GPT-4 分词器）：</strong></p>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th align="center">字符数</th>
+<th align="center">Token 数</th>
+<th align="center">Token/字符</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>“Hello, world!”</td>
+<td align="center">13</td>
+<td align="center">3</td>
+<td align="center">0.23</td>
+</tr>
+<tr>
+<td>“我爱编程”</td>
+<td align="center">4</td>
+<td align="center">2</td>
+<td align="center">0.50</td>
+</tr>
+<tr>
+<td>英文新闻 1000字</td>
+<td align="center">1000</td>
+<td align="center">~250</td>
+<td align="center">0.25</td>
+</tr>
+<tr>
+<td>中文新闻 1000字</td>
+<td align="center">1000</td>
+<td align="center">~600</td>
+<td align="center">0.60</td>
+</tr>
+</tbody></table>
+<p><strong>实践意义：</strong> 中文 Token 消耗是英文的 2-3 倍，API 调用成本也相应增加。</p>
+<h2 id="五、Token-对成本与性能的影响"><a href="#五、Token-对成本与性能的影响" class="headerlink" title="五、Token 对成本与性能的影响"></a>五、Token 对成本与性能的影响</h2><figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs stata">API 计费 = <span class="hljs-keyword">Token</span> 数 × 单价（输入/输出分开计费）<br><br>例：GPT-4o <span class="hljs-variable">$5</span>/1M 输入 <span class="hljs-keyword">Token</span><br>一次对话输入 2000 中文 ≈ 1200 <span class="hljs-keyword">Token</span> ≈ <span class="hljs-variable">$0</span>.006<br></code></pre></td></tr></table></figure>
+
+<p><strong>影响 Token 数量的因素：</strong></p>
+<ul>
+<li><strong>语言</strong>：中文 Token 密度更高</li>
+<li><strong>格式</strong>：JSON 和代码含大量空格换行</li>
+<li><strong>特殊符号</strong>：每换行、缩进都消耗 Token</li>
+<li><strong>重复内容</strong>：每个重复片段都重新计 Token</li>
+</ul>
+<p><strong>降低 Token 消耗的技巧：</strong></p>
+<ul>
+<li>System Prompt 精简，去除非必要指令</li>
+<li>Few-shot 示例挑选最精炼的</li>
+<li>使用 <code>max_tokens</code> 限制输出长度</li>
+<li>定期清理历史消息（滑动窗口）</li>
+<li>结构化数据用压缩格式（如 TSV 替代 JSON）</li>
+</ul>
+<h2 id="六、常用-Token-计数工具"><a href="#六、常用-Token-计数工具" class="headerlink" title="六、常用 Token 计数工具"></a>六、常用 Token 计数工具</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># OpenAI tiktoken（最常用）</span><br><span class="hljs-keyword">import</span> tiktoken<br>enc = tiktoken.encoding_for_model(<span class="hljs-string">&quot;gpt-4o&quot;</span>)<br>tokens = enc.encode(<span class="hljs-string">&quot;Hello, world!&quot;</span>)<br><span class="hljs-built_in">print</span>(<span class="hljs-built_in">len</span>(tokens))  <span class="hljs-comment"># 3</span><br><br><span class="hljs-comment"># 分成本地查看 Token</span><br><span class="hljs-keyword">for</span> token_id <span class="hljs-keyword">in</span> tokens:<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;<span class="hljs-subst">&#123;token_id&#125;</span>: <span class="hljs-subst">&#123;enc.decode([token_id])&#125;</span>&quot;</span>)<br><br><span class="hljs-comment"># Anthropic 官方案例</span><br><span class="hljs-comment"># Claude 使用独立的 Tokenizer</span><br><span class="hljs-comment"># 可以通过 anthropic 库或 API 获取 Token 数</span><br><br><span class="hljs-comment"># 在线工具</span><br><span class="hljs-comment"># https://platform.openai.com/tokenizer</span><br><span class="hljs-comment"># https://console.anthropic.com/token-count</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="七、Tokenizer-与模型的绑定关系"><a href="#七、Tokenizer-与模型的绑定关系" class="headerlink" title="七、Tokenizer 与模型的绑定关系"></a>七、Tokenizer 与模型的绑定关系</h2><p>每个 Tokenizer 对应一个固定的词表（vocab.json），<strong>一旦模型训练完成，Token 映射关系就冻结了</strong>。这意味着：</p>
+<ul>
+<li>同一个文本用不同模型的 Tokenizer 分出的 Token 数不同</li>
+<li>迁移模型时必须切换对应 Tokenizer</li>
+<li>Tokenizer 的优化只能在模型预训练之前发生</li>
+<li>特殊 Token 的处理方式随模型架构固定</li>
+</ul>
+<p><strong>关键提醒：</strong> 不能通过优化 Tokenizer 来降低推理成本。Token 消耗不是用户能优化的——同一段文本的 Token 数由训练时固化的 Tokenizer 决定。减少 Token 的核心方式是<strong>精简输入</strong>。</p>
+<h2 id="八、面试题"><a href="#八、面试题" class="headerlink" title="八、面试题"></a>八、面试题</h2><h4 id="1-BPE-和-WordPiece-的区别是什么？"><a href="#1-BPE-和-WordPiece-的区别是什么？" class="headerlink" title="1. BPE 和 WordPiece 的区别是什么？"></a>1. BPE 和 WordPiece 的区别是什么？</h4><p>合并标准不同：BPE 按频率合并最常出现的 Token 对，WordPiece 按互信息（似然增益）合并。BPE 代表模型 GPT/Claude/Llama，WordPiece 代表模型 BERT。</p>
+<h4 id="2-为什么中文比英文消耗更多-Token？"><a href="#2-为什么中文比英文消耗更多-Token？" class="headerlink" title="2. 为什么中文比英文消耗更多 Token？"></a>2. 为什么中文比英文消耗更多 Token？</h4><p>中文没有空格分隔，字节级 BPE 将每个汉字编码成独立或组合 Token。相同字符数下，中文 Token 密度更高（约 0.6 Token/字 vs 英文 0.25 Token/字）。</p>
+<h4 id="3-Tokenizer-在模型中的作用是什么？"><a href="#3-Tokenizer-在模型中的作用是什么？" class="headerlink" title="3. Tokenizer 在模型中的作用是什么？"></a>3. Tokenizer 在模型中的作用是什么？</h4><p>Tokenizer 是 LLM 的第一层，将原始文本映射为 Token ID 序列。模型只能处理 Token ID，不能直接处理字符。Tokenizer 的性能决定了模型能”看到”什么粒度的信息。</p>
+<h4 id="4-如何估算-Token-数？"><a href="#4-如何估算-Token-数？" class="headerlink" title="4. 如何估算 Token 数？"></a>4. 如何估算 Token 数？</h4><p>英文约 4 字符/Token，中文约 1.5-2 字符/Token。更精确用 tiktoken（OpenAI）或对应模型的 Tokenizer 库。API 调用时通常响应头会返回 Token 消耗数。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/AI-Spring-AI/">AI / Spring AI</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/AI/">AI</a>
+                    
+                      <a class="hover-with-bg" href="/tags/LLM%E5%9F%BA%E7%A1%80/">LLM基础</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Tokenizer/">Tokenizer</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Token/">Token</a>
+                    
+                      <a class="hover-with-bg" href="/tags/BPE/">BPE</a>
+                    
+                      <a class="hover-with-bg" href="/tags/WordPiece/">WordPiece</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/26/SpringAI%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Spring AI 应用开发实战：ChatClient、RAG、AI Agent</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/26/Java%E5%90%8E%E7%AB%AF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF2026/">
+                        <span class="hidden-mobile">Java 后端学习路线 2026：从零基础到架构师</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

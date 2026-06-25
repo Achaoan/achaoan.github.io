@@ -180,6 +180,342 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E8%AF%A6%E8%A7%A3Seata%E4%B8%8ETCC/" target="_self">
+          <img src="/img/distributed-tx-cover.png" srcset="/img/loading.gif" lazyload alt="分布式事务详解：Seata AT/TCC、可靠消息最终一致性">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E8%AF%A6%E8%A7%A3Seata%E4%B8%8ETCC/" target="_self">
+          分布式事务详解：Seata AT/TCC、可靠消息最终一致性
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E8%AF%A6%E8%A7%A3Seata%E4%B8%8ETCC/" target="_self">
+          
+          
+            
+          
+          一、什么是分布式事务？为什么需要分布式事务？12345微服务架构中，一个业务操作可能跨多个服务、多个数据库：下单业务：├── 订单服务 → 创建订单（order_db）├── 库存服务 → 扣减库存（stock_db）└── 账户服务 → 扣减余额（account_db）
+
+CAP 定理12345678一致性（Consistency）、可用性（Availability）、分区容错性（Partiti
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 23:30" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Spring/">Spring</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+            
+              <a href="/tags/%E4%BA%8B%E5%8A%A1/">事务</a>
+            
+              <a href="/tags/Seata/">Seata</a>
+            
+              <a href="/tags/TCC/">TCC</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E7%8E%B0%E8%AF%A6%E8%A7%A3/" target="_self">
+          <img src="/img/distributed-lock-cover.png" srcset="/img/loading.gif" lazyload alt="分布式锁实现：Redis RedLock vs ZooKeeper 选型对比">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E7%8E%B0%E8%AF%A6%E8%A7%A3/" target="_self">
+          分布式锁实现：Redis RedLock vs ZooKeeper 选型对比
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E7%8E%B0%E8%AF%A6%E8%A7%A3/" target="_self">
+          
+          
+            
+          
+          一、为什么需要分布式锁？单机锁 vs 分布式锁12345678单机锁（synchronized / ReentrantLock）：只在一个 JVM 内生效分布式锁：跨多个 JVM / 多个服务需要分布式锁的场景：├── 防止重复下单（同一用户同时提交两次）├── 定时任务分布式调度（只让一个节点执行）├── 库存扣减（多个服务实例同时操作）└── 分布式数据迁移
+
+二、Redis 分布式锁基础版：
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 23:30" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Spring/">Spring</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+            
+              <a href="/tags/%E9%94%81/">锁</a>
+            
+              <a href="/tags/Redis/">Redis</a>
+            
+              <a href="/tags/ZooKeeper/">ZooKeeper</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
+          <img src="/img/seckill-cover.png" srcset="/img/loading.gif" lazyload alt="秒杀系统设计：缓存+MQ+限流+降级方案">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
+          秒杀系统设计：缓存+MQ+限流+降级方案
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
+          
+          
+            
+          
+          一、秒杀系统的挑战核心难点123451. 高并发读：瞬间大量用户涌入，页面访问量激增2. 高并发写：秒杀开始瞬间大量下单请求3. 库存扣减：防止超卖（扣减库存必须原子）4. 限购：同一用户只能买 N 件5. 防作弊：防止脚本刷单
+
+性能指标123QPS：高峰期可能达到数十万/秒库存：通常很少（几十到几千件）读/写比：读请求远大于写请求
+
+二、整体架构123456789101112131415161
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 23:30" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Spring/">Spring</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a>
+            
+              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">高并发</a>
+            
+              <a href="/tags/%E7%A7%92%E6%9D%80/">秒杀</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/%E7%9F%AD%E9%93%BE%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
+          <img src="/img/short-url-cover.png" srcset="/img/loading.gif" lazyload alt="短链系统设计：发号器+重定向+高性能架构">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/%E7%9F%AD%E9%93%BE%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
+          短链系统设计：发号器+重定向+高性能架构
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/%E7%9F%AD%E9%93%BE%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" target="_self">
+          
+          
+            
+          
+          一、短链系统核心功能用途123将长 URL 转换为短 URL：长：https://example.com/articles/2026/06/25/java-interview-guide?source=wechat短：https://short.url/Ab3xYz
+
+核心流程1234567用户访问短链 http://short.url/Ab3xYz            │           
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 23:30" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Spring/">Spring</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a>
+            
+              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">高并发</a>
+            
+              <a href="/tags/%E7%9F%AD%E9%93%BE/">短链</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2026/06/25/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%9C%A8Spring%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" target="_self">
+          <img src="/img/design-pattern-cover.png" srcset="/img/loading.gif" lazyload alt="设计模式在Spring中的应用：工厂、单例、代理、策略、模板">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/25/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%9C%A8Spring%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" target="_self">
+          设计模式在Spring中的应用：工厂、单例、代理、策略、模板
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2026/06/25/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%9C%A8Spring%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/" target="_self">
+          
+          
+            
+          
+          一、设计模式分类三大类 23 种1234创建型（5）：工厂方法、抽象工厂、单例、建造者、原型结构型（7）：适配器、装饰器、代理、外观、桥接、组合、享元行为型（11）：策略、模板方法、观察者、责任链、迭代器、命令、            状态、访问者、中介者、解释器、备忘录
+
+Spring 中常用的：
+
+
+
+模式
+Spring 应用
+
+
+
+工厂
+BeanFactory、ApplicationCont
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-25 23:30" pubdate>
+              2026-06-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Spring/">Spring</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%BA%90%E7%A0%81/">源码</a>
+            
+              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
+            
+              <a href="/tags/Spring/">Spring</a>
+            
+              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2026/06/25/%E9%99%90%E6%B5%81%E7%AE%97%E6%B3%95%E4%B8%8E%E5%AE%9E%E7%8E%B0/" target="_self">
           <img src="/img/ratelimit-cover.png" srcset="/img/loading.gif" lazyload alt="限流算法与实现：计数器、滑动窗口、令牌桶、漏桶">
         </a>
@@ -532,342 +868,11 @@ CPU/内存
     </article>
   </div>
 
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2026/06/25/SpringBean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E8%AF%A6%E8%A7%A3/" target="_self">
-          <img src="/img/bean-lifecycle-cover.png" srcset="/img/loading.gif" lazyload alt="Spring Bean生命周期：从实例化到销毁的完整过程">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2026/06/25/SpringBean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E8%AF%A6%E8%A7%A3/" target="_self">
-          Spring Bean生命周期：从实例化到销毁的完整过程
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2026/06/25/SpringBean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E8%AF%A6%E8%A7%A3/" target="_self">
-          
-          
-            
-          
-          一、Bean 生命周期总览Spring Bean 的生命周期分为四个阶段：
-1实例化 → 属性赋值 → 初始化 → 销毁
-
-完整流程（12 步）12345678910111213① 实例化 Bean（构造方法 / 工厂方法）② 设置对象属性（依赖注入）③ 检查 Aware 系列接口   ├── BeanNameAware.setBeanName()   ├── BeanClassLoaderAwa
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-25 23:00" pubdate>
-              2026-06-25
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Spring/">Spring</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E6%BA%90%E7%A0%81/">源码</a>
-            
-              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
-            
-              <a href="/tags/Spring/">Spring</a>
-            
-              <a href="/tags/Bean/">Bean</a>
-            
-              <a href="/tags/%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/">生命周期</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2026/06/25/%E6%A8%A1%E5%9E%8B%E5%BE%AE%E8%B0%83%E4%B8%8E%E5%AF%B9%E9%BD%90LoRA%E4%B8%8ERLHF/" target="_self">
-          <img src="/img/finetuning-cover.png" srcset="/img/loading.gif" lazyload alt="模型微调与对齐：LoRA、RLHF、DPO 原理与实践">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2026/06/25/%E6%A8%A1%E5%9E%8B%E5%BE%AE%E8%B0%83%E4%B8%8E%E5%AF%B9%E9%BD%90LoRA%E4%B8%8ERLHF/" target="_self">
-          模型微调与对齐：LoRA、RLHF、DPO 原理与实践
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2026/06/25/%E6%A8%A1%E5%9E%8B%E5%BE%AE%E8%B0%83%E4%B8%8E%E5%AF%B9%E9%BD%90LoRA%E4%B8%8ERLHF/" target="_self">
-          
-          
-            
-          
-          一、什么是微调微调（Fine-tuning）是在预训练模型的基础上，用特定领域数据进一步训练，让模型适应特定任务。
-12345678910111213141516171819202122预训练 vs 微调：┌──────────────────────────────────────────────────────────┐│  预训练（Pre-training）：                
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-25 22:45" pubdate>
-              2026-06-25
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Spring/">Spring</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/AI/">AI</a>
-            
-              <a href="/tags/%E5%BE%AE%E8%B0%83/">微调</a>
-            
-              <a href="/tags/LoRA/">LoRA</a>
-            
-              <a href="/tags/RLHF/">RLHF</a>
-            
-              <a href="/tags/DPO/">DPO</a>
-            
-              <a href="/tags/%E5%AF%B9%E9%BD%90/">对齐</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2026/06/25/%E6%A8%A1%E5%9E%8B%E9%87%8F%E5%8C%96%E4%B8%8E%E8%92%B8%E9%A6%8F%E6%8A%80%E6%9C%AF%E8%AF%A6%E8%A7%A3/" target="_self">
-          <img src="/img/quantization-cover.png" srcset="/img/loading.gif" lazyload alt="模型量化与蒸馏：技术原理、格式对比与实践">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2026/06/25/%E6%A8%A1%E5%9E%8B%E9%87%8F%E5%8C%96%E4%B8%8E%E8%92%B8%E9%A6%8F%E6%8A%80%E6%9C%AF%E8%AF%A6%E8%A7%A3/" target="_self">
-          模型量化与蒸馏：技术原理、格式对比与实践
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2026/06/25/%E6%A8%A1%E5%9E%8B%E9%87%8F%E5%8C%96%E4%B8%8E%E8%92%B8%E9%A6%8F%E6%8A%80%E6%9C%AF%E8%AF%A6%E8%A7%A3/" target="_self">
-          
-          
-            
-          
-          一、量化（Quantization）是什么量化是将模型参数从高精度浮点数压缩到低精度格式，降低显存占用和加速推理。
-12345678910111213141516精度对比：┌────────────┬───────────┬──────────┬──────────────────┐│ 格式       │ 位数      │ 显存节省 │ 质量损失         │├────────────┼
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-25 22:40" pubdate>
-              2026-06-25
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Spring/">Spring</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/AI/">AI</a>
-            
-              <a href="/tags/%E9%87%8F%E5%8C%96/">量化</a>
-            
-              <a href="/tags/%E8%92%B8%E9%A6%8F/">蒸馏</a>
-            
-              <a href="/tags/GGUF/">GGUF</a>
-            
-              <a href="/tags/%E6%A8%A1%E5%9E%8B%E5%8E%8B%E7%BC%A9/">模型压缩</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2026/06/25/MoE%E6%B7%B7%E5%90%88%E4%B8%93%E5%AE%B6%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E4%B8%8ERouter/" target="_self">
-          <img src="/img/moe-cover.png" srcset="/img/loading.gif" lazyload alt="MoE 混合专家模型：架构原理、Router 与负载均衡">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2026/06/25/MoE%E6%B7%B7%E5%90%88%E4%B8%93%E5%AE%B6%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E4%B8%8ERouter/" target="_self">
-          MoE 混合专家模型：架构原理、Router 与负载均衡
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2026/06/25/MoE%E6%B7%B7%E5%90%88%E4%B8%93%E5%AE%B6%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84%E4%B8%8ERouter/" target="_self">
-          
-          
-            
-          
-          一、什么是 MoEMoE（Mixture of Experts，混合专家模型）是一种模型架构设计，将一个大模型拆分为多个”专家”子网络，每次推理只激活其中一部分。
-1234567891011121314151617181920传统 Dense 模型 vs MoE：┌──────────────────────────────────────────────────────────┐│  传统模型（
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-25 22:35" pubdate>
-              2026-06-25
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Spring/">Spring</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/AI/">AI</a>
-            
-              <a href="/tags/MoE/">MoE</a>
-            
-              <a href="/tags/%E6%B7%B7%E5%90%88%E4%B8%93%E5%AE%B6/">混合专家</a>
-            
-              <a href="/tags/%E6%A8%A1%E5%9E%8B%E6%9E%B6%E6%9E%84/">模型架构</a>
-            
-              <a href="/tags/Router/">Router</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2026/06/25/CAS%E5%8E%9F%E7%90%86%E4%B8%8EABA%E9%97%AE%E9%A2%98%E8%AF%A6%E8%A7%A3/" target="_self">
-          <img src="/img/cas-cover.png" srcset="/img/loading.gif" lazyload alt="CAS原理与ABA问题解决方案">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2026/06/25/CAS%E5%8E%9F%E7%90%86%E4%B8%8EABA%E9%97%AE%E9%A2%98%E8%AF%A6%E8%A7%A3/" target="_self">
-          CAS原理与ABA问题解决方案
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2026/06/25/CAS%E5%8E%9F%E7%90%86%E4%B8%8EABA%E9%97%AE%E9%A2%98%E8%AF%A6%E8%A7%A3/" target="_self">
-          
-          
-            
-          
-          一、CAS 概述什么是 CAS？CAS（Compare And Swap）是一种乐观锁技术，通过比较内存值是否等于预期值，相等则更新，不相等则重试。
-123456CAS(V, E, N)：  └── V：内存地址中的值  └── E：预期的旧值  └── N：新值  └── 如果 V == E → V = N（成功）  └── 如果 V != E → 不操作（失败，返回 false）
-
-硬件支持C
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-25 22:30" pubdate>
-              2026-06-25
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Java/">Java</a>
-            
-              <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
-            
-              <a href="/tags/%E9%9D%A2%E8%AF%95/">面试</a>
-            
-              <a href="/tags/CAS/">CAS</a>
-            
-              <a href="/tags/ABA/">ABA</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
 
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <a class="extend prev" rel="prev" href="/page/5/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/#board">4</a><a class="page-number" href="/page/5/#board">5</a><span class="page-number current">6</span><a class="page-number" href="/page/7/#board">7</a><a class="page-number" href="/page/8/#board">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/#board">12</a><a class="extend next" rel="next" href="/page/7/#board"><i class="iconfont icon-arrowright"></i></a>
+      <a class="extend prev" rel="prev" href="/page/5/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/#board">4</a><a class="page-number" href="/page/5/#board">5</a><span class="page-number current">6</span><a class="page-number" href="/page/7/#board">7</a><a class="page-number" href="/page/8/#board">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/13/#board">13</a><a class="extend next" rel="next" href="/page/7/#board"><i class="iconfont icon-arrowright"></i></a>
     </span>
   </nav>
 

@@ -1,0 +1,670 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/computer.png">
+  <link rel="icon" href="/img/computer.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>Embedding 模型与文本向量化：原理、相似度与应用 - Dachao&#39;s bolg</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Dchao's blog</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/embedding-cover.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Embedding 模型与文本向量化：原理、相似度与应用">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2026-06-26 02:30" pubdate>
+        2026年6月26日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.4k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      16
+       分钟
+    </span>
+  
+
+  
+  
+    
+      <!-- 不蒜子统计文章PV -->
+      <span id="busuanzi_container_page_pv" style="display: none">
+        <i class="iconfont icon-eye" aria-hidden="true"></i>
+        <span id="busuanzi_value_page_pv"></span> 次
+      </span>
+    
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Embedding 模型与文本向量化：原理、相似度与应用</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：3 分钟前
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="一、什么是-Embedding"><a href="#一、什么是-Embedding" class="headerlink" title="一、什么是 Embedding"></a>一、什么是 Embedding</h2><p>Embedding（嵌入）是将文本、图片等非结构化数据映射到高维向量空间的技术。在这个向量空间中，语义相近的文本距离更近，语义无关的文本距离更远。</p>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs gcode"><span class="hljs-string">&quot;猫&quot;</span> → [<span class="hljs-number">0.23</span>, <span class="hljs-number">-0.45</span>, <span class="hljs-number">0.67</span>, ..., <span class="hljs-number">0.12</span>]  <span class="hljs-comment">(1024 维向量)</span><br><span class="hljs-string">&quot;狗&quot;</span> → [<span class="hljs-number">0.25</span>, <span class="hljs-number">-0.40</span>, <span class="hljs-number">0.70</span>, ..., <span class="hljs-number">0.15</span>]  <span class="hljs-comment">(语义相近 → 向量距离近)</span><br><span class="hljs-string">&quot;汽车&quot;</span> → [<span class="hljs-number">0.80</span>, <span class="hljs-number">0.12</span>, <span class="hljs-number">-0.33</span>, ..., <span class="hljs-number">0.55</span>] <span class="hljs-comment">(语义无关 → 向量距离远)</span><br></code></pre></td></tr></table></figure>
+
+<p>Embedding 是 RAG、语义搜索、聚类分类等应用的底层技术。</p>
+<h2 id="二、文本转向量的原理"><a href="#二、文本转向量的原理" class="headerlink" title="二、文本转向量的原理"></a>二、文本转向量的原理</h2><h3 id="从词向量到句向量"><a href="#从词向量到句向量" class="headerlink" title="从词向量到句向量"></a>从词向量到句向量</h3><p><strong>Word2Vec（里程碑）：</strong></p>
+<ul>
+<li>通过 CBOW（上下文预测中心词）或 Skip-gram（中心词预测上下文）训练</li>
+<li>每个词对应一个固定向量</li>
+<li>局限：无法处理一词多义</li>
+</ul>
+<p><strong>BERT Embedding：</strong></p>
+<ul>
+<li>利用双向 Transformer 编码器</li>
+<li>同一词在不同上下文中有不同的向量</li>
+<li>取 <code>[CLS]</code> Token 的输出或所有 Token 的平均池化作为句向量</li>
+</ul>
+<p><strong>OpenAI Embedding 模型：</strong></p>
+<ul>
+<li>text-embedding-3-small：1536 维，速度快</li>
+<li>text-embedding-3-large：3072 维，精度高，可降维</li>
+<li>专为语义搜索优化</li>
+</ul>
+<h3 id="训练原理"><a href="#训练原理" class="headerlink" title="训练原理"></a>训练原理</h3><p>Embedding 模型通常用<strong>对比学习（Contrastive Learning）</strong>训练：</p>
+<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs 1c">正样本对：<span class="hljs-string">&quot;北京是中国的首都&quot;</span> ↔ <span class="hljs-string">&quot;北京是中国的政治中心&quot;</span>（语义相似）<br>负样本对：<span class="hljs-string">&quot;北京是中国的首都&quot;</span> ↔ <span class="hljs-string">&quot;苹果是一种水果&quot;</span>（语义无关）<br><br>损失函数：最小化正样本距离，最大化负样本距离<br>          InfoNCE Loss / Triplet Loss<br></code></pre></td></tr></table></figure>
+
+<p>训练数据通常是数十亿的 <code>(query, positive, negative)</code> 三元组。</p>
+<h2 id="三、相似度计算方法"><a href="#三、相似度计算方法" class="headerlink" title="三、相似度计算方法"></a>三、相似度计算方法</h2><table>
+<thead>
+<tr>
+<th>方法</th>
+<th align="center">公式</th>
+<th align="center">范围</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>余弦相似度</strong>（最常用）</td>
+<td align="center">cos(θ) = (A·B) / (‖A‖·‖B‖)</td>
+<td align="center">[-1, 1]</td>
+<td>只考虑方向，不考虑长度</td>
+</tr>
+<tr>
+<td><strong>欧氏距离</strong></td>
+<td align="center">d = ‖A - B‖₂</td>
+<td align="center">[0, ∞)</td>
+<td>考虑方向和长度</td>
+</tr>
+<tr>
+<td><strong>点积</strong></td>
+<td align="center">A·B</td>
+<td align="center">(-∞, ∞)</td>
+<td>需要向量已归一化</td>
+</tr>
+<tr>
+<td><strong>曼哈顿距离</strong></td>
+<td align="center">Σ</td>
+<td align="center">aᵢ - bᵢ</td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>余弦相似度是 Embedding 搜索的默认选择</strong>，因为它对向量长度不敏感——在 Embedding 空间中，向量的方向比长度更能反映语义。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np<br><br><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">cosine_similarity</span>(<span class="hljs-params">a, b</span>):</span><br>    <span class="hljs-keyword">return</span> np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))<br><br><span class="hljs-comment"># 示例</span><br>query_emb = [<span class="hljs-number">0.1</span>, <span class="hljs-number">0.2</span>, <span class="hljs-number">0.8</span>]      <span class="hljs-comment"># &quot;猫&quot;</span><br>doc1_emb = [<span class="hljs-number">0.15</span>, <span class="hljs-number">0.18</span>, <span class="hljs-number">0.75</span>]    <span class="hljs-comment"># &quot;小猫&quot;</span><br>doc2_emb = [<span class="hljs-number">0.7</span>, <span class="hljs-number">0.3</span>, -<span class="hljs-number">0.1</span>]      <span class="hljs-comment"># &quot;汽车&quot;</span><br><br><span class="hljs-built_in">print</span>(cosine_similarity(query_emb, doc1_emb))  <span class="hljs-comment"># ~0.99 语义相近</span><br><span class="hljs-built_in">print</span>(cosine_similarity(query_emb, doc2_emb))  <span class="hljs-comment"># ~0.20 语义无关</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="四、主流-Embedding-模型"><a href="#四、主流-Embedding-模型" class="headerlink" title="四、主流 Embedding 模型"></a>四、主流 Embedding 模型</h2><h3 id="闭源-API-模型"><a href="#闭源-API-模型" class="headerlink" title="闭源 API 模型"></a>闭源 API 模型</h3><table>
+<thead>
+<tr>
+<th>模型</th>
+<th align="center">维度</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>text-embedding-3-large (OpenAI)</td>
+<td align="center">256-3072</td>
+<td>可降维，支持 Matryoshka 表示</td>
+</tr>
+<tr>
+<td>text-embedding-3-small (OpenAI)</td>
+<td align="center">512-1536</td>
+<td>速度快，性价比高</td>
+</tr>
+<tr>
+<td>Cohere Embed v3</td>
+<td align="center">1024</td>
+<td>针对 RAG 优化</td>
+</tr>
+</tbody></table>
+<h3 id="开源模型"><a href="#开源模型" class="headerlink" title="开源模型"></a>开源模型</h3><table>
+<thead>
+<tr>
+<th>模型</th>
+<th align="center">参数量</th>
+<th align="center">维度</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BGE-large-zh</td>
+<td align="center">326M</td>
+<td align="center">1024</td>
+<td>中文效果好</td>
+</tr>
+<tr>
+<td>BGE-M3</td>
+<td align="center">567M</td>
+<td align="center">1024</td>
+<td>多语言、多粒度</td>
+</tr>
+<tr>
+<td>E5-large-v2</td>
+<td align="center">326M</td>
+<td align="center">1024</td>
+<td>指令微调</td>
+</tr>
+<tr>
+<td>GTE-large</td>
+<td align="center">326M</td>
+<td align="center">1024</td>
+<td>阿里出品，中文出色</td>
+</tr>
+<tr>
+<td>jina-embeddings-v3</td>
+<td align="center">最新</td>
+<td align="center">1024</td>
+<td>支持 Matryoshka 降维</td>
+</tr>
+</tbody></table>
+<p><strong>选型建议：</strong></p>
+<ul>
+<li>中文为主 → BGE-large-zh / GTE-large</li>
+<li>多语言 → BGE-M3 / text-embedding-3</li>
+<li>需要高精度 → text-embedding-3-large (3072 维)</li>
+<li>需要快速且可控 → BGE 系列本地部署</li>
+</ul>
+<h3 id="向量维度与性能"><a href="#向量维度与性能" class="headerlink" title="向量维度与性能"></a>向量维度与性能</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs awk">高维度（<span class="hljs-number">3072</span>） → 精度高，存储大，检索慢<br>低维度（<span class="hljs-number">256</span>）  → 精度适中，存储小，检索快<br><br>Matryoshka Representation Learning：训练单一模型，推理时可选择不同维度<br>同一模型输出 <span class="hljs-number">256</span><span class="hljs-regexp">/512/</span><span class="hljs-number">1024</span>/<span class="hljs-number">3072</span> 维，按需取舍精度与效率<br></code></pre></td></tr></table></figure>
+
+<h2 id="五、Embedding-在-RAG-中的角色"><a href="#五、Embedding-在-RAG-中的角色" class="headerlink" title="五、Embedding 在 RAG 中的角色"></a>五、Embedding 在 RAG 中的角色</h2><p>RAG 的核心流程中，Embedding 出现两次：</p>
+<figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">用户 <span class="hljs-built_in">Query</span> ──→ <span class="hljs-variable">Embedding</span> 模型 ──→ <span class="hljs-built_in">Query</span> 向量<br>                                           ↓<br>                                   向量数据库（相似度搜索）<br>                                           ↓<br>文档集合 ──→ <span class="hljs-variable">Embedding</span> 模型 ──→ 文档向量库 ──→ <span class="hljs-built_in">Top</span><span class="hljs-operator">-</span><span class="hljs-built_in">K</span> 文档<br></code></pre></td></tr></table></figure>
+
+<p><strong>关键指标：</strong></p>
+<ul>
+<li><strong>召回率（Recall）</strong>：前 K 个结果包含相关文档的比例</li>
+<li><strong>延迟</strong>：&lt; 100ms 为优（取决于向量维度和文档数量）</li>
+<li><strong>存储</strong>：100 万条 1024 维向量约占用 4GB（含索引）</li>
+</ul>
+<p><strong>影响搜索质量的因素：</strong></p>
+<ul>
+<li>Embedding 模型与领域语言的匹配度</li>
+<li>分块策略（chunk size / overlap）</li>
+<li>索引算法（HNSW / IVF / Flat）</li>
+<li>是否用重排序（Reranker）二次过滤</li>
+</ul>
+<h2 id="六、Embedding-vs-稀疏检索（BM25）"><a href="#六、Embedding-vs-稀疏检索（BM25）" class="headerlink" title="六、Embedding vs 稀疏检索（BM25）"></a>六、Embedding vs 稀疏检索（BM25）</h2><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm"><span class="hljs-keyword">BM25（传统关键词搜索）：</span><br><span class="hljs-keyword"></span>  <span class="hljs-string">&quot;退休金政策&quot;</span> → 匹配含<span class="hljs-string">&quot;退休金&quot;</span>的文档（精确关键词）<br>  优点：精确匹配，无训练成本<br>  缺点：<span class="hljs-string">&quot;养老金政策&quot;</span>不匹配（同义词失效）<br><br>Embedding（语义搜索）：<br>  <span class="hljs-string">&quot;退休金政策&quot;</span> → 向量检索 → 含<span class="hljs-string">&quot;养老金政策&quot;</span>的文档也被召回<br>  优点：理解语义，同义词有效<br>  缺点：偶有语义偏差<br><br>最佳实践：混合 <span class="hljs-keyword">BM25 </span>+ Embedding + Reranker 三级融合<br></code></pre></td></tr></table></figure>
+
+<h2 id="七、面试题"><a href="#七、面试题" class="headerlink" title="七、面试题"></a>七、面试题</h2><h4 id="1-Embedding-余弦相似度的计算过程？"><a href="#1-Embedding-余弦相似度的计算过程？" class="headerlink" title="1. Embedding 余弦相似度的计算过程？"></a>1. Embedding 余弦相似度的计算过程？</h4><p>向量 A 和 B 的点积除以各自模长的乘积。值越接近 1 表示语义越相似，越接近 -1 表示语义越相反。余弦相似度只关注方向，不关注向量长度。</p>
+<h4 id="2-Embedding-模型和-LLM-的区别？"><a href="#2-Embedding-模型和-LLM-的区别？" class="headerlink" title="2. Embedding 模型和 LLM 的区别？"></a>2. Embedding 模型和 LLM 的区别？</h4><p>Embedding 模型输出高维向量（语义表示），LLM 输出 Token 概率（文本生成）。Embedding 模型通常更小更快，用于检索和分类；LLM 用于理解和生成文本。</p>
+<h4 id="3-怎么评估-Embedding-质量？"><a href="#3-怎么评估-Embedding-质量？" class="headerlink" title="3. 怎么评估 Embedding 质量？"></a>3. 怎么评估 Embedding 质量？</h4><p>用语义相似度基准（如 STS-B / MTEB）评估，或在具体任务（RAG 召回率、分类准确率）上评测。粗糙做法：人工检查 Top-K 结果的相关性。</p>
+<h4 id="4-text-embedding-3-large-输出-3072-维，为什么可以降维？"><a href="#4-text-embedding-3-large-输出-3072-维，为什么可以降维？" class="headerlink" title="4. text-embedding-3-large 输出 3072 维，为什么可以降维？"></a>4. text-embedding-3-large 输出 3072 维，为什么可以降维？</h4><p>它使用 Matryoshka 表示学习，同一个模型可以输出 256/512/1024/2048/3072 维。降维时去掉末尾维度，精度略有下降但存储和检索效率提升。选型时根据精度-效率权衡决定。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/AI-Spring-AI/">AI / Spring AI</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/AI/">AI</a>
+                    
+                      <a class="hover-with-bg" href="/tags/LLM%E5%9F%BA%E7%A1%80/">LLM基础</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Embedding/">Embedding</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%90%91%E9%87%8F%E5%8C%96/">向量化</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E8%AF%AD%E4%B9%89%E6%90%9C%E7%B4%A2/">语义搜索</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/26/WebSocket%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">WebSocket 原理与 Spring Boot 集成实战</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/26/Nginx%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/">
+                        <span class="hidden-mobile">Nginx 原理与实战：反向代理、负载均衡、限流</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"TPHaN5RwHJvIScPkuQebPPcl-gzGzoHsz","appKey":"bhjOS1d63fgfgDX19J1XKDGl","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+  <div class="statistics">
+    
+    
+
+    
+      
+        <!-- 不蒜子统计PV -->
+        <span id="busuanzi_container_site_pv" style="display: none">
+            总访问量 
+            <span id="busuanzi_value_site_pv"></span>
+             次
+          </span>
+      
+      
+        <!-- 不蒜子统计UV -->
+        <span id="busuanzi_container_site_uv" style="display: none">
+            总访客数 
+            <span id="busuanzi_value_site_uv"></span>
+             人
+          </span>
+      
+    
+  </div>
+
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
